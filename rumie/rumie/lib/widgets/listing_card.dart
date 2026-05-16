@@ -1,110 +1,128 @@
 import 'package:flutter/material.dart';
 
-import '../models/roommate.dart';
 import '../theme/app_colors.dart';
-import 'trait_chip.dart';
 
-/// Compact card used in the Listings tab. Shows enough info to scan
-/// the list without opening detail (avatar, name+age, location, budget,
-/// first two traits).
 class ListingCard extends StatelessWidget {
-  final Roommate roommate;
-  final VoidCallback onTap;
+  final String title;
+  final String type;
+  final String location;
+  final int rent;
+  final String bedsBaths;
+  final String availableDate;
 
   const ListingCard({
     super.key,
-    required this.roommate,
-    required this.onTap,
+    required this.title,
+    required this.type,
+    required this.location,
+    required this.rent,
+    required this.bedsBaths,
+    required this.availableDate,
   });
 
   @override
   Widget build(BuildContext context) {
-    final r = roommate;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: r.gradient[0].withOpacity(0.10),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardCream,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.darkText, width: 4),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: r.gradient,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+              height: 150,
+              width: double.infinity,
+              color: AppColors.softBlue,
+              child: const Center(
+                child: Text(
+                  'LISTING PHOTO PLACEHOLDER',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.darkText,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1,
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Center(
-                child: Text(r.emoji, style: const TextStyle(fontSize: 40)),
               ),
             ),
-            const SizedBox(width: 14),
-            Expanded(
+            Padding(
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        '${r.name}, ${r.age}',
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.darkText,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.softPurple,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '\$${r.budget}',
-                          style: const TextStyle(
-                            color: AppColors.purple,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
+                  _typePill(type),
+                  const SizedBox(height: 12),
                   Text(
-                    '📍 ${r.location}',
-                    style: const TextStyle(fontSize: 13, color: AppColors.gray),
+                    title,
+                    style: const TextStyle(
+                      fontFamily: 'serif',
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.darkText,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: r.traits
-                        .take(2)
-                        .map((t) => TraitChip(trait: t))
-                        .toList(),
+                  Text(
+                    location,
+                    style: const TextStyle(
+                      color: AppColors.gray,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      _infoBox('\$$rent/mo'),
+                      const SizedBox(width: 8),
+                      _infoBox(bedsBaths),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  _infoBox('Available $availableDate'),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _typePill(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.pink,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.darkText, width: 3),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: AppColors.darkText,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+
+  Widget _infoBox(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.darkText, width: 3),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: AppColors.darkText,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );

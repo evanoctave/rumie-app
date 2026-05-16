@@ -1,67 +1,161 @@
 import 'package:flutter/material.dart';
 
-import '../data/sample_data.dart';
-import '../models/roommate.dart';
 import '../theme/app_colors.dart';
 import '../widgets/listing_card.dart';
 
-/// Browse view: full list of available roommates as cards. Tap a card
-/// to open a detail sheet. Separate from the Swiping tab.
-class ListingsScreen extends StatelessWidget {
+class ListingsScreen extends StatefulWidget {
   const ListingsScreen({super.key});
 
   @override
+  State<ListingsScreen> createState() => _ListingsScreenState();
+}
+
+class _ListingsScreenState extends State<ListingsScreen> {
+  String selectedType = 'All';
+
+  final List<String> types = const [
+    'All',
+    'Apartment',
+    'House',
+    'Condo',
+    'Room',
+    'Duplex',
+    'Studio',
+  ];
+
+  final List<Map<String, dynamic>> listings = const [
+    {
+      'title': 'Bright private room near campus',
+      'type': 'Room',
+      'location': 'Westwood, Los Angeles',
+      'rent': 1250,
+      'bedsBaths': '1 bed / shared bath',
+      'availableDate': 'June 1',
+    },
+    {
+      'title': 'Pastel apartment with shared kitchen',
+      'type': 'Apartment',
+      'location': 'Koreatown, Los Angeles',
+      'rent': 1800,
+      'bedsBaths': '2 bed / 1 bath',
+      'availableDate': 'July 10',
+    },
+    {
+      'title': 'Quiet condo with study space',
+      'type': 'Condo',
+      'location': 'Pasadena, CA',
+      'rent': 2100,
+      'bedsBaths': '2 bed / 2 bath',
+      'availableDate': 'Now',
+    },
+    {
+      'title': 'Duplex room with backyard',
+      'type': 'Duplex',
+      'location': 'El Sereno, Los Angeles',
+      'rent': 1450,
+      'bedsBaths': '1 bed / 1 bath',
+      'availableDate': 'August 1',
+    },
+  ];
+
+  @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: Row(
+    final visibleListings = selectedType == 'All'
+        ? listings
+        : listings.where((listing) => listing['type'] == selectedType).toList();
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Positioned(
+              top: 120,
+              right: -35,
+              child: _blob(AppColors.softPink, 120),
+            ),
+            Positioned(
+              bottom: 160,
+              left: -45,
+              child: _blob(AppColors.softBlue, 140),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ShaderMask(
-                  shaderCallback: (rect) =>
-                      AppColors.brandGradient.createShader(rect),
-                  child: const Text(
-                    'Listings',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text('🏠', style: TextStyle(fontSize: 24)),
-                const Spacer(),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.softPink,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${sampleRoommates.length} nearby',
-                    style: const TextStyle(
-                      color: AppColors.pink,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
+                _buildHeader(),
+                _buildTypeFilter(),
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(22, 16, 22, 120),
+                    itemCount: visibleListings.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 20),
+                    itemBuilder: (context, index) {
+                      final listing = visibleListings[index];
+
+                      return ListingCard(
+                        title: listing['title'],
+                        type: listing['type'],
+                        location: listing['location'],
+                        rent: listing['rent'],
+                        bedsBaths: listing['bedsBaths'],
+                        availableDate: listing['availableDate'],
+                      );
+                    },
                   ),
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.green,
+        foregroundColor: AppColors.darkText,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(
+            color: AppColors.darkText,
+            width: 3,
           ),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(20),
-              itemCount: sampleRoommates.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, i) => ListingCard(
-                roommate: sampleRoommates[i],
-                onTap: () => _showDetail(context, sampleRoommates[i]),
+        ),
+        onPressed: () {},
+        icon: const Icon(Icons.add_home_work_outlined),
+        label: const Text(
+          'Post Listing',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
+      child: Row(
+        children: [
+          const Text(
+            'Listings',
+            style: TextStyle(
+              fontFamily: 'serif',
+              fontSize: 34,
+              fontWeight: FontWeight.w900,
+              color: AppColors.darkText,
+            ),
+          ),
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              color: AppColors.yellow,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.darkText, width: 3),
+            ),
+            child: const Text(
+              'Landlord',
+              style: TextStyle(
+                color: AppColors.darkText,
+                fontWeight: FontWeight.w900,
               ),
             ),
           ),
@@ -70,177 +164,51 @@ class ListingsScreen extends StatelessWidget {
     );
   }
 
-  void _showDetail(BuildContext context, Roommate r) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _DetailSheet(roommate: r),
+  Widget _buildTypeFilter() {
+    return SizedBox(
+      height: 54,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        scrollDirection: Axis.horizontal,
+        itemCount: types.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final type = types[index];
+          final selected = selectedType == type;
+
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                selectedType = type;
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: selected ? AppColors.purple : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.darkText, width: 3),
+              ),
+              child: Text(
+                type,
+                style: const TextStyle(
+                  color: AppColors.darkText,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
-}
 
-class _DetailSheet extends StatelessWidget {
-  final Roommate roommate;
-  const _DetailSheet({required this.roommate});
-
-  @override
-  Widget build(BuildContext context) {
-    final r = roommate;
-    return DraggableScrollableSheet(
-      initialChildSize: 0.75,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      builder: (_, controller) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: SingleChildScrollView(
-          controller: controller,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 10, bottom: 6),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.gray.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Container(
-                height: 280,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: r.gradient,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Center(
-                  child: Text(r.emoji, style: const TextStyle(fontSize: 120)),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          r.name,
-                          style: const TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.darkText,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${r.age}',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.gray,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Text('📍', style: TextStyle(fontSize: 15)),
-                        const SizedBox(width: 4),
-                        Text(
-                          r.location,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: AppColors.gray,
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.softPurple,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '\$${r.budget}/mo',
-                            style: const TextStyle(
-                              color: AppColors.purple,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      r.bio,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        height: 1.5,
-                        color: AppColors.darkText,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'About them',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.gray,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: r.traits
-                          .map((t) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: AppColors.softPink,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(t.emoji,
-                                        style: const TextStyle(fontSize: 18)),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      t.label,
-                                      style: const TextStyle(
-                                        color: AppColors.darkText,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ))
-                          .toList(),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  Widget _blob(Color color, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

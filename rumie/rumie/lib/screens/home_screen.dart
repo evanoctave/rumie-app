@@ -1,16 +1,15 @@
+// lib/screens/home_screen.dart
+
 import 'package:flutter/material.dart';
 
 import '../models/roommate.dart';
+import '../theme/app_colors.dart';
 import '../widgets/nav_item.dart';
 import 'listings_screen.dart';
 import 'matches_screen.dart';
 import 'profile_screen.dart';
 import 'swipe_screen.dart';
 
-/// Three-tab shell matching the whiteboard sketch:
-///   [Listings] [Swiping] [Profile]
-/// Swiping is the default tab. The list of matches lives here and is
-/// reached via a heart icon in the swipe screen's header.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -19,71 +18,136 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 1; // start on Swiping
+  int _selectedIndex = 0;
+
   final List<Roommate> _matches = [];
 
-  void _addMatch(Roommate r) => setState(() => _matches.add(r));
+  void _addMatch(Roommate roommate) {
+    final exists = _matches.any((m) => m.name == roommate.name);
+
+    if (!exists) {
+      setState(() {
+        _matches.add(roommate);
+      });
+    }
+  }
 
   void _openMatches() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => MatchesScreen(matches: _matches)),
-    );
+    setState(() {
+      _selectedIndex = 1;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final screens = <Widget>[
-      const ListingsScreen(),
+    final pages = [
       SwipeScreen(
         onMatch: _addMatch,
         matchCount: _matches.length,
         onOpenMatches: _openMatches,
       ),
+      MatchesScreen(matches: _matches),
+      const ListingsScreen(),
       const ProfileScreen(),
     ];
 
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: screens),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.purple.withOpacity(0.08),
-              blurRadius: 50,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                NavItem(
-                  emoji: '🏠',
-                  label: 'Listings',
-                  active: _currentIndex == 0,
-                  onTap: () => setState(() => _currentIndex = 0),
-                ),
-                NavItem(
-                  emoji: '🎴',
-                  label: 'Swiping',
-                  active: _currentIndex == 1,
-                  onTap: () => setState(() => _currentIndex = 1),
-                ),
-                NavItem(
-                  emoji: '😊',
-                  label: 'Profile',
-                  active: _currentIndex == 2,
-                  onTap: () => setState(() => _currentIndex = 2),
-                ),
-              ],
+      backgroundColor: AppColors.background,
+      body: Stack(
+        children: [
+          Positioned(
+            top: 120,
+            left: -40,
+            child: _blob(
+              AppColors.softPink,
+              120,
             ),
           ),
+          Positioned(
+            bottom: 160,
+            right: -50,
+            child: _blob(
+              AppColors.softBlue,
+              140,
+            ),
+          ),
+          pages[_selectedIndex],
+        ],
+      ),
+      bottomNavigationBar: _buildNavBar(),
+    );
+  }
+
+  Widget _buildNavBar() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(18, 0, 18, 20),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 10,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: AppColors.darkText,
+          width: 3,
         ),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.darkText,
+            offset: Offset(4, 4),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          NavItem(
+            emoji: '💘',
+            label: 'Discover',
+            active: _selectedIndex == 0,
+            onTap: () {
+              setState(() => _selectedIndex = 0);
+            },
+          ),
+          NavItem(
+            emoji: '💬',
+            label: 'Matches',
+            active: _selectedIndex == 1,
+            badge: _matches.length,
+            onTap: () {
+              setState(() => _selectedIndex = 1);
+            },
+          ),
+          NavItem(
+            emoji: '🏠',
+            label: 'Listings',
+            active: _selectedIndex == 2,
+            onTap: () {
+              setState(() => _selectedIndex = 2);
+            },
+          ),
+          NavItem(
+            emoji: '👤',
+            label: 'Profile',
+            active: _selectedIndex == 3,
+            onTap: () {
+              setState(() => _selectedIndex = 3);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _blob(Color color, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
       ),
     );
   }
