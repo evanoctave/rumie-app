@@ -28,32 +28,79 @@ class _SwipeScreenState extends State<SwipeScreen> {
   void _next(bool liked) {
     if (liked && _index < sampleRoommates.length) {
       widget.onMatch(sampleRoommates[_index]);
-      _showMatchSnack(sampleRoommates[_index]);
+      _showMatchDialog(sampleRoommates[_index]);
     }
-    setState(() => _index++);
+
+    if (_index < sampleRoommates.length - 1) {
+      setState(() => _index++);
+    } else {
+      setState(() => _index = sampleRoommates.length);
+    }
   }
 
-  void _showMatchSnack(Roommate r) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.purple,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: Row(
-          children: [
-            Text(r.emoji, style: const TextStyle(fontSize: 24)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                "It's a match with ${r.name}! 💜",
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
+  void _showMatchDialog(Roommate roommate) {
+    showDialog(
+      context: context,
+      builder: (_) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: AppColors.darkText, width: 4),
+              borderRadius: BorderRadius.circular(12),
             ),
-          ],
-        ),
-        duration: const Duration(seconds: 2),
-      ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "It's a Match!",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'serif',
+                    fontSize: 38,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.darkText,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'You and ${roommate.name} both liked each other.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.darkText,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    widget.onOpenMatches();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.blue,
+                    foregroundColor: AppColors.darkText,
+                    side: const BorderSide(
+                      color: AppColors.darkText,
+                      width: 3,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Start chatting',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -61,83 +108,90 @@ class _SwipeScreenState extends State<SwipeScreen> {
   Widget build(BuildContext context) {
     final hasMore = _index < sampleRoommates.length;
 
-    return SafeArea(
-      child: Column(
-        children: [
-          _buildHeader(),
-          Expanded(child: hasMore ? _buildCardStack() : _buildEmpty()),
-          if (hasMore) _buildActions(),
-          const SizedBox(height: 8),
-        ],
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Positioned(
+                top: 90, left: -40, child: _blob(AppColors.softBlue, 90)),
+            Positioned(
+              top: 160,
+              right: -30,
+              child: _triangle(AppColors.yellow),
+            ),
+            Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: hasMore ? _buildCardStack() : _buildEmpty(),
+                ),
+                if (hasMore) _buildActions(),
+                const SizedBox(height: 18),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 8),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              gradient: AppColors.brandGradient,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Center(
-                child: Text('🏡', style: TextStyle(fontSize: 22))),
-          ),
-          const SizedBox(width: 12),
-          ShaderMask(
-            shaderCallback: (rect) =>
-                AppColors.brandGradient.createShader(rect),
-            child: const Text(
-              'Roomie',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-                letterSpacing: -0.5,
-              ),
+          const Text(
+            'Roomie',
+            style: TextStyle(
+              fontFamily: 'serif',
+              fontSize: 34,
+              fontWeight: FontWeight.w900,
+              color: AppColors.darkText,
             ),
           ),
           const Spacer(),
-          // Matches access: heart icon with badge, top-right of the header.
           GestureDetector(
             onTap: widget.onOpenMatches,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.softPink,
-                    borderRadius: BorderRadius.circular(14),
+                    color: AppColors.blue,
+                    border: Border.all(color: AppColors.darkText, width: 3),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text('💜', style: TextStyle(fontSize: 20)),
+                  child: const Icon(
+                    Icons.chat_bubble_outline,
+                    color: AppColors.darkText,
+                  ),
                 ),
                 if (widget.matchCount > 0)
                   Positioned(
-                    right: -4,
-                    top: -4,
+                    right: -8,
+                    top: -8,
                     child: Container(
-                      padding: const EdgeInsets.all(4),
-                      constraints:
-                          const BoxConstraints(minWidth: 20, minHeight: 20),
+                      width: 24,
+                      height: 24,
                       decoration: BoxDecoration(
                         color: AppColors.pink,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: Text(
-                        '${widget.matchCount}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                        border: Border.all(
+                          color: AppColors.darkText,
+                          width: 2,
                         ),
-                        textAlign: TextAlign.center,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${widget.matchCount}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.darkText,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -151,52 +205,55 @@ class _SwipeScreenState extends State<SwipeScreen> {
 
   Widget _buildCardStack() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Stack(
         alignment: Alignment.center,
         children: [
           if (_index + 1 < sampleRoommates.length)
-            Transform.scale(
-              scale: 0.94,
-              child: Transform.translate(
-                offset: const Offset(0, 16),
-                child: RoommateCard(
-                  roommate: sampleRoommates[_index + 1],
-                  isBack: true,
-                  onSwipe: (_) {},
+            Transform.translate(
+              offset: const Offset(0, 18),
+              child: Transform.scale(
+                scale: 0.94,
+                child: Opacity(
+                  opacity: 0.55,
+                  child: RoommateCard(
+                    roommate: sampleRoommates[_index + 1],
+                  ),
                 ),
               ),
             ),
           RoommateCard(
             key: ValueKey(_index),
             roommate: sampleRoommates[_index],
-            onSwipe: _next,
+            onTap: _next,
           ),
         ],
       ),
     );
   }
 
-  /// Two action buttons matching the sketch: ✕ (pass) on the left,
-  /// ✓ (like) on the right.
   Widget _buildActions() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           ActionButton(
-            label: '✕',
-            size: 68,
-            background: Colors.white,
-            foreground: AppColors.pink,
+            label: 'Pass',
+            icon: Icons.close,
+            color: AppColors.pink,
             onTap: () => _next(false),
           ),
           ActionButton(
-            label: '✓',
-            size: 68,
-            background: AppColors.purple,
-            foreground: Colors.white,
+            label: 'Chat',
+            icon: Icons.chat_bubble_outline,
+            color: AppColors.blue,
+            onTap: widget.onOpenMatches,
+          ),
+          ActionButton(
+            label: 'Like',
+            icon: Icons.thumb_up_alt,
+            color: AppColors.green,
             onTap: () => _next(true),
           ),
         ],
@@ -205,46 +262,56 @@ class _SwipeScreenState extends State<SwipeScreen> {
   }
 
   Widget _buildEmpty() {
-    return Center(
+    return const Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('🌸', style: TextStyle(fontSize: 80)),
-            const SizedBox(height: 24),
-            const Text(
-              "That's everyone for now!",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: AppColors.darkText,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Check back soon for more potential\nroommates near you.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 15, color: AppColors.gray, height: 1.5),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => setState(() => _index = 0),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.purple,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 32, vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-              ),
-              child: const Text('Start over',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
-            ),
-          ],
+        padding: EdgeInsets.all(32),
+        child: Text(
+          "That's everyone for now!",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: 'serif',
+            fontSize: 32,
+            fontWeight: FontWeight.w900,
+            color: AppColors.darkText,
+          ),
         ),
       ),
     );
   }
+
+  Widget _blob(Color color, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+
+  Widget _triangle(Color color) {
+    return CustomPaint(
+      size: const Size(70, 70),
+      painter: _TrianglePainter(color),
+    );
+  }
+}
+
+class _TrianglePainter extends CustomPainter {
+  final Color color;
+
+  _TrianglePainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -2,22 +2,18 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-/// Circular swipe action button. Used for the ✕ (pass) and ✓ (like)
-/// buttons under the swipe deck.
 class ActionButton extends StatelessWidget {
   final String label;
-  final double size;
-  final Color background;
-  final Color foreground;
+  final IconData icon;
+  final Color color;
   final VoidCallback onTap;
 
   const ActionButton({
     super.key,
     required this.label,
-    required this.size,
+    required this.icon,
+    required this.color,
     required this.onTap,
-    this.background = Colors.white,
-    this.foreground = AppColors.darkText,
   });
 
   @override
@@ -25,29 +21,34 @@ class ActionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: size,
-        height: size,
+        width: 82,
+        height: 74,
         decoration: BoxDecoration(
-          color: background,
-          shape: BoxShape.circle,
-          boxShadow: [
+          color: color,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.darkText, width: 3),
+          boxShadow: const [
             BoxShadow(
-              color: Colors.purple.withOpacity(0.18),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
+              color: AppColors.darkText,
+              offset: Offset(3, 3),
+              blurRadius: 0,
             ),
           ],
         ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: size * 0.42,
-              color: foreground,
-              fontWeight: FontWeight.w900,
-              height: 1.0,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: AppColors.darkText, size: 28),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.darkText,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

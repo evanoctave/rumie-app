@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
 
-/// Central color palette for the app. Keep all color literals here so
-/// you can re-theme the whole app from one place.
 class AppColors {
-  static const Color purple = Color(0xFF8B5CF6);
-  static const Color pink = Color(0xFFEC4899);
-  static const Color softPink = Color(0xFFFCE7F3);
-  static const Color softPurple = Color(0xFFEDE9FE);
-  static const Color darkText = Color(0xFF1F2937);
-  static const Color gray = Color(0xFF6B7280);
-  static const Color background = Color(0xFFFAF5FF);
+  static const Color background = Color(0xFFFFFAEA);
+  static const Color cardCream = Color(0xFFFFF8E8);
+  static const Color darkText = Color(0xFF101010);
 
-  /// Primary brand gradient used across cards, avatars, and accents.
+  static const Color pink = Color(0xFFF3A6AD);
+  static const Color green = Color(0xFFAEECA8);
+  static const Color blue = Color(0xFFA9C9E8);
+  static const Color purple = Color(0xFFCDB7F6);
+  static const Color yellow = Color(0xFFFFE59D);
+  static const Color gray = Color(0xFF666666);
+
+  static const Color softPink = Color(0xFFFFDDE3);
+  static const Color softPurple = Color(0xFFE9DDFF);
+  static const Color softGreen = Color(0xFFDDF8D8);
+  static const Color softBlue = Color(0xFFD9ECFA);
+
   static const LinearGradient brandGradient = LinearGradient(
     colors: [pink, purple],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
   );
 }
