@@ -17,7 +17,7 @@ class RoommateCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
@@ -28,7 +28,7 @@ class RoommateCard extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(19),
+        borderRadius: BorderRadius.circular(7),
         child: ListView(
           padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
@@ -79,7 +79,7 @@ class RoommateCard extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: AppColors.border),
                     ),
                     child: Text(
@@ -157,7 +157,7 @@ class RoommateCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.softGreen,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: AppColors.green.withAlpha(80)),
       ),
       child: Text(

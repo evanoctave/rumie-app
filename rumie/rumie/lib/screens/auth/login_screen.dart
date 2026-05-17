@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 
 import '../../state/auth_provider.dart';
@@ -12,25 +15,26 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey   = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
+  final _passCtrl  = TextEditingController();
   bool _obscure = true;
 
   @override
   void dispose() {
     _emailCtrl.dispose();
-    _passwordCtrl.dispose();
+    _passCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
-    final ok = await auth.login(_emailCtrl.text.trim(), _passwordCtrl.text);
+    final ok = await auth.login(_emailCtrl.text.trim(), _passCtrl.text);
     if (!mounted) return;
     if (ok) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      await _promptBiometrics();
+      if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -38,6 +42,57 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: AppColors.softRed,
         ),
       );
+    }
+  }
+
+  Future<void> _promptBiometrics() async {
+    final auth = LocalAuthentication();
+    final canCheck = await auth.canCheckBiometrics;
+    if (!canCheck || !mounted) return;
+
+    final available = await auth.getAvailableBiometrics();
+    final hasFaceId = available.contains(BiometricType.face);
+    if (!hasFaceId || !mounted) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.cardBg,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          side: BorderSide(color: AppColors.border),
+        ),
+        title: const Text(
+          'Enable Face ID?',
+          style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w700),
+        ),
+        content: const Text(
+          'Unlock Rumie instantly with Face ID every time you open the app.',
+          style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Not now', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Enable',
+              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await auth.authenticate(
+          localizedReason: 'Authenticate to enable Face ID for Rumie',
+          options: const AuthenticationOptions(biometricOnly: true),
+        );
+      } catch (_) {}
     }
   }
 
@@ -50,9 +105,13 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.text, size: 20),
-          onPressed: () => Navigator.pop(context),
+        leading: Semantics(
+          label: 'Back',
+          button: true,
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.text, size: 22),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
       ),
       body: SafeArea(
@@ -63,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 const Text(
                   'Welcome\nback.',
                   style: TextStyle(
@@ -73,16 +132,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 1.1,
                     letterSpacing: -1,
                   ),
-                ),
-                const SizedBox(height: 8),
+                ).animate().fadeIn(duration: 300.ms),
+                const SizedBox(height: 6),
                 const Text(
-                  'Sign in to your account.',
+                  'Sign in to continue.',
                   style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 44),
+                ).animate().fadeIn(delay: 80.ms, duration: 300.ms),
+                const SizedBox(height: 40),
                 _buildLabel('Email'),
                 const SizedBox(height: 8),
-                _buildTextField(
+                _buildField(
                   controller: _emailCtrl,
                   hint: 'you@example.com',
                   keyboardType: TextInputType.emailAddress,
@@ -92,32 +151,32 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
                 _buildLabel('Password'),
                 const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _passwordCtrl,
+                _buildField(
+                  controller: _passCtrl,
                   hint: '••••••••',
                   obscure: _obscure,
-                  suffix: IconButton(
-                    icon: Icon(
-                      _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: AppColors.gray,
-                      size: 20,
+                  suffix: Semantics(
+                    label: _obscure ? 'Show password' : 'Hide password',
+                    button: true,
+                    child: IconButton(
+                      icon: Icon(
+                        _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: AppColors.gray,
+                        size: 20,
+                      ),
+                      onPressed: () => setState(() => _obscure = !_obscure),
                     ),
-                    onPressed: () => setState(() => _obscure = !_obscure),
                   ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Password is required.';
                     return null;
                   },
                 ),
-                const SizedBox(height: 36),
-                _SubmitButton(
-                  label: 'Sign In',
-                  loading: loading,
-                  onTap: _submit,
-                ),
+                const SizedBox(height: 32),
+                _SubmitButton(label: 'Sign In', loading: loading, onTap: _submit),
                 const SizedBox(height: 40),
               ],
             ),
@@ -131,15 +190,15 @@ class _LoginScreenState extends State<LoginScreen> {
     return Text(
       text,
       style: const TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
         color: AppColors.textSecondary,
-        letterSpacing: 0.4,
+        letterSpacing: 0.6,
       ),
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildField({
     required TextEditingController controller,
     required String hint,
     TextInputType? keyboardType,
@@ -147,6 +206,8 @@ class _LoginScreenState extends State<LoginScreen> {
     Widget? suffix,
     String? Function(String?)? validator,
   }) {
+    const radius = BorderRadius.all(Radius.circular(6));
+    const side = BorderSide(color: AppColors.border);
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -155,30 +216,24 @@ class _LoginScreenState extends State<LoginScreen> {
       validator: validator,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.gray),
+        hintStyle: TextStyle(color: AppColors.textSecondary.withAlpha(120)),
         suffixIcon: suffix,
         filled: true,
         fillColor: AppColors.cardBg,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        border: const OutlineInputBorder(borderRadius: radius, borderSide: side),
+        enabledBorder: const OutlineInputBorder(borderRadius: radius, borderSide: side),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+        errorBorder: const OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide(color: AppColors.red),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.red),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.red, width: 1.5),
+        focusedErrorBorder: const OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide(color: AppColors.red, width: 1.5),
         ),
         errorStyle: const TextStyle(color: AppColors.red),
       ),
@@ -191,7 +246,11 @@ class _SubmitButton extends StatefulWidget {
   final bool loading;
   final VoidCallback onTap;
 
-  const _SubmitButton({required this.label, required this.loading, required this.onTap});
+  const _SubmitButton({
+    required this.label,
+    required this.loading,
+    required this.onTap,
+  });
 
   @override
   State<_SubmitButton> createState() => _SubmitButtonState();
@@ -202,41 +261,48 @@ class _SubmitButtonState extends State<_SubmitButton> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        if (!widget.loading) widget.onTap();
-      },
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 100),
-        child: Container(
-          width: double.infinity,
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(14),
+    return Semantics(
+      label: widget.label,
+      button: true,
+      child: GestureDetector(
+        onTapDown: (_) {
+          HapticFeedback.mediumImpact();
+          setState(() => _pressed = true);
+        },
+        onTapUp: (_) {
+          setState(() => _pressed = false);
+          if (!widget.loading) widget.onTap();
+        },
+        onTapCancel: () => setState(() => _pressed = false),
+        child: AnimatedScale(
+          scale: _pressed ? 0.97 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          child: Container(
+            width: double.infinity,
+            height: 52,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+            alignment: Alignment.center,
+            child: widget.loading
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation(Colors.black),
+                    ),
+                  )
+                : Text(
+                    widget.label,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
           ),
-          alignment: Alignment.center,
-          child: widget.loading
-              ? const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation(Colors.white),
-                  ),
-                )
-              : Text(
-                  widget.label,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
         ),
       ),
     );

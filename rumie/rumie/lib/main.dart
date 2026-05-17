@@ -80,18 +80,26 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
         ).copyWith(
           surface: AppColors.surface,
           primary: AppColors.primary,
-          secondary: AppColors.teal,
+          secondary: AppColors.darkGreen,
         ),
         textTheme: const TextTheme(
-          bodyLarge: TextStyle(fontSize: 16, color: AppColors.text),
-          bodyMedium: TextStyle(fontSize: 14, color: AppColors.text),
+          bodyLarge: TextStyle(
+            fontSize: 16,
+            color: AppColors.text,
+            decoration: TextDecoration.none,
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 14,
+            color: AppColors.text,
+            decoration: TextDecoration.none,
+          ),
         ),
-        inputDecorationTheme: const InputDecorationTheme(
-          hintStyle: TextStyle(color: AppColors.gray),
+        inputDecorationTheme: InputDecorationTheme(
+          hintStyle: TextStyle(color: AppColors.textSecondary.withAlpha(120)),
         ),
         switchTheme: SwitchThemeData(
           thumbColor: WidgetStateProperty.resolveWith(
-            (s) => s.contains(WidgetState.selected) ? Colors.white : AppColors.gray,
+            (s) => s.contains(WidgetState.selected) ? Colors.black : AppColors.gray,
           ),
           trackColor: WidgetStateProperty.resolveWith(
             (s) => s.contains(WidgetState.selected) ? AppColors.primary : AppColors.border,
@@ -101,7 +109,7 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
           activeTrackColor: AppColors.primary,
           inactiveTrackColor: AppColors.border,
           thumbColor: AppColors.primary,
-          overlayColor: Color(0x201A8CFF),
+          overlayColor: Color(0x2022C55E),
         ),
         dropdownMenuTheme: const DropdownMenuThemeData(
           textStyle: TextStyle(color: AppColors.text),
@@ -109,6 +117,12 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
         snackBarTheme: const SnackBarThemeData(
           backgroundColor: AppColors.cardBg,
           contentTextStyle: TextStyle(color: AppColors.text),
+        ),
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          },
         ),
       ),
       // builder wraps every route — lock screen always appears on top,
@@ -142,20 +156,23 @@ class _AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = context.watch<AuthProvider>().status;
 
-    switch (status) {
-      case AuthStatus.unknown:
-        return const Scaffold(
+    final Widget screen = switch (status) {
+      AuthStatus.unknown => const Scaffold(
           backgroundColor: AppColors.background,
           body: Center(
             child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation(AppColors.primary),
             ),
           ),
-        );
-      case AuthStatus.authenticated:
-        return const HomeScreen();
-      case AuthStatus.unauthenticated:
-        return const LandingScreen();
-    }
+        ),
+      AuthStatus.authenticated    => const HomeScreen(),
+      AuthStatus.unauthenticated  => const LandingScreen(),
+    };
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
+      child: KeyedSubtree(key: ValueKey(status), child: screen),
+    );
   }
 }

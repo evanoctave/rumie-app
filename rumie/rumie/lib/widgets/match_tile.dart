@@ -57,7 +57,7 @@ class _MatchTileState extends State<MatchTile> with SingleTickerProviderStateMix
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: AppColors.cardBg,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(6),
             border: Border.all(color: AppColors.border),
           ),
           child: Row(
@@ -67,11 +67,11 @@ class _MatchTileState extends State<MatchTile> with SingleTickerProviderStateMix
                 height: 52,
                 decoration: BoxDecoration(
                   color: widget.roommate.gradient.first.withAlpha(70),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: AppColors.border),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(6),
                   child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
                 ),
               ),
@@ -123,7 +123,7 @@ class _MatchTileState extends State<MatchTile> with SingleTickerProviderStateMix
                 height: 38,
                 decoration: BoxDecoration(
                   color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Center(
                   child: SvgPicture.asset(

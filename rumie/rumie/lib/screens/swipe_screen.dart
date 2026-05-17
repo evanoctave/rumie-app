@@ -37,11 +37,9 @@ class _SwipeScreenState extends State<SwipeScreen> {
   Color get _bgColor {
     const bg = AppColors.background;
     if (_dragRatio > 0) {
-      // right swipe → sage green tint
-      return Color.lerp(bg, const Color(0xFF2A3D28), _dragRatio * 0.7) ?? bg;
+      return Color.lerp(bg, const Color(0xFF082A10), _dragRatio * 0.8) ?? bg;
     } else if (_dragRatio < 0) {
-      // left swipe → pinkish-red tint
-      return Color.lerp(bg, const Color(0xFF3D1222), -_dragRatio * 0.7) ?? bg;
+      return Color.lerp(bg, const Color(0xFF2A0808), -_dragRatio * 0.8) ?? bg;
     }
     return bg;
   }
@@ -75,12 +73,15 @@ class _SwipeScreenState extends State<SwipeScreen> {
           ),
         );
       },
-      pageBuilder: (context, anim, secAnim) => _MatchDialog(
-        roommate: roommate,
-        onChat: () {
-          Navigator.pop(context);
-          widget.onOpenMatches();
-        },
+      pageBuilder: (context, anim, secAnim) => Material(
+        type: MaterialType.transparency,
+        child: _MatchDialog(
+          roommate: roommate,
+          onChat: () {
+            Navigator.pop(context);
+            widget.onOpenMatches();
+          },
+        ),
       ),
     );
   }
@@ -166,7 +167,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.softGreen,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.sage.withAlpha(80)),
+                  border: Border.all(color: AppColors.primary.withAlpha(80)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -175,7 +176,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
                       width: 7,
                       height: 7,
                       decoration: const BoxDecoration(
-                        color: AppColors.sage,
+                        color: AppColors.primary,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -183,7 +184,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
                     Text(
                       '${widget.matchCount} match${widget.matchCount == 1 ? '' : 'es'}',
                       style: const TextStyle(
-                        color: AppColors.sage,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
@@ -276,12 +277,12 @@ class _SwipeScreenState extends State<SwipeScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.softGreen,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.sage.withAlpha(80)),
+                  border: Border.all(color: AppColors.primary.withAlpha(80)),
                 ),
                 child: Text(
                   '\$${r.budget}/mo',
                   style: const TextStyle(
-                    color: AppColors.sage,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
@@ -297,7 +298,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
                 width: 13,
                 height: 13,
                 colorFilter: const ColorFilter.mode(
-                  AppColors.mauve,
+                  AppColors.textSecondary,
                   BlendMode.srcIn,
                 ),
               ),
@@ -382,11 +383,11 @@ class _SwipeScreenState extends State<SwipeScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(26),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: AppColors.border),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.pink.withAlpha(20),
+                    color: AppColors.primary.withAlpha(15),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
@@ -604,7 +605,7 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
                   left: 6,
                   child: Opacity(
                     opacity: likeOpacity.clamp(0.0, 1.0),
-                    child: const Stamp(text: 'LIKE', color: AppColors.sage),
+                    child: const Stamp(text: 'LIKE', color: AppColors.primary),
                   ),
                 ),
               if (nopeOpacity > 0.04)
@@ -641,11 +642,11 @@ class _MatchDialog extends StatelessWidget {
           padding: const EdgeInsets.all(30),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: AppColors.border),
             boxShadow: [
               BoxShadow(
-                color: AppColors.pink.withAlpha(30),
+                color: AppColors.primary.withAlpha(20),
                 blurRadius: 40,
                 spreadRadius: -4,
               ),
@@ -670,7 +671,7 @@ class _MatchDialog extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.pink.withAlpha(80),
+                          color: AppColors.primary.withAlpha(60),
                           blurRadius: 14,
                           offset: const Offset(0, 4),
                         ),
@@ -726,10 +727,10 @@ class _MatchDialog extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
                     gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.pink.withAlpha(80),
+                        color: AppColors.primary.withAlpha(60),
                         blurRadius: 16,
                         offset: const Offset(0, 6),
                       ),
@@ -788,7 +789,7 @@ class _AvatarBox extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.border, width: 1.5),
         boxShadow: [
           BoxShadow(

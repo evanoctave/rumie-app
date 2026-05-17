@@ -122,69 +122,72 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           final showBadge = i == 1 && _matches.isNotEmpty;
 
           return Expanded(
+            child: Semantics(
+            label: '${item.label} tab',
+            selected: selected,
+            button: true,
+            excludeSemantics: true,
             child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _onTabTap(i),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Stack(
-                  alignment: Alignment.topCenter,
-                  children: [
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        RumieIcon(
-                          asset: item.asset,
-                          size: 22,
-                          color: selected ? AppColors.primary : AppColors.gray,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.label,
-                          style: TextStyle(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _onTabTap(i),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Stack(
+                    alignment: Alignment.topCenter,
+                    children: [
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          RumieIcon(
+                            asset: item.asset,
+                            size: 22,
                             color: selected ? AppColors.primary : AppColors.gray,
-                            fontSize: 10,
-                            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: selected ? 16 : 0,
-                          height: 2,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(1),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (showBadge)
-                      Positioned(
-                        top: 0,
-                        right: 16,
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: const BoxDecoration(
-                            color: AppColors.green,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${_matches.length}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                              ),
+                          const SizedBox(height: 4),
+                          Text(
+                            item.label,
+                            style: TextStyle(
+                              color: selected ? AppColors.primary : AppColors.gray,
+                              fontSize: 10,
+                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                             ),
                           ),
-                        )
-                            .animate(onPlay: (c) => c.repeat(reverse: true))
-                            .scaleXY(begin: 0.9, end: 1.1, duration: 900.ms),
+                          const SizedBox(height: 2),
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: selected ? 20 : 0,
+                            height: 2,
+                            color: AppColors.primary,
+                          ),
+                        ],
                       ),
-                  ],
+                      if (showBadge)
+                        Positioned(
+                          top: 0,
+                          right: 16,
+                          child: Container(
+                            width: 16,
+                            height: 16,
+                            decoration: const BoxDecoration(
+                              color: AppColors.green,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${_matches.length}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          )
+                              .animate(onPlay: (c) => c.repeat(reverse: true))
+                              .scaleXY(begin: 0.9, end: 1.1, duration: 900.ms),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),

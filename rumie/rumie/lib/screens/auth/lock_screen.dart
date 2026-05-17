@@ -50,16 +50,13 @@ class _LockScreenState extends State<LockScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Logo
-              ShaderMask(
-                shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
-                child: const Text(
-                  'rumie',
-                  style: TextStyle(
-                    fontSize: 44,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -1.8,
-                  ),
+              const Text(
+                'rumie',
+                style: TextStyle(
+                  fontSize: 44,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.text,
+                  letterSpacing: -2,
                 ),
               ).animate().fadeIn(duration: 400.ms),
               const SizedBox(height: 60),
@@ -72,19 +69,19 @@ class _LockScreenState extends State<LockScreen> {
                   height: 84,
                   decoration: BoxDecoration(
                     color: _loading
-                        ? AppColors.primary.withAlpha(22)
+                        ? AppColors.primary.withAlpha(18)
                         : AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(26),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: _error != null
                           ? AppColors.red.withAlpha(140)
-                          : AppColors.primary.withAlpha(90),
-                      width: 1.8,
+                          : AppColors.primary.withAlpha(80),
+                      width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: (_error != null ? AppColors.red : AppColors.pink)
-                            .withAlpha(_loading ? 30 : 55),
+                        color: (_error != null ? AppColors.red : AppColors.primary)
+                            .withAlpha(_loading ? 20 : 40),
                         blurRadius: 20,
                         offset: const Offset(0, 6),
                       ),

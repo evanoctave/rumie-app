@@ -42,7 +42,7 @@ class MatchesScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.softGreen,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(4),
                 border: Border.all(color: AppColors.green.withAlpha(80)),
               ),
               child: Text(
@@ -83,7 +83,7 @@ class MatchesScreen extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 color: AppColors.cardBg,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: AppColors.border),
               ),
               child: Center(

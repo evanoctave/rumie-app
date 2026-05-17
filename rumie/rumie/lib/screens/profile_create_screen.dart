@@ -452,7 +452,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             padding: const EdgeInsets.symmetric(vertical: 18),
             decoration: BoxDecoration(
               color: AppColors.cardBg,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(6),
               border: Border.all(
                   color: AppColors.border,
                   style: BorderStyle.solid),
@@ -484,7 +484,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
@@ -547,7 +547,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
               border: Border.all(color: AppColors.border),
             ),
             child: DropdownButtonHideUnderline(
@@ -586,15 +586,15 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       fillColor: AppColors.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(6),
         borderSide: const BorderSide(color: AppColors.border),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(6),
         borderSide: const BorderSide(color: AppColors.border),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(6),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
     );
@@ -616,15 +616,15 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(6),
                 borderSide: const BorderSide(color: AppColors.border),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(6),
                 borderSide: const BorderSide(color: AppColors.border),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(6),
                 borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
               ),
             ),
@@ -638,7 +638,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             height: 44,
             decoration: BoxDecoration(
               gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(6),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.pink.withAlpha(60),
@@ -777,23 +777,23 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: AppColors.red),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: AppColors.red, width: 1.5),
             ),
           ),
@@ -837,7 +837,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
                     color: isSelected ? AppColors.primary : AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(6),
                     border: Border.all(
                       color: isSelected
                           ? AppColors.primary
@@ -883,7 +883,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
@@ -937,7 +937,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 color: selected ? AppColors.primary : AppColors.cardBg,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(4),
                 border: Border.all(
                   color: selected
                       ? AppColors.primary
@@ -983,7 +983,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                         horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(4),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.pink.withAlpha(50),
@@ -1066,7 +1066,7 @@ class _PrimaryButtonState extends State<_PrimaryButton>
           padding: const EdgeInsets.symmetric(vertical: 17),
           decoration: BoxDecoration(
             gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(6),
             boxShadow: [
               BoxShadow(
                 color: AppColors.pink.withAlpha(80),

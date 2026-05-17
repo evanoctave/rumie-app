@@ -12,7 +12,7 @@ class TraitChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
       decoration: BoxDecoration(
         color: trait.color.withAlpha(14),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(4),
         border: Border.all(color: trait.color.withAlpha(70)),
       ),
       child: Row(

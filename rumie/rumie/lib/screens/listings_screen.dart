@@ -133,7 +133,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
               decoration: BoxDecoration(
                 gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(6),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.pink.withAlpha(70),
@@ -191,7 +191,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: selected ? AppColors.primary : AppColors.cardBg,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                   color: selected ? AppColors.primary : AppColors.border,
                 ),
@@ -432,7 +432,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
                         gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(6),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.pink.withAlpha(80),
@@ -513,7 +513,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
         height: 110,
         decoration: BoxDecoration(
           color: AppColors.cardBg,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(6),
           border: Border.all(
             color: AppColors.primary.withAlpha(80),
             style: BorderStyle.solid,
@@ -568,7 +568,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
             width: 90,
             height: 110,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: isCover ? AppColors.primary : AppColors.border,
                 width: isCover ? 2.5 : 1.5,
@@ -584,7 +584,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
                   : null,
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
               child: Image.file(
                 File(_photoPaths[index]),
                 fit: BoxFit.cover,
@@ -667,15 +667,15 @@ class _PostListingSheetState extends State<_PostListingSheet> {
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
             ),
           ),
@@ -706,7 +706,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
             color: AppColors.cardBg,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(6),
             border: Border.all(color: AppColors.border),
           ),
           child: DropdownButtonHideUnderline(

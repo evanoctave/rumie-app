@@ -129,11 +129,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               height: 36,
               decoration: BoxDecoration(
                 color: widget.roommate.gradient.first.withAlpha(80),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: AppColors.border),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(6),
                 child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
               ),
             ),
@@ -212,11 +212,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               height: 72,
               decoration: BoxDecoration(
                 color: widget.roommate.gradient.first.withAlpha(60),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(100),
                 border: Border.all(color: AppColors.border),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(100),
                 child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
               ),
             ).animate().scale(duration: 400.ms, curve: Curves.easeOut),
@@ -328,7 +328,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(100),
                     border: Border.all(color: AppColors.border),
                   ),
                   child: TextField(
@@ -391,7 +391,7 @@ class _SendButtonState extends State<_SendButton> with SingleTickerProviderState
           height: 42,
           decoration: BoxDecoration(
             color: AppColors.primary,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
             child: SvgPicture.asset(

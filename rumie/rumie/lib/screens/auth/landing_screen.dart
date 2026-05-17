@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../data/models/role.dart';
@@ -6,273 +7,302 @@ import '../../theme/app_colors.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
 
-class LandingScreen extends StatefulWidget {
+class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
 
-  @override
-  State<LandingScreen> createState() => _LandingScreenState();
-}
-
-class _LandingScreenState extends State<LandingScreen> {
-  final _pageController = PageController(viewportFraction: 0.82);
-  int _selectedIndex = 0;
-
-  final _cards = const [
-    _RoleCard(
-      role: Role.rumie,
-      emoji: '🏠',
-      headline: 'Find a place\nto call home.',
-      sub: "I'm looking for a room or shared space.",
-    ),
-    _RoleCard(
-      role: Role.landlord,
-      emoji: '🔑',
-      headline: 'Rent out\nyour space.',
-      sub: "I have a room or property to list.",
-    ),
-  ];
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  static PageRoute<T> slideRoute<T>(Widget screen) {
+    return PageRouteBuilder(
+      pageBuilder: (ctx, anim, sec) => screen,
+      transitionsBuilder: (ctx, anim, sec, child) => SlideTransition(
+        position: Tween(begin: const Offset(1, 0), end: Offset.zero)
+            .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+        child: child,
+      ),
+      transitionDuration: const Duration(milliseconds: 280),
+    );
   }
 
-  void _onPageChanged(int index) => setState(() => _selectedIndex = index);
-
-  Role get _selectedRole => _cards[_selectedIndex].role;
+  void _socialSnack(BuildContext context, String provider) {
+    HapticFeedback.lightImpact();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.cardBg,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(6)),
+          side: BorderSide(color: AppColors.border),
+        ),
+        content: Text(
+          '$provider sign-in coming soon — use email for now.',
+          style: const TextStyle(color: AppColors.text, fontSize: 13),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 52),
-            _buildLogo(),
-            const SizedBox(height: 8),
-            _buildSubtitle(),
-            const SizedBox(height: 48),
-            _buildCards(),
-            const SizedBox(height: 20),
-            _buildDots(),
-            const Spacer(),
-            _buildButtons(),
-            const SizedBox(height: 36),
-          ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height
+                  - MediaQuery.of(context).padding.top
+                  - MediaQuery.of(context).padding.bottom,
+            ),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 72),
+                  _buildBrand(),
+                  const Spacer(),
+                  _buildSocialSection(context),
+                  const SizedBox(height: 20),
+                  _buildDivider(),
+                  const SizedBox(height: 20),
+                  _buildPrimaryButton(
+                    label: 'Sign in with Email',
+                    onTap: () => Navigator.push(context, slideRoute(const LoginScreen())),
+                  ).animate().fadeIn(delay: 250.ms, duration: 300.ms),
+                  const SizedBox(height: 12),
+                  _buildSecondaryButton(
+                    label: 'Create an Account',
+                    onTap: () => _showRoleSheet(context),
+                  ).animate().fadeIn(delay: 300.ms, duration: 300.ms),
+                  const SizedBox(height: 48),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildLogo() {
-    return const Text(
-      'rumie',
-      style: TextStyle(
-        fontSize: 42,
-        fontWeight: FontWeight.w900,
-        color: AppColors.text,
-        letterSpacing: -1.5,
-      ),
-    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.2, end: 0);
-  }
-
-  Widget _buildSubtitle() {
-    return const Text(
-      'Your next chapter starts here.',
-      style: TextStyle(
-        fontSize: 15,
-        color: AppColors.textSecondary,
-        letterSpacing: 0.1,
-      ),
-    ).animate().fadeIn(delay: 150.ms, duration: 400.ms);
-  }
-
-  Widget _buildCards() {
-    return SizedBox(
-      height: 320,
-      child: PageView.builder(
-        controller: _pageController,
-        itemCount: _cards.length,
-        onPageChanged: _onPageChanged,
-        itemBuilder: (context, i) {
-          return AnimatedBuilder(
-            animation: _pageController,
-            builder: (context, child) {
-              double scale = 1.0;
-              if (_pageController.position.haveDimensions) {
-                final delta = (_pageController.page! - i).abs();
-                scale = (1.0 - delta * 0.06).clamp(0.92, 1.0);
-              }
-              return Transform.scale(scale: scale, child: child);
-            },
-            child: _cards[i],
-          );
-        },
-      ),
-    ).animate().fadeIn(delay: 250.ms, duration: 500.ms).slideY(begin: 0.08, end: 0);
-  }
-
-  Widget _buildDots() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(_cards.length, (i) {
-        final selected = i == _selectedIndex;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: selected ? 20 : 6,
-          height: 6,
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.primary : AppColors.border,
-            borderRadius: BorderRadius.circular(3),
+  Widget _buildBrand() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'rumie',
+          style: TextStyle(
+            fontSize: 48,
+            fontWeight: FontWeight.w900,
+            color: AppColors.text,
+            letterSpacing: -2.5,
           ),
-        );
-      }),
+        ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.15, end: 0, curve: Curves.easeOutCubic),
+        const SizedBox(height: 8),
+        const Text(
+          'Find your next roommate or room.',
+          style: TextStyle(
+            fontSize: 16,
+            color: AppColors.textSecondary,
+          ),
+        ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+      ],
     );
   }
 
-  Widget _buildButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 28),
-      child: Column(
-        children: [
-          _PrimaryButton(
-            label: 'Create Account',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => SignupScreen(role: _selectedRole),
-              ),
-            ),
+  Widget _buildSocialSection(BuildContext context) {
+    return Column(
+      children: [
+        Semantics(
+          label: 'Continue with Google',
+          button: true,
+          child: _SocialButton(
+            label: 'Continue with Google',
+            iconWidget: const _GoogleG(),
+            onTap: () => _socialSnack(context, 'Google'),
           ),
-          const SizedBox(height: 14),
-          GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LoginScreen()),
-            ),
-            child: const Text(
-              'Already have an account? Log in',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+        ),
+        const SizedBox(height: 10),
+        Semantics(
+          label: 'Continue with Apple',
+          button: true,
+          child: _SocialButton(
+            label: 'Continue with Apple',
+            iconWidget: const Icon(Icons.apple, color: AppColors.text, size: 20),
+            onTap: () => _socialSnack(context, 'Apple'),
           ),
-        ],
+        ),
+      ],
+    ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.08, end: 0);
+  }
+
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        const Expanded(child: Divider(color: AppColors.border, thickness: 1)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Text(
+            'or',
+            style: TextStyle(color: AppColors.textSecondary.withAlpha(140), fontSize: 13),
+          ),
+        ),
+        const Expanded(child: Divider(color: AppColors.border, thickness: 1)),
+      ],
+    );
+  }
+
+  Widget _buildPrimaryButton({required String label, required VoidCallback onTap}) {
+    return _TapButton(
+      onTap: onTap,
+      child: Container(
+        height: 52,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+          ),
+        ),
       ),
-    ).animate().fadeIn(delay: 400.ms, duration: 400.ms);
+    );
+  }
+
+  Widget _buildSecondaryButton({required String label, required VoidCallback onTap}) {
+    return _TapButton(
+      onTap: onTap,
+      child: Container(
+        height: 52,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          border: Border.fromBorderSide(BorderSide(color: AppColors.border, width: 1.5)),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.text,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showRoleSheet(BuildContext context) {
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+      ),
+      builder: (_) => _RoleSheet(
+        onSelect: (role) {
+          Navigator.pop(context);
+          Navigator.push(context, slideRoute(SignupScreen(role: role)));
+        },
+      ),
+    );
   }
 }
 
-class _RoleCard extends StatelessWidget {
-  final Role role;
-  final String emoji;
-  final String headline;
-  final String sub;
+// ── Social button ─────────────────────────────────────────────────────────────
 
-  const _RoleCard({
-    required this.role,
-    required this.emoji,
-    required this.headline,
-    required this.sub,
+class _SocialButton extends StatelessWidget {
+  final String label;
+  final Widget iconWidget;
+  final VoidCallback onTap;
+
+  const _SocialButton({
+    required this.label,
+    required this.iconWidget,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withAlpha(20),
-              borderRadius: BorderRadius.circular(14),
+    return _TapButton(
+      onTap: onTap,
+      child: Container(
+        height: 52,
+        decoration: const BoxDecoration(
+          color: AppColors.cardBg,
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          border: Border.fromBorderSide(BorderSide(color: AppColors.border)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            iconWidget,
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.text,
+              ),
             ),
-            child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 26)),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                headline,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.text,
-                  height: 1.15,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                sub,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(20),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primary.withAlpha(60), width: 1),
-                ),
-                child: Text(
-                  role == Role.rumie ? 'Roommate' : 'Landlord',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _PrimaryButton extends StatefulWidget {
-  final String label;
-  final VoidCallback onTap;
+// ── Google "G" icon ───────────────────────────────────────────────────────────
 
-  const _PrimaryButton({required this.label, required this.onTap});
+class _GoogleG extends StatelessWidget {
+  const _GoogleG();
 
   @override
-  State<_PrimaryButton> createState() => _PrimaryButtonState();
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 20,
+      height: 20,
+      child: Center(
+        child: Text(
+          'G',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+            color: AppColors.accent,
+            height: 1,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _PrimaryButtonState extends State<_PrimaryButton> {
+// ── Generic tap wrapper ───────────────────────────────────────────────────────
+
+class _TapButton extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _TapButton({required this.child, required this.onTap});
+
+  @override
+  State<_TapButton> createState() => _TapButtonState();
+}
+
+class _TapButtonState extends State<_TapButton> {
   bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
+      onTapDown: (_) {
+        HapticFeedback.selectionClick();
+        setState(() => _pressed = true);
+      },
       onTapUp: (_) {
         setState(() => _pressed = false);
         widget.onTap();
@@ -281,21 +311,135 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
       child: AnimatedScale(
         scale: _pressed ? 0.97 : 1.0,
         duration: const Duration(milliseconds: 100),
-        child: Container(
-          width: double.infinity,
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            widget.label,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+// ── Role chooser sheet ────────────────────────────────────────────────────────
+
+class _RoleSheet extends StatelessWidget {
+  final void Function(Role) onSelect;
+
+  const _RoleSheet({required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        24, 20, 24, MediaQuery.of(context).padding.bottom + 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: const BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.all(Radius.circular(2)),
+              ),
             ),
+          ),
+          const Text(
+            'I want to...',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: AppColors.text,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _RoleTile(
+            emoji: '🏠',
+            title: 'Find a room',
+            sub: "Looking for a room or shared space",
+            onTap: () => onSelect(Role.rumie),
+          ),
+          const SizedBox(height: 10),
+          _RoleTile(
+            emoji: '🔑',
+            title: 'List a property',
+            sub: 'I have a room or property to rent out',
+            onTap: () => onSelect(Role.landlord),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoleTile extends StatelessWidget {
+  final String emoji;
+  final String title;
+  final String sub;
+  final VoidCallback onTap;
+
+  const _RoleTile({
+    required this.emoji,
+    required this.title,
+    required this.sub,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: title,
+      button: true,
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: const BoxDecoration(
+            color: AppColors.cardBg,
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+            border: Border.fromBorderSide(BorderSide(color: AppColors.border)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withAlpha(22),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Center(child: Text(emoji, style: const TextStyle(fontSize: 22))),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.text,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      sub,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
+            ],
           ),
         ),
       ),

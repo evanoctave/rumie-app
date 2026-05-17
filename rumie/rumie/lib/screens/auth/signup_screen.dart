@@ -71,7 +71,7 @@ class _SignupScreenState extends State<SignupScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.cardBg,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         title: const Text(
           'Enable Face ID?',
           style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w700),
@@ -260,7 +260,7 @@ class _SignupScreenState extends State<SignupScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               color: selected ? AppColors.primary.withAlpha(20) : AppColors.cardBg,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: selected ? AppColors.primary : AppColors.border,
                 width: selected ? 1.5 : 1,
@@ -302,23 +302,23 @@ class _SignupScreenState extends State<SignupScreen> {
         fillColor: AppColors.cardBg,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(6),
           borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(6),
           borderSide: const BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(6),
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(6),
           borderSide: const BorderSide(color: AppColors.red),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(6),
           borderSide: const BorderSide(color: AppColors.red, width: 1.5),
         ),
         errorStyle: const TextStyle(color: AppColors.red),
@@ -358,7 +358,7 @@ class _SubmitButtonState extends State<_SubmitButton> {
           height: 52,
           decoration: BoxDecoration(
             color: AppColors.primary,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(8),
           ),
           alignment: Alignment.center,
           child: widget.loading
@@ -375,7 +375,7 @@ class _SubmitButtonState extends State<_SubmitButton> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                 ),
         ),
