@@ -44,7 +44,8 @@ class _SignupScreenState extends State<SignupScreen> {
         gender: _gender,
       ),
     );
-    if (!ok && mounted) {
+    if (!mounted) return;
+    if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(auth.error ?? 'Registration failed.'),
@@ -53,7 +54,8 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       return;
     }
-    if (mounted) await _promptBiometrics();
+    await _promptBiometrics();
+    if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   Future<void> _promptBiometrics() async {

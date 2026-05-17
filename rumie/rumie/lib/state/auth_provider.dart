@@ -20,9 +20,17 @@ class AuthProvider extends ChangeNotifier {
   String? get error => _error;
   bool get loading => _loading;
 
+  /// Normal constructor: starts token check immediately.
   AuthProvider() {
     _checkToken();
   }
+
+  /// Used by main() so setupLocator() can be called between construction and
+  /// the first async token check, ensuring onLogout has a valid reference.
+  AuthProvider.deferred();
+
+  /// Called by main() after setupLocator() to kick off the token check.
+  void initialize() => _checkToken();
 
   Future<void> _checkToken() async {
     final token = await locator<TokenStore>().readAccess();

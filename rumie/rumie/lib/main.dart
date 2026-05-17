@@ -7,9 +7,8 @@ import 'di/locator.dart';
 import 'screens/auth/landing_screen.dart';
 import 'screens/home_screen.dart';
 import 'state/auth_provider.dart';
+import 'state/profile_provider.dart';
 import 'theme/app_colors.dart';
-
-AuthProvider? _authProviderRef;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,16 +21,18 @@ void main() {
   );
   Animate.restartOnHotReload = true;
 
-  setupLocator(
-    onLogout: () => _authProviderRef?.logout(),
-  );
-
-  final authProvider = AuthProvider();
-  _authProviderRef = authProvider;
+  // Create the auth provider first so the onLogout callback has a valid
+  // reference before any interceptor could fire it.
+  final authProvider = AuthProvider.deferred();
+  setupLocator(onLogout: () => authProvider.logout());
+  authProvider.initialize();
 
   runApp(
-    ChangeNotifierProvider.value(
-      value: authProvider,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: authProvider),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+      ],
       child: const Rumie(),
     ),
   );
