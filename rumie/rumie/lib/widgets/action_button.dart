@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-import '../theme/app_colors.dart';
-
-class ActionButton extends StatelessWidget {
+class ActionButton extends StatefulWidget {
   final String label;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
+  final bool large;
 
   const ActionButton({
     super.key,
@@ -14,41 +14,85 @@ class ActionButton extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.onTap,
+    this.large = false,
   });
 
   @override
+  State<ActionButton> createState() => _ActionButtonState();
+}
+
+class _ActionButtonState extends State<ActionButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+      lowerBound: 0.88,
+      upperBound: 1.0,
+      value: 1.0,
+    );
+    _scaleAnim = _controller;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final size = widget.large ? 90.0 : 76.0;
+
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 82,
-        height: 74,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.darkText, width: 3),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.darkText,
-              offset: Offset(3, 3),
-              blurRadius: 0,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: AppColors.darkText, size: 28),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.darkText,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+      onTapDown: (_) {
+        HapticFeedback.mediumImpact();
+        _controller.reverse();
+      },
+      onTapUp: (_) {
+        _controller.forward();
+        widget.onTap();
+      },
+      onTapCancel: () => _controller.forward(),
+      child: ScaleTransition(
+        scale: _scaleAnim,
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: widget.color.withAlpha(20),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: widget.color, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withAlpha(50),
+                blurRadius: 20,
+                spreadRadius: 0,
+                offset: const Offset(0, 6),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.icon, color: widget.color, size: widget.large ? 32 : 26),
+              const SizedBox(height: 3),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  color: widget.color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

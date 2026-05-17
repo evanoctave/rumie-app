@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../theme/app_colors.dart';
 
@@ -20,13 +21,14 @@ class PrefRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withOpacity(0.05),
+            color: Colors.black.withAlpha(30),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -38,10 +40,11 @@ class PrefRow extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.softPurple,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.purple.withAlpha(40)),
             ),
-            child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
+            child: Center(child: Text(emoji, style: const TextStyle(fontSize: 18))),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,9 +52,10 @@ class PrefRow extends StatelessWidget {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.gray,
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
                     fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -59,15 +63,19 @@ class PrefRow extends StatelessWidget {
                   value,
                   style: const TextStyle(
                     fontSize: 15,
-                    color: AppColors.darkText,
+                    color: AppColors.text,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
           ),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 18),
         ],
       ),
-    );
+    )
+        .animate()
+        .fadeIn(duration: 300.ms)
+        .slideX(begin: 0.05, end: 0, duration: 300.ms, curve: Curves.easeOut);
   }
 }

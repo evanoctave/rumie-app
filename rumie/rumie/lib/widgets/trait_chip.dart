@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../models/trait.dart';
-import '../theme/app_colors.dart';
 
 class TraitChip extends StatelessWidget {
   final Trait trait;
@@ -10,27 +9,35 @@ class TraitChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.softPink,
-        borderRadius: BorderRadius.circular(12),
+        color: trait.color.withAlpha(18),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: trait.color.withAlpha(80), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 16,
-            height: 16,
+            width: 7,
+            height: 7,
             decoration: BoxDecoration(
               color: trait.color,
-              borderRadius: BorderRadius.circular(8),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: trait.color.withAlpha(120),
+                  blurRadius: 6,
+                  spreadRadius: 1,
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 7),
           Text(
             trait.title,
-            style: const TextStyle(
-              color: AppColors.darkText,
+            style: TextStyle(
+              color: trait.color,
               fontWeight: FontWeight.w600,
               fontSize: 13,
             ),
