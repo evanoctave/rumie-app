@@ -21,6 +21,19 @@ class DioClient {
     return dio;
   }
 
+  /// Bare Dio used by `AssetRepositoryImpl` to PUT bytes to a presigned URL.
+  /// No baseUrl, no auth, no error mapping — V8 forbids `Authorization` on
+  /// the S3 PUT, and the URL is absolute.
+  static Dio createUploadPutDio() {
+    final dio = Dio(BaseOptions(
+      connectTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(minutes: 2),
+      receiveTimeout: const Duration(seconds: 30),
+    ));
+    dio.interceptors.add(LoggingInterceptor());
+    return dio;
+  }
+
   static Dio create({
     required TokenStore tokenStore,
     required Dio refreshDio,

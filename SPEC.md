@@ -92,19 +92,19 @@ T5|x|`AuthInterceptor` attach bearer ; 401→refresh-and-retry ; single-flight r
 T6|x|`ErrorInterceptor` map 422→`ValidationException`, 5xx→`ServerException`, timeout→`NetworkException`|V5,V6,V9
 T7|x|`LoggingInterceptor` w/ redaction (debug only)|V13
 T8|x|gen DTO models from OpenAPI schemas → `lib/data/models/*.dart` + `*.g.dart` (build_runner)|V7,V12
-T9|.|`AuthRepository` iface + impl: `login`, `register`, `me`, `logout` (client-clear) ; internal `refresh` for interceptor|I,V9,V14,V15
-T10|.|`DiscoveryRepository` iface + impl: `discoverGroups({limit})`, `discoverListings({limit})`|I,V9
-T11|.|`SwipeRepository` iface + impl: `swipe(SwipeIn) → SwipeOut`|I,V9,V16
-T12|.|`ConversationRepository` iface + impl: `listConversations`, `listMessages(convId,{limit,before})`, `sendMessage(convId,body)`|I,V9
-T13|.|`AssetRepository` iface + impl: `presign`, `upload` (2-step PUT, ⊥ auth header on `put_url`)|V8,V9
-T18|.|`GroupsRepository` iface + impl: `getMyGroup`, `patchMyGroup`, `leaveGroup`, `createInvite`, `acceptInvite`, `rejectInvite`|I,V9
-T19|.|`ListingsRepository` iface + impl (landlord CRUD): `create`, `get`, `patch`, `delete`|I,V9
-T20|.|`InquiriesRepository` iface + impl (landlord): `list({status?})`, `accept`, `reject`|I,V9
+T9|~|`AuthRepository` iface + impl: `login`, `register`, `me`, `logout` (client-clear) ; internal `refresh` for interceptor|I,V9,V14,V15
+T10|~|`DiscoveryRepository` iface + impl: `discoverGroups({limit})`, `discoverListings({limit})`|I,V9
+T11|~|`SwipeRepository` iface + impl: `swipe(SwipeIn) → SwipeOut`|I,V9,V16
+T12|~|`ConversationRepository` iface + impl: `listConversations`, `listMessages(convId,{limit,before})`, `sendMessage(convId,body)`|I,V9
+T13|~|`AssetRepository` iface + impl: `presign`, `upload` (2-step PUT, ⊥ auth header on `put_url`)|V8,V9
+T18|~|`GroupsRepository` iface + impl: `getMyGroup`, `patchMyGroup`, `leaveGroup`, `createInvite`, `acceptInvite`, `rejectInvite`|I,V9
+T19|~|`ListingsRepository` iface + impl (landlord CRUD): `create`, `get`, `patch`, `delete`|I,V9
+T20|~|`InquiriesRepository` iface + impl (landlord: `list({status?})`, `accept`, `reject`|I,V9
 T14|~|`lib/di/locator.dart` w/ `GetIt` register Dio + all 8 repos + token store|I
 T15|.|wire `lib/screens/*` & `lib/widgets/*` → domain repo ifaces ; rm imports of `sample_data.dart`|V10,V17
 T16|.|delete `lib/data/sample_data.dart` & legacy `lib/models/{roommate,trait}.dart` once unused|-
 T17|.|tests: `AuthInterceptor` refresh single-flight (V2,V3) ; 422 parser (V5) ; 2-step upload ⊥ auth on PUT (V8) ; register auto-persist (V14) ; logout clears store (V15)|V2,V3,V5,V8,V14,V15
-T21|.|tests: each repo happy-path against mocked `Dio` ; one 422 path per repo|V9,V18
+T21|~|tests: each repo happy-path against mocked `Dio` ; one 422 path per repo|V9,V18
 T22|.|README: doc `--dart-define=RUMIE_BASE_URL=...` + how to refresh `openapi.json` snapshot|C
 
 ## §B BUGS
