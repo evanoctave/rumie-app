@@ -4,7 +4,7 @@
 Flutter app `roomie` (`rumie/rumie/`) ! swap mock data → live Rumie API @ `https://rumie.xyz`. Clean Architecture; dio + json_serializable.
 
 ## §C CONSTRAINTS
-- Dart SDK `>=3.3.0 <4.0.0` (existing `pubspec.yaml`)
+- Dart SDK `>=3.7.0 <4.0.0` (bumped from 3.3 for `json_serializable` null-aware element output)
 - package name: `roomie`
 - deps add: `dio`, `json_annotation`, `json_serializable` (dev), `build_runner` (dev), `flutter_secure_storage`, `get_it`
 - ⊥ `retrofit` codegen — hand-written Dio call sites under repositories
@@ -91,7 +91,7 @@ T4|x|`SecureTokenStore` wrap `flutter_secure_storage` (read/write/clear access+r
 T5|x|`AuthInterceptor` attach bearer ; 401→refresh-and-retry ; single-flight refresh|V1,V2,V3
 T6|x|`ErrorInterceptor` map 422→`ValidationException`, 5xx→`ServerException`, timeout→`NetworkException`|V5,V6,V9
 T7|x|`LoggingInterceptor` w/ redaction (debug only)|V13
-T8|.|gen DTO models from OpenAPI schemas → `lib/data/models/*.dart` + `*.g.dart` (build_runner)|V7,V12
+T8|x|gen DTO models from OpenAPI schemas → `lib/data/models/*.dart` + `*.g.dart` (build_runner)|V7,V12
 T9|.|`AuthRepository` iface + impl: `login`, `register`, `me`, `logout` (client-clear) ; internal `refresh` for interceptor|I,V9,V14,V15
 T10|.|`DiscoveryRepository` iface + impl: `discoverGroups({limit})`, `discoverListings({limit})`|I,V9
 T11|.|`SwipeRepository` iface + impl: `swipe(SwipeIn) → SwipeOut`|I,V9,V16
