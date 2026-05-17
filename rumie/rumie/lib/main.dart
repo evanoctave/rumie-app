@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'di/locator.dart';
 import 'screens/auth/landing_screen.dart';
+import 'screens/auth/lock_screen.dart';
 import 'screens/home_screen.dart';
 import 'state/auth_provider.dart';
 import 'state/profile_provider.dart';
@@ -21,8 +22,6 @@ void main() {
   );
   Animate.restartOnHotReload = true;
 
-  // Create the auth provider first so the onLogout callback has a valid
-  // reference before any interceptor could fire it.
   final authProvider = AuthProvider.deferred();
   setupLocator(onLogout: () => authProvider.logout());
   authProvider.initialize();
@@ -38,8 +37,33 @@ void main() {
   );
 }
 
-class Rumie extends StatelessWidget {
+// Stateful so it can observe the app lifecycle and lock on background.
+class Rumie extends StatefulWidget {
   const Rumie({super.key});
+
+  @override
+  State<Rumie> createState() => _RumieState();
+}
+
+class _RumieState extends State<Rumie> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      context.read<AuthProvider>().lock();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,8 +111,27 @@ class Rumie extends StatelessWidget {
           contentTextStyle: TextStyle(color: AppColors.text),
         ),
       ),
+      // builder wraps every route — lock screen always appears on top,
+      // even over modals or pushed pages like ChatScreen.
+      builder: (context, child) => _LockOverlay(child: child!),
       home: const _AuthGate(),
     );
+  }
+}
+
+/// Sits above the entire navigator. When the user is authenticated but locked,
+/// replaces everything with the lock screen so no app content leaks through.
+class _LockOverlay extends StatelessWidget {
+  final Widget child;
+  const _LockOverlay({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    if (auth.status == AuthStatus.authenticated && auth.isLocked) {
+      return const LockScreen();
+    }
+    return child;
   }
 }
 

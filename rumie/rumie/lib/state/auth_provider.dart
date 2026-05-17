@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:local_auth/local_auth.dart';
 
 import '../data/models/login_in.dart';
 import '../data/models/register_in.dart';
@@ -14,11 +15,13 @@ class AuthProvider extends ChangeNotifier {
   UserOut? _user;
   String? _error;
   bool _loading = false;
+  bool _isLocked = false;
 
   AuthStatus get status => _status;
   UserOut? get user => _user;
   String? get error => _error;
   bool get loading => _loading;
+  bool get isLocked => _isLocked;
 
   /// Normal constructor: starts token check immediately.
   AuthProvider() {
@@ -42,6 +45,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       _user = await locator<AuthRepository>().me();
       _status = AuthStatus.authenticated;
+      _isLocked = true; // require Face ID on every cold launch
     } catch (_) {
       _status = AuthStatus.unauthenticated;
     }
@@ -56,6 +60,7 @@ class AuthProvider extends ChangeNotifier {
       await locator<AuthRepository>().login(LoginIn(email: email, password: password));
       _user = await locator<AuthRepository>().me();
       _status = AuthStatus.authenticated;
+      _isLocked = false; // just logged in, no need to re-lock immediately
       _loading = false;
       notifyListeners();
       return true;
@@ -75,6 +80,7 @@ class AuthProvider extends ChangeNotifier {
       final out = await locator<AuthRepository>().register(body);
       _user = out.user;
       _status = AuthStatus.authenticated;
+      _isLocked = false; // just registered, no need to lock
       _loading = false;
       notifyListeners();
       return true;
@@ -86,10 +92,48 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Called when the app goes to the background.
+  void lock() {
+    if (_status == AuthStatus.authenticated) {
+      _isLocked = true;
+      notifyListeners();
+    }
+  }
+
+  /// Triggers the system Face ID / biometric prompt and unlocks on success.
+  Future<bool> unlockWithBiometrics() async {
+    final localAuth = LocalAuthentication();
+    try {
+      final canCheck = await localAuth.canCheckBiometrics;
+      final isSupported = await localAuth.isDeviceSupported();
+      if (!canCheck && !isSupported) {
+        // Device has no biometrics — unlock silently.
+        _isLocked = false;
+        notifyListeners();
+        return true;
+      }
+      final ok = await localAuth.authenticate(
+        localizedReason: 'Unlock Rumie',
+        options: const AuthenticationOptions(
+          biometricOnly: false, // allow device passcode as fallback
+          stickyAuth: true,     // don't dismiss if user switches apps briefly
+        ),
+      );
+      if (ok) {
+        _isLocked = false;
+        notifyListeners();
+      }
+      return ok;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     await locator<AuthRepository>().logout();
     _user = null;
     _status = AuthStatus.unauthenticated;
+    _isLocked = false;
     notifyListeners();
   }
 
