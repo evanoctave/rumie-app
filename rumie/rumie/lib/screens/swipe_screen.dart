@@ -7,8 +7,8 @@ import '../data/sample_data.dart';
 import '../models/roommate.dart';
 import '../theme/app_colors.dart';
 import '../widgets/action_button.dart';
-import '../widgets/roommate_card.dart';
 import '../widgets/stamp.dart';
+import '../widgets/trait_chip.dart';
 
 class SwipeScreen extends StatefulWidget {
   final void Function(Roommate) onMatch;
@@ -47,7 +47,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
       barrierLabel: 'dismiss',
       barrierColor: Colors.black.withAlpha(180),
       transitionDuration: const Duration(milliseconds: 320),
-      transitionBuilder: (context, anim, _, child) {
+      transitionBuilder: (context, anim, secAnim, child) {
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
           child: FadeTransition(opacity: anim, child: child),
@@ -66,13 +66,45 @@ class _SwipeScreenState extends State<SwipeScreen> {
   @override
   Widget build(BuildContext context) {
     final hasMore = _index < sampleRoommates.length;
+
     return ColoredBox(
       color: AppColors.background,
       child: Column(
         children: [
           _buildHeader(),
-          Expanded(child: hasMore ? _buildCardStack() : _buildEmpty()),
-          if (hasMore) _buildActions(),
+          if (hasMore) ...[
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    Center(child: _buildPhotoStack()),
+                    const SizedBox(height: 28),
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 240),
+                        transitionBuilder: (child, anim) => FadeTransition(
+                          opacity: anim,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.04),
+                              end: Offset.zero,
+                            ).animate(anim),
+                            child: child,
+                          ),
+                        ),
+                        child: _buildProfileInfo(sampleRoommates[_index]),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            _buildActions(),
+          ] else
+            Expanded(child: _buildEmpty()),
           const SizedBox(height: 12),
         ],
       ),
@@ -132,42 +164,131 @@ class _SwipeScreenState extends State<SwipeScreen> {
     ).animate().fadeIn(duration: 300.ms);
   }
 
-  Widget _buildCardStack() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+  // Stacked circles: two ghost circles peek below the draggable front photo.
+  Widget _buildPhotoStack() {
+    const size = 180.0;
+    const stackHeight = size + 18.0;
+
+    return SizedBox(
+      width: size,
+      height: stackHeight,
       child: Stack(
-        alignment: Alignment.center,
+        alignment: Alignment.topCenter,
         children: [
           if (_index + 2 < sampleRoommates.length)
-            Transform.translate(
-              offset: const Offset(0, 28),
-              child: Transform.scale(
-                scale: 0.90,
-                child: IgnorePointer(
-                  child: Opacity(
-                    opacity: 0.3,
-                    child: RoommateCard(roommate: sampleRoommates[_index + 2]),
+            Positioned(
+              top: 18,
+              child: Opacity(
+                opacity: 0.22,
+                child: Transform.scale(
+                  scale: 0.88,
+                  child: _PhotoCircle(
+                    roommate: sampleRoommates[_index + 2],
+                    size: size,
                   ),
                 ),
               ),
             ),
           if (_index + 1 < sampleRoommates.length)
-            Transform.translate(
-              offset: const Offset(0, 14),
-              child: Transform.scale(
-                scale: 0.95,
-                child: IgnorePointer(
-                  child: Opacity(
-                    opacity: 0.55,
-                    child: RoommateCard(roommate: sampleRoommates[_index + 1]),
+            Positioned(
+              top: 9,
+              child: Opacity(
+                opacity: 0.50,
+                child: Transform.scale(
+                  scale: 0.94,
+                  child: _PhotoCircle(
+                    roommate: sampleRoommates[_index + 1],
+                    size: size,
                   ),
                 ),
               ),
             ),
-          _DragCard(
-            key: ValueKey(_index),
-            roommate: sampleRoommates[_index],
-            onSwipe: _handleSwipe,
+          Positioned(
+            top: 0,
+            child: _DragCard(
+              key: ValueKey(_index),
+              roommate: sampleRoommates[_index],
+              onSwipe: _handleSwipe,
+              size: size,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileInfo(Roommate r) {
+    return SizedBox(
+      key: ValueKey(r.name),
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  '${r.name}, ${r.age}',
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.text,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.softGreen,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.green.withAlpha(80)),
+                ),
+                child: Text(
+                  '\$${r.budget}/mo',
+                  style: const TextStyle(
+                    color: AppColors.green,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              SvgPicture.asset(
+                'assets/icons/ic_location.svg',
+                width: 13,
+                height: 13,
+                colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                r.location,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            r.bio,
+            style: const TextStyle(
+              fontSize: 15,
+              height: 1.55,
+              color: AppColors.text,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 7,
+            runSpacing: 8,
+            children: r.traits.map((t) => TraitChip(trait: t)).toList(),
           ),
         ],
       ),
@@ -245,13 +366,51 @@ class _SwipeScreenState extends State<SwipeScreen> {
   }
 }
 
-// ─── Draggable card ────────────────────────────────────────────────────────
+// ─── Photo circle ──────────────────────────────────────────────────────────
+
+class _PhotoCircle extends StatelessWidget {
+  final Roommate roommate;
+  final double size;
+
+  const _PhotoCircle({required this.roommate, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: roommate.gradient.first.withAlpha(80),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white.withAlpha(20), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(70),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.cover),
+      ),
+    );
+  }
+}
+
+// ─── Draggable photo ───────────────────────────────────────────────────────
 
 class _DragCard extends StatefulWidget {
   final Roommate roommate;
   final void Function(bool) onSwipe;
+  final double size;
 
-  const _DragCard({super.key, required this.roommate, required this.onSwipe});
+  const _DragCard({
+    super.key,
+    required this.roommate,
+    required this.onSwipe,
+    required this.size,
+  });
 
   @override
   State<_DragCard> createState() => _DragCardState();
@@ -270,7 +429,7 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _snapController = AnimationController(vsync: this, duration: const Duration(milliseconds: 360));
-    _flyController  = AnimationController(vsync: this, duration: const Duration(milliseconds: 320));
+    _flyController  = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
   }
 
   @override
@@ -280,7 +439,7 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _onPanStart(DragStartDetails _) {
+  void _onPanStart(DragStartDetails d) {
     if (_flying) return;
     _snapController.stop();
     _flyController.stop();
@@ -293,11 +452,11 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
 
   void _onPanEnd(DragEndDetails d) {
     if (_flying) return;
-    const threshold = 110.0;
+    const threshold = 100.0;
     final vel = d.velocity.pixelsPerSecond;
-    if (_offset.dx > threshold || (vel.dx > 600 && _offset.dx > 40)) {
+    if (_offset.dx > threshold || (vel.dx > 500 && _offset.dx > 30)) {
       _flyOff(true, vel);
-    } else if (_offset.dx < -threshold || (vel.dx < -600 && _offset.dx < -40)) {
+    } else if (_offset.dx < -threshold || (vel.dx < -500 && _offset.dx < -30)) {
       _flyOff(false, vel);
     } else {
       _snapBack();
@@ -309,13 +468,13 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
     final sw = MediaQuery.of(context).size.width;
     final sh = MediaQuery.of(context).size.height;
     final target = Offset(
-      liked ? sw * 1.8 : -sw * 1.8,
-      (_offset.dy + velPps.dy * 0.1).clamp(-sh * 0.5, sh * 0.5),
+      liked ? sw * 2.0 : -sw * 2.0,
+      (_offset.dy + velPps.dy * 0.08).clamp(-sh * 0.4, sh * 0.4),
     );
     _flyAnim = Tween<Offset>(begin: _offset, end: target)
         .animate(CurvedAnimation(parent: _flyController, curve: Curves.easeIn));
     _flyAnim.addListener(() => setState(() => _offset = _flyAnim.value));
-    _flyController.forward().then((_) => widget.onSwipe(liked));
+    _flyController.forward().then((anim) => widget.onSwipe(liked));
   }
 
   void _snapBack() {
@@ -328,9 +487,9 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final rotation   = (_offset.dx / 400).clamp(-0.30, 0.30);
-    final likeOpacity = (_offset.dx / 120).clamp(0.0, 1.0);
-    final nopeOpacity = (-_offset.dx / 120).clamp(0.0, 1.0);
+    final rotation    = (_offset.dx / 450).clamp(-0.28, 0.28);
+    final likeOpacity = (_offset.dx / 90).clamp(0.0, 1.0);
+    final nopeOpacity = (-_offset.dx / 90).clamp(0.0, 1.0);
 
     return GestureDetector(
       onPanStart: _onPanStart,
@@ -341,12 +500,13 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
         child: Transform.rotate(
           angle: rotation,
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              RoommateCard(roommate: widget.roommate),
+              _PhotoCircle(roommate: widget.roommate, size: widget.size),
               if (likeOpacity > 0.05)
                 Positioned(
-                  top: 48,
-                  left: 20,
+                  top: 14,
+                  left: 8,
                   child: Opacity(
                     opacity: likeOpacity.clamp(0.0, 1.0),
                     child: const Stamp(text: 'LIKE', color: AppColors.green),
@@ -354,8 +514,8 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
                 ),
               if (nopeOpacity > 0.05)
                 Positioned(
-                  top: 48,
-                  right: 20,
+                  top: 14,
+                  right: 8,
                   child: Opacity(
                     opacity: nopeOpacity.clamp(0.0, 1.0),
                     child: const Stamp(text: 'NOPE', color: AppColors.red),
@@ -369,7 +529,7 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
   }
 }
 
-// ─── Match dialog ─────────────────────────────────────────────────────────
+// ─── Match dialog ──────────────────────────────────────────────────────────
 
 class _MatchDialog extends StatelessWidget {
   final Roommate roommate;
@@ -440,7 +600,11 @@ class _MatchDialog extends StatelessWidget {
                   child: const Center(
                     child: Text(
                       'Start Chatting',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                 ),
