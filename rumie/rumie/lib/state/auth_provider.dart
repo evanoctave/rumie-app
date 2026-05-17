@@ -94,7 +94,7 @@ class AuthProvider extends ChangeNotifier {
 
   /// Called when the app goes to the background.
   void lock() {
-    if (_status == AuthStatus.authenticated) {
+    if (_status == AuthStatus.authenticated && !_isLocked) {
       _isLocked = true;
       notifyListeners();
     }

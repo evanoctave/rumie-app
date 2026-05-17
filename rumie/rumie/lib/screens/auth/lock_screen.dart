@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../../state/auth_provider.dart';
@@ -18,7 +19,6 @@ class _LockScreenState extends State<LockScreen> {
   @override
   void initState() {
     super.initState();
-    // Auto-trigger Face ID as soon as the screen appears.
     WidgetsBinding.instance.addPostFrameCallback((_) => _authenticate());
   }
 
@@ -28,14 +28,16 @@ class _LockScreenState extends State<LockScreen> {
       _loading = true;
       _error = null;
     });
+
     final ok = await context.read<AuthProvider>().unlockWithBiometrics();
+
+    // Widget may have been removed from the tree if auth succeeded and
+    // _LockOverlay already swapped it out — always guard before setState.
     if (!mounted) return;
-    if (!ok) {
-      setState(() {
-        _loading = false;
-        _error = 'Authentication failed.';
-      });
-    }
+    setState(() {
+      _loading = false;
+      _error = ok ? null : 'Authentication failed.';
+    });
   }
 
   @override
@@ -47,33 +49,46 @@ class _LockScreenState extends State<LockScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                'rumie',
-                style: TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.text,
-                  letterSpacing: -1.5,
+              // Logo
+              ShaderMask(
+                shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
+                child: const Text(
+                  'rumie',
+                  style: TextStyle(
+                    fontSize: 44,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -1.8,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 56),
+              ).animate().fadeIn(duration: 400.ms),
+              const SizedBox(height: 60),
+              // Face ID button
               GestureDetector(
                 onTap: _loading ? null : _authenticate,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 80,
-                  height: 80,
+                  duration: const Duration(milliseconds: 220),
+                  width: 84,
+                  height: 84,
                   decoration: BoxDecoration(
                     color: _loading
-                        ? AppColors.primary.withAlpha(30)
+                        ? AppColors.primary.withAlpha(22)
                         : AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(26),
                     border: Border.all(
                       color: _error != null
-                          ? AppColors.red.withAlpha(120)
-                          : AppColors.primary.withAlpha(80),
-                      width: 1.5,
+                          ? AppColors.red.withAlpha(140)
+                          : AppColors.primary.withAlpha(90),
+                      width: 1.8,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_error != null ? AppColors.red : AppColors.pink)
+                            .withAlpha(_loading ? 30 : 55),
+                        blurRadius: 20,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
                   child: Center(
                     child: _loading
@@ -97,18 +112,26 @@ class _LockScreenState extends State<LockScreen> {
                           ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                _error != null ? 'Tap to try again' : 'Unlock with Face ID',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: _error != null
-                      ? AppColors.red
-                      : AppColors.textSecondary,
+              ).animate().scale(
+                    duration: 500.ms,
+                    curve: Curves.easeOutBack,
+                    delay: 100.ms,
+                  ),
+              const SizedBox(height: 22),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Text(
+                  key: ValueKey(_error),
+                  _error != null ? 'Tap to try again' : 'Unlock with Face ID',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: _error != null
+                        ? AppColors.red
+                        : AppColors.textSecondary,
+                  ),
                 ),
-              ),
+              ).animate().fadeIn(delay: 200.ms),
             ],
           ),
         ),
