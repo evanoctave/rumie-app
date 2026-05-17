@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 
+import 'package:flutter/services.dart';
+
 import '../../data/models/gender.dart';
 import '../../data/models/register_in.dart';
 import '../../data/models/role.dart';
 import '../../state/auth_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/validators.dart';
 
 class SignupScreen extends StatefulWidget {
   final Role role;
@@ -37,7 +40,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final auth = context.read<AuthProvider>();
     final ok = await auth.register(
       RegisterIn(
-        email: _emailCtrl.text.trim(),
+        email: sanitizeEmail(_emailCtrl.text),
         password: _passwordCtrl.text,
         role: widget.role,
         age: int.parse(_ageCtrl.text.trim()),
@@ -169,11 +172,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _emailCtrl,
                   hint: 'you@example.com',
                   keyboardType: TextInputType.emailAddress,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Email is required.';
-                    if (!v.contains('@')) return 'Enter a valid email.';
-                    return null;
-                  },
+                  maxLength: 254,
+                  validator: validateEmail,
                 ),
                 const SizedBox(height: 20),
                 _buildLabel('Password'),
@@ -190,11 +190,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Password is required.';
-                    if (v.length < 8) return 'Password must be at least 8 characters.';
-                    return null;
-                  },
+                  maxLength: 128,
+                  validator: validatePassword,
                 ),
                 const SizedBox(height: 20),
                 _buildLabel('Age'),
@@ -203,12 +200,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _ageCtrl,
                   hint: '24',
                   keyboardType: TextInputType.number,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Age is required.';
-                    final n = int.tryParse(v.trim());
-                    if (n == null || n < 18 || n > 99) return 'Enter a valid age (18+).';
-                    return null;
-                  },
+                  maxLength: 3,
+                  validator: validateAge,
                 ),
                 const SizedBox(height: 20),
                 _buildLabel('Gender'),
@@ -286,12 +279,16 @@ class _SignupScreenState extends State<SignupScreen> {
     TextInputType? keyboardType,
     bool obscure = false,
     Widget? suffix,
+    int? maxLength,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscure,
+      maxLength: maxLength,
+      maxLengthEnforcement: MaxLengthEnforcement.enforced,
+      inputFormatters: const [SanitizingFormatter()],
       style: const TextStyle(color: AppColors.text, fontSize: 15),
       validator: validator,
       decoration: InputDecoration(
@@ -300,6 +297,7 @@ class _SignupScreenState extends State<SignupScreen> {
         suffixIcon: suffix,
         filled: true,
         fillColor: AppColors.cardBg,
+        counterText: '',
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),

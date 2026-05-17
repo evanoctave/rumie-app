@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../state/auth_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/validators.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
-    final ok = await auth.login(_emailCtrl.text.trim(), _passCtrl.text);
+    final ok = await auth.login(sanitizeEmail(_emailCtrl.text), _passCtrl.text);
     if (!mounted) return;
     if (ok) {
       await _promptBiometrics();
@@ -145,11 +146,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailCtrl,
                   hint: 'you@example.com',
                   keyboardType: TextInputType.emailAddress,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Email is required.';
-                    if (!v.contains('@')) return 'Enter a valid email.';
-                    return null;
-                  },
+                  maxLength: 254,
+                  validator: validateEmail,
                 ),
                 const SizedBox(height: 18),
                 _buildLabel('Password'),
@@ -170,10 +168,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () => setState(() => _obscure = !_obscure),
                     ),
                   ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Password is required.';
-                    return null;
-                  },
+                  maxLength: 128,
+                  validator: (v) => validatePassword(v, isLogin: true),
                 ),
                 const SizedBox(height: 32),
                 _SubmitButton(label: 'Sign In', loading: loading, onTap: _submit),
@@ -204,6 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
     TextInputType? keyboardType,
     bool obscure = false,
     Widget? suffix,
+    int? maxLength,
     String? Function(String?)? validator,
   }) {
     const radius = BorderRadius.all(Radius.circular(6));
@@ -212,6 +209,9 @@ class _LoginScreenState extends State<LoginScreen> {
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscure,
+      maxLength: maxLength,
+      maxLengthEnforcement: MaxLengthEnforcement.enforced,
+      inputFormatters: const [SanitizingFormatter()],
       style: const TextStyle(color: AppColors.text, fontSize: 15),
       validator: validator,
       decoration: InputDecoration(
@@ -220,6 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
         suffixIcon: suffix,
         filled: true,
         fillColor: AppColors.cardBg,
+        counterText: '',
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: const OutlineInputBorder(borderRadius: radius, borderSide: side),
         enabledBorder: const OutlineInputBorder(borderRadius: radius, borderSide: side),

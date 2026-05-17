@@ -1,10 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
 import '../models/user_profile.dart';
+import '../state/auth_provider.dart';
 import '../theme/app_colors.dart';
 import 'profile_create_screen.dart';
 
@@ -331,17 +334,99 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _FullButton(
           label: 'Settings',
           primary: false,
-          onTap: () {},
+          onTap: () => _openSettings(),
         ),
         const SizedBox(height: 10),
         _FullButton(
           label: 'Log Out',
           primary: false,
           danger: true,
-          onTap: () {},
+          onTap: () => _confirmLogout(),
         ),
       ],
     ).animate().fadeIn(delay: 200.ms, duration: 300.ms);
+  }
+
+  void _openSettings() {
+    HapticFeedback.selectionClick();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          24, 20, 24, MediaQuery.of(ctx).padding.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36, height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: const BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.all(Radius.circular(2)),
+                ),
+              ),
+            ),
+            const Text(
+              'Settings',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.text),
+            ),
+            const SizedBox(height: 16),
+            const _SettingsTile(icon: Icons.notifications_outlined, label: 'Notifications', badge: 'Soon'),
+            const Divider(color: AppColors.border, height: 1),
+            const _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Privacy & Security', badge: 'Soon'),
+            const Divider(color: AppColors.border, height: 1),
+            const _SettingsTile(icon: Icons.help_outline_rounded, label: 'Help & Support', badge: 'Soon'),
+            const Divider(color: AppColors.border, height: 1),
+            const _SettingsTile(icon: Icons.info_outline_rounded, label: 'About Rumie v0.1.0'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmLogout() async {
+    HapticFeedback.mediumImpact();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.cardBg,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          side: BorderSide(color: AppColors.border),
+        ),
+        title: const Text(
+          'Log out?',
+          style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w700),
+        ),
+        content: const Text(
+          'You can sign back in anytime.',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Log Out',
+              style: TextStyle(color: AppColors.red, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await context.read<AuthProvider>().logout();
+    }
   }
 }
 
@@ -503,6 +588,46 @@ class _FullButton extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+
+class _SettingsTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? badge;
+
+  const _SettingsTile({required this.icon, required this.label, this.badge});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: AppColors.textSecondary),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 15, color: AppColors.text, fontWeight: FontWeight.w500),
+            ),
+          ),
+          if (badge != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(20),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: AppColors.primary.withAlpha(60)),
+              ),
+              child: Text(badge!, style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w600)),
+            )
+          else
+            const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textSecondary),
+        ],
       ),
     );
   }
