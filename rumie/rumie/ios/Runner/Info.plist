@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Rumie uses Face ID to sign you in quickly and securely.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Rumie needs access to your camera to take a profile photo.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

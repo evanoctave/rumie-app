@@ -1,25 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../api/api_models.dart';
-import '../services/auth_service.dart';
+import '../data/models/message_out.dart';
+import '../di/locator.dart';
+import '../domain/repositories/conversations_repository.dart';
 
 class ChatProvider extends ChangeNotifier {
-  final AuthService authService;
-
-  ChatProvider(this.authService);
-
   List<MessageOut> messages = [];
-
   bool loading = false;
 
   Future<void> loadMessages(String conversationId) async {
     loading = true;
     notifyListeners();
-
     try {
-      final api = await authService.authorizedApi();
-
-      messages = await api.listMessages(conversationId);
+      messages = await locator<ConversationsRepository>().listMessages(conversationId);
     } finally {
       loading = false;
       notifyListeners();
@@ -30,15 +23,8 @@ class ChatProvider extends ChangeNotifier {
     required String conversationId,
     required String body,
   }) async {
-    final api = await authService.authorizedApi();
-
-    final message = await api.sendMessage(
-      conversationId: conversationId,
-      body: body,
-    );
-
-    messages.add(message);
-
+    final msg = await locator<ConversationsRepository>().sendMessage(conversationId, body);
+    messages.add(msg);
     notifyListeners();
   }
 }

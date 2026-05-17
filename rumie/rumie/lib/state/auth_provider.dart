@@ -1,0 +1,101 @@
+import 'package:flutter/foundation.dart';
+
+import '../data/models/login_in.dart';
+import '../data/models/register_in.dart';
+import '../data/models/user_out.dart';
+import '../di/locator.dart';
+import '../domain/repositories/auth_repository.dart';
+import '../data/api/token_store.dart';
+
+enum AuthStatus { unknown, authenticated, unauthenticated }
+
+class AuthProvider extends ChangeNotifier {
+  AuthStatus _status = AuthStatus.unknown;
+  UserOut? _user;
+  String? _error;
+  bool _loading = false;
+
+  AuthStatus get status => _status;
+  UserOut? get user => _user;
+  String? get error => _error;
+  bool get loading => _loading;
+
+  AuthProvider() {
+    _checkToken();
+  }
+
+  Future<void> _checkToken() async {
+    final token = await locator<TokenStore>().readAccess();
+    if (token == null) {
+      _status = AuthStatus.unauthenticated;
+      notifyListeners();
+      return;
+    }
+    try {
+      _user = await locator<AuthRepository>().me();
+      _status = AuthStatus.authenticated;
+    } catch (_) {
+      _status = AuthStatus.unauthenticated;
+    }
+    notifyListeners();
+  }
+
+  Future<bool> login(String email, String password) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      await locator<AuthRepository>().login(LoginIn(email: email, password: password));
+      _user = await locator<AuthRepository>().me();
+      _status = AuthStatus.authenticated;
+      _loading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = _friendlyError(e);
+      _loading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> register(RegisterIn body) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final out = await locator<AuthRepository>().register(body);
+      _user = out.user;
+      _status = AuthStatus.authenticated;
+      _loading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = _friendlyError(e);
+      _loading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> logout() async {
+    await locator<AuthRepository>().logout();
+    _user = null;
+    _status = AuthStatus.unauthenticated;
+    notifyListeners();
+  }
+
+  String _friendlyError(Object e) {
+    final msg = e.toString().toLowerCase();
+    if (msg.contains('401') || msg.contains('unauthorized') || msg.contains('incorrect')) {
+      return 'Incorrect email or password.';
+    }
+    if (msg.contains('409') || msg.contains('already')) {
+      return 'An account with that email already exists.';
+    }
+    if (msg.contains('network') || msg.contains('socket') || msg.contains('connection')) {
+      return 'No internet connection. Please try again.';
+    }
+    return 'Something went wrong. Please try again.';
+  }
+}
