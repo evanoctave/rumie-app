@@ -26,6 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Rumie needs access to your camera to take a profile photo.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Rumie needs permission to save photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Rumie needs access to your photos to set your profile picture.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -66,11 +72,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Rumie needs access to your photos to set your profile picture.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Rumie needs access to your camera to take a profile photo.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Rumie needs permission to save photos.</string>
 </dict>
 </plist>
