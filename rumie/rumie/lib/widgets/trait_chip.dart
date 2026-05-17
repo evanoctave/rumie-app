@@ -18,10 +18,17 @@ class TraitChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(trait.emoji, style: const TextStyle(fontSize: 16)),
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: trait.color,
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
           const SizedBox(width: 6),
           Text(
-            trait.label,
+            trait.title,
             style: const TextStyle(
               color: AppColors.darkText,
               fontWeight: FontWeight.w600,

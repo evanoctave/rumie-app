@@ -1,7 +1,12 @@
-/// A single lifestyle attribute displayed on a roommate card,
-/// e.g. "Very tidy" with a 🧹 emoji.
+// lifestyle attribute, emoji
+import 'package:flutter/material.dart';
+
 class Trait {
-  final String emoji;
-  final String label;
-  const Trait(this.emoji, this.label);
+  final String title;
+  final Color color;
+
+  const Trait({
+    required this.title,
+    required this.color,
+  });
 }

@@ -1,5 +1,3 @@
-// lib/screens/home_screen.dart
-
 import 'package:flutter/material.dart';
 
 import '../models/roommate.dart';
@@ -19,23 +17,17 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-
   final List<Roommate> _matches = [];
 
   void _addMatch(Roommate roommate) {
     final exists = _matches.any((m) => m.name == roommate.name);
-
     if (!exists) {
-      setState(() {
-        _matches.add(roommate);
-      });
+      setState(() => _matches.add(roommate));
     }
   }
 
   void _openMatches() {
-    setState(() {
-      _selectedIndex = 1;
-    });
+    setState(() => _selectedIndex = 1);
   }
 
   @override
@@ -53,50 +45,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          Positioned(
-            top: 120,
-            left: -40,
-            child: _blob(
-              AppColors.softPink,
-              120,
-            ),
-          ),
-          Positioned(
-            bottom: 160,
-            right: -50,
-            child: _blob(
-              AppColors.softBlue,
-              140,
-            ),
-          ),
-          pages[_selectedIndex],
-        ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildTopNavBar(),
+            Expanded(child: pages[_selectedIndex]),
+          ],
+        ),
       ),
-      bottomNavigationBar: _buildNavBar(),
     );
   }
 
-  Widget _buildNavBar() {
+  Widget _buildTopNavBar() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(18, 0, 18, 20),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 10,
-      ),
+      margin: const EdgeInsets.fromLTRB(18, 14, 18, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: AppColors.darkText,
-          width: 3,
-        ),
         boxShadow: const [
           BoxShadow(
-            color: AppColors.darkText,
-            offset: Offset(4, 4),
-            blurRadius: 0,
+            color: Colors.black26,
+            offset: Offset(0, 10),
+            spreadRadius: 1,
           ),
         ],
       ),
@@ -104,50 +75,34 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           NavItem(
-            emoji: '💘',
+            icon: Icons.favorite,
             label: 'Discover',
-            active: _selectedIndex == 0,
-            onTap: () {
-              setState(() => _selectedIndex = 0);
-            },
+            selected: _selectedIndex == 0,
+            color: AppColors.pink,
+            onTap: () => setState(() => _selectedIndex = 0),
           ),
           NavItem(
-            emoji: '💬',
+            icon: Icons.chat_bubble_outline,
             label: 'Matches',
-            active: _selectedIndex == 1,
-            badge: _matches.length,
-            onTap: () {
-              setState(() => _selectedIndex = 1);
-            },
+            selected: _selectedIndex == 1,
+            color: AppColors.blue,
+            onTap: () => setState(() => _selectedIndex = 1),
           ),
           NavItem(
-            emoji: '🏠',
+            icon: Icons.home_work_outlined,
             label: 'Listings',
-            active: _selectedIndex == 2,
-            onTap: () {
-              setState(() => _selectedIndex = 2);
-            },
+            selected: _selectedIndex == 2,
+            color: AppColors.green,
+            onTap: () => setState(() => _selectedIndex = 2),
           ),
           NavItem(
-            emoji: '👤',
+            icon: Icons.person_outline,
             label: 'Profile',
-            active: _selectedIndex == 3,
-            onTap: () {
-              setState(() => _selectedIndex = 3);
-            },
+            selected: _selectedIndex == 3,
+            color: AppColors.purple,
+            onTap: () => setState(() => _selectedIndex = 3),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _blob(Color color, double size) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
       ),
     );
   }

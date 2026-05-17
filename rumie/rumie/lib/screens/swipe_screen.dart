@@ -110,93 +110,18 @@ class _SwipeScreenState extends State<SwipeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned(
-                top: 90, left: -40, child: _blob(AppColors.softBlue, 90)),
-            Positioned(
-              top: 160,
-              right: -30,
-              child: _triangle(AppColors.yellow),
-            ),
-            Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: hasMore ? _buildCardStack() : _buildEmpty(),
-                ),
-                if (hasMore) _buildActions(),
-                const SizedBox(height: 18),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(22, 20, 22, 8),
-      child: Row(
+      body: Stack(
         children: [
-          const Text(
-            'Roomie',
-            style: TextStyle(
-              fontFamily: 'serif',
-              fontSize: 34,
-              fontWeight: FontWeight.w900,
-              color: AppColors.darkText,
-            ),
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: widget.onOpenMatches,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.blue,
-                    border: Border.all(color: AppColors.darkText, width: 3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.chat_bubble_outline,
-                    color: AppColors.darkText,
-                  ),
-                ),
-                if (widget.matchCount > 0)
-                  Positioned(
-                    right: -8,
-                    top: -8,
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: AppColors.pink,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.darkText,
-                          width: 2,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '${widget.matchCount}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.darkText,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+          Positioned(top: 70, left: -40, child: _blob(AppColors.softBlue, 90)),
+          Positioned(top: 170, right: -30, child: _triangle(AppColors.yellow)),
+          Column(
+            children: [
+              Expanded(
+                child: hasMore ? _buildCardStack() : _buildEmpty(),
+              ),
+              if (hasMore) _buildActions(),
+              const SizedBox(height: 18),
+            ],
           ),
         ],
       ),
@@ -215,7 +140,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
               child: Transform.scale(
                 scale: 0.94,
                 child: Opacity(
-                  opacity: 0.55,
+                  opacity: 0.35,
                   child: RoommateCard(
                     roommate: sampleRoommates[_index + 1],
                   ),

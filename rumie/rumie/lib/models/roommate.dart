@@ -10,7 +10,9 @@ class Roommate {
   final int budget;
   final String location;
   final String bio;
+
   final List<Trait> traits;
+
   final List<Color> gradient;
 
   const Roommate({

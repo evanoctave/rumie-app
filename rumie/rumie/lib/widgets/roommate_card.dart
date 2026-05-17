@@ -18,100 +18,90 @@ class RoommateCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => onTap?.call(true),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.cardCream,
-          borderRadius: BorderRadius.circular(34),
-          border: Border.all(color: AppColors.darkText, width: 4),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: Stack(
-            children: [
-              Positioned(
-                top: 80,
-                left: -30,
-                child: _blob(AppColors.yellow, 100),
-              ),
-              Positioned(
-                bottom: 40,
-                right: -35,
-                child: _blob(AppColors.softBlue, 120),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 22, 18, 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${roommate.name} ${roommate.age}',
-                      style: const TextStyle(
-                        fontFamily: 'serif',
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.darkText,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Container(
-                      height: 190,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(
-                          color: AppColors.darkText,
-                          width: 4,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'PROFILE PHOTO PLACEHOLDER',
-                          style: TextStyle(
-                            color: AppColors.gray,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    _mutualsBar(),
-                    const SizedBox(height: 18),
-                    _answerCard(
-                      small: 'When do you feel most like yourself?',
-                      large: roommate.bio,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Budget: \$${roommate.budget}/month',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.darkText,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: roommate.traits
-                          .map((trait) => TraitChip(trait: trait))
-                          .toList(),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      roommate.location,
-                      style: const TextStyle(
-                        color: AppColors.gray,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
+        child: Stack(
+          children: [
+            Positioned(
+              top: 90,
+              left: -30,
+              child: _blob(AppColors.yellow, 100),
+            ),
+            Positioned(
+              bottom: 60,
+              right: -35,
+              child: _blob(AppColors.softBlue, 120),
+            ),
+            ListView(
+              padding: const EdgeInsets.fromLTRB(6, 8, 6, 20),
+              children: [
+                Text(
+                  '${roommate.name}, ${roommate.age}',
+                  style: const TextStyle(
+                    fontFamily: 'serif',
+                    fontSize: 38,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.darkText,
+                  ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(height: 18),
+                Container(
+                  height: 260,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(
+                      color: AppColors.darkText,
+                      width: 4,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'PROFILE PHOTO PLACEHOLDER',
+                      style: TextStyle(
+                        color: AppColors.gray,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                _mutualsBar(),
+                const SizedBox(height: 18),
+                _answerCard(
+                  small: 'When do you feel most like yourself?',
+                  large: roommate.bio,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Budget: \$${roommate.budget}/month',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.darkText,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: roommate.traits
+                      .map((trait) => TraitChip(trait: trait))
+                      .toList(),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  roommate.location,
+                  style: const TextStyle(
+                    color: AppColors.gray,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
