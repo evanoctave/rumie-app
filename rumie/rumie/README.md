@@ -1,4 +1,4 @@
-# Roomie
+# Rumie
 
 A Tinder-style roommate matching app, built in Flutter.
 
