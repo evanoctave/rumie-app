@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_colors.dart';
 
@@ -38,9 +39,9 @@ class PrefRow extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.softPurple,
+              color: AppColors.softBlue,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.purple.withAlpha(40)),
+              border: Border.all(color: AppColors.blue.withAlpha(40)),
             ),
             child: Center(child: Text(emoji, style: const TextStyle(fontSize: 18))),
           ),
@@ -70,7 +71,7 @@ class PrefRow extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 18),
+          SvgPicture.asset('assets/icons/ic_chevron.svg', width: 18, height: 18, colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn)),
         ],
       ),
     )

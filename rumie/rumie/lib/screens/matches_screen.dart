@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/roommate.dart';
 import '../theme/app_colors.dart';
@@ -35,7 +36,7 @@ class MatchesScreen extends StatelessWidget {
             children: [
               ShaderMask(
                 shaderCallback: (bounds) => const LinearGradient(
-                  colors: [AppColors.blue, AppColors.purple],
+                  colors: [AppColors.blue, AppColors.teal],
                 ).createShader(bounds),
                 child: const Text(
                   'Matches',
@@ -63,7 +64,7 @@ class MatchesScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [AppColors.blue, AppColors.purple],
+                  colors: [AppColors.blue, AppColors.teal],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -118,21 +119,26 @@ class MatchesScreen extends StatelessWidget {
               height: 120,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [AppColors.blue, AppColors.purple],
+                  colors: [AppColors.blue, AppColors.teal],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(36),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.purple.withAlpha(80),
+                    color: AppColors.blue.withAlpha(80),
                     blurRadius: 40,
                     spreadRadius: 4,
                   ),
                 ],
               ),
-              child: const Center(
-                child: Text('💬', style: TextStyle(fontSize: 52)),
+              child: Center(
+                child: SvgPicture.asset(
+                  'assets/icons/ic_chat.svg',
+                  width: 52,
+                  height: 52,
+                  colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                ),
               ),
             )
                 .animate(onPlay: (c) => c.repeat(reverse: true))

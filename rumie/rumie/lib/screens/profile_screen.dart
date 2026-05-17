@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_colors.dart';
 import '../widgets/animated_background.dart';
@@ -57,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildHeader() {
     return ShaderMask(
       shaderCallback: (bounds) => const LinearGradient(
-        colors: [AppColors.purple, AppColors.pink],
+        colors: [AppColors.teal, AppColors.blue],
       ).createShader(bounds),
       child: const Text(
         'Your Profile',
@@ -86,16 +87,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                     startAngle: _avatarController.value * 6.28,
                     endAngle: _avatarController.value * 6.28 + 6.28,
                     colors: const [
-                      AppColors.pink,
-                      AppColors.purple,
+                      AppColors.teal,
                       AppColors.blue,
                       AppColors.green,
-                      AppColors.pink,
+                      AppColors.orange,
+                      AppColors.teal,
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.purple.withAlpha(100),
+                      color: AppColors.blue.withAlpha(100),
                       blurRadius: 32,
                       spreadRadius: 4,
                     ),
@@ -107,8 +108,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                     color: AppColors.cardBg,
                     borderRadius: BorderRadius.circular(34),
                   ),
-                  child: const Center(
-                    child: Text('✨', style: TextStyle(fontSize: 52)),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(34),
+                    child: SvgPicture.asset('assets/icons/av_you.svg', fit: BoxFit.cover),
                   ),
                 ),
               );
@@ -129,7 +131,12 @@ class _ProfileScreenState extends State<ProfileScreen>
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.location_on_rounded, size: 13, color: AppColors.textSecondary),
+              SvgPicture.asset(
+                'assets/icons/ic_location.svg',
+                width: 13,
+                height: 13,
+                colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
+              ),
               const SizedBox(width: 3),
               const Text(
                 'SF Bay Area',
@@ -145,11 +152,11 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildStatsRow() {
     return Row(
       children: [
-        _statCard('12', 'Swipes', AppColors.pink),
+        _statCard('12', 'Swipes', AppColors.blue),
         const SizedBox(width: 12),
-        _statCard('3', 'Matches', AppColors.purple),
+        _statCard('3', 'Matches', AppColors.green),
         const SizedBox(width: 12),
-        _statCard('1', 'Chats', AppColors.blue),
+        _statCard('1', 'Chats', AppColors.teal),
       ],
     ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1);
   }
@@ -215,17 +222,29 @@ class _ProfileScreenState extends State<ProfileScreen>
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: AppColors.softPurple,
+                  color: AppColors.softBlue,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.purple.withAlpha(60)),
+                  border: Border.all(color: AppColors.blue.withAlpha(60)),
                 ),
-                child: const Text(
-                  'Edit',
-                  style: TextStyle(
-                    color: AppColors.purple,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/icons/ic_edit.svg',
+                      width: 13,
+                      height: 13,
+                      colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
+                    ),
+                    const SizedBox(width: 5),
+                    const Text(
+                      'Edit',
+                      style: TextStyle(
+                        color: AppColors.blue,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -246,8 +265,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       children: [
         _gradientButton(
           label: 'Edit Profile',
-          icon: Icons.edit_rounded,
-          colors: [AppColors.purple, AppColors.pink],
+          svgAsset: 'assets/icons/ic_edit.svg',
+          colors: [AppColors.blue, AppColors.teal],
           onTap: () {},
         ),
         const SizedBox(height: 12),
@@ -261,12 +280,17 @@ class _ProfileScreenState extends State<ProfileScreen>
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.border, width: 1.5),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.settings_rounded, color: AppColors.textSecondary, size: 18),
-                SizedBox(width: 8),
-                Text(
+                SvgPicture.asset(
+                  'assets/icons/ic_settings.svg',
+                  width: 18,
+                  height: 18,
+                  colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
+                ),
+                const SizedBox(width: 8),
+                const Text(
                   'Settings',
                   style: TextStyle(
                     color: AppColors.textSecondary,
@@ -284,7 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Widget _gradientButton({
     required String label,
-    required IconData icon,
+    required String svgAsset,
     required List<Color> colors,
     required VoidCallback onTap,
   }) {
@@ -311,7 +335,12 @@ class _ProfileScreenState extends State<ProfileScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 18),
+            SvgPicture.asset(
+              svgAsset,
+              width: 18,
+              height: 18,
+              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            ),
             const SizedBox(width: 8),
             Text(
               label,

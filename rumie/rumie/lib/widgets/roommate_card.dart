@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/roommate.dart';
 import '../theme/app_colors.dart';
@@ -67,7 +68,7 @@ class RoommateCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_rounded, size: 14, color: AppColors.textSecondary),
+                      SvgPicture.asset('assets/icons/ic_location.svg', width: 14, height: 14, colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn)),
                       const SizedBox(width: 4),
                       Text(
                         roommate.location,
@@ -145,27 +146,18 @@ class RoommateCard extends StatelessWidget {
               ),
             ),
           ),
-          // Big emoji avatar
           Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(25),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withAlpha(60), width: 2),
-                  ),
-                  child: Center(
-                    child: Text(
-                      roommate.emoji,
-                      style: const TextStyle(fontSize: 48),
-                    ),
-                  ),
-                ),
-              ],
+            child: Container(
+              width: 90,
+              height: 90,
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(25),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withAlpha(60), width: 2),
+              ),
+              child: ClipOval(
+                child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.cover),
+              ),
             ),
           ),
           // Bottom gradient fade
@@ -264,7 +256,7 @@ class RoommateCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.group_rounded, color: AppColors.blue, size: 18),
+          SvgPicture.asset('assets/icons/ic_group.svg', width: 18, height: 18, colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn)),
           const SizedBox(width: 8),
           const Text(
             'Mutuals',

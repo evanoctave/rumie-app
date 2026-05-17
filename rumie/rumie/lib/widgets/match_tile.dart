@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/roommate.dart';
 import '../screens/chat_screen.dart';
@@ -72,7 +73,6 @@ class _MatchTileState extends State<MatchTile>
           ),
           child: Row(
             children: [
-              // Avatar with glow
               Container(
                 width: 58,
                 height: 58,
@@ -91,11 +91,9 @@ class _MatchTileState extends State<MatchTile>
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Text(
-                    widget.roommate.emoji,
-                    style: const TextStyle(fontSize: 28),
-                  ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(17),
+                  child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
                 ),
               ),
               const SizedBox(width: 14),
@@ -114,10 +112,11 @@ class _MatchTileState extends State<MatchTile>
                     const SizedBox(height: 3),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.location_on_rounded,
-                          size: 12,
-                          color: AppColors.textSecondary,
+                        SvgPicture.asset(
+                          'assets/icons/ic_location.svg',
+                          width: 12,
+                          height: 12,
+                          colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
                         ),
                         const SizedBox(width: 3),
                         Expanded(
@@ -171,7 +170,7 @@ class _MatchTileState extends State<MatchTile>
                 height: 42,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [AppColors.blue, AppColors.purple],
+                    colors: [AppColors.blue, AppColors.teal],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -184,10 +183,13 @@ class _MatchTileState extends State<MatchTile>
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.chat_bubble_rounded,
-                  color: Colors.white,
-                  size: 18,
+                child: Center(
+                  child: SvgPicture.asset(
+                    'assets/icons/ic_chat.svg',
+                    width: 18,
+                    height: 18,
+                    colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  ),
                 ),
               ),
             ],

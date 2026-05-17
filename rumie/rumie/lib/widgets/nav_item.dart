@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/app_colors.dart';
+import 'rumie_icon.dart';
 
 class NavItem extends StatefulWidget {
-  final IconData icon;
+  final String svgAsset;
   final String label;
   final bool selected;
   final Color color;
@@ -12,7 +13,7 @@ class NavItem extends StatefulWidget {
 
   const NavItem({
     super.key,
-    required this.icon,
+    required this.svgAsset,
     required this.label,
     required this.selected,
     required this.color,
@@ -88,14 +89,10 @@ class _NavItemState extends State<NavItem> with SingleTickerProviderStateMixin {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  widget.icon,
-                  key: ValueKey(widget.selected),
-                  color: widget.selected ? widget.color : AppColors.gray,
-                  size: 22,
-                ),
+              RumieIcon(
+                asset: widget.svgAsset,
+                size: 22,
+                color: widget.selected ? widget.color : AppColors.gray,
               ),
               const SizedBox(height: 3),
               Text(

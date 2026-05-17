@@ -57,11 +57,11 @@ class _OrbPainter extends CustomPainter {
   _OrbPainter(this.t);
 
   static const _orbs = [
-    _OrbDef(cx: 0.15, cy: 0.2, rx: 0.35, ry: 0.25, speed: 0.7, phase: 0.0, color: AppColors.purple, size: 220),
-    _OrbDef(cx: 0.85, cy: 0.15, rx: 0.30, ry: 0.30, speed: 0.5, phase: 1.2, color: AppColors.pink, size: 180),
+    _OrbDef(cx: 0.15, cy: 0.2, rx: 0.35, ry: 0.25, speed: 0.7, phase: 0.0, color: AppColors.blue, size: 220),
+    _OrbDef(cx: 0.85, cy: 0.15, rx: 0.30, ry: 0.30, speed: 0.5, phase: 1.2, color: AppColors.teal, size: 180),
     _OrbDef(cx: 0.5, cy: 0.6, rx: 0.40, ry: 0.20, speed: 0.8, phase: 2.5, color: AppColors.blue, size: 200),
     _OrbDef(cx: 0.2, cy: 0.8, rx: 0.25, ry: 0.30, speed: 0.6, phase: 3.8, color: AppColors.green, size: 160),
-    _OrbDef(cx: 0.75, cy: 0.75, rx: 0.30, ry: 0.25, speed: 0.9, phase: 5.0, color: AppColors.pink, size: 140),
+    _OrbDef(cx: 0.75, cy: 0.75, rx: 0.30, ry: 0.25, speed: 0.9, phase: 5.0, color: AppColors.teal, size: 140),
   ];
 
   @override

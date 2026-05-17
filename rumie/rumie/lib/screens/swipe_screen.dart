@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../data/sample_data.dart';
 import '../models/roommate.dart';
@@ -90,7 +91,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
         children: [
           ShaderMask(
             shaderCallback: (bounds) => const LinearGradient(
-              colors: [AppColors.pink, AppColors.purple],
+              colors: [AppColors.blue, AppColors.teal],
             ).createShader(bounds),
             child: const Text(
               'Discover',
@@ -109,14 +110,14 @@ class _SwipeScreenState extends State<SwipeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [AppColors.purple, AppColors.pink],
+                    colors: [AppColors.green, AppColors.teal],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.purple.withAlpha(80),
+                      color: AppColors.green.withAlpha(80),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -125,7 +126,12 @@ class _SwipeScreenState extends State<SwipeScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.favorite_rounded, color: Colors.white, size: 14),
+                    SvgPicture.asset(
+                      'assets/icons/ic_like.svg',
+                      width: 14,
+                      height: 14,
+                      colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                    ),
                     const SizedBox(width: 5),
                     Text(
                       '${widget.matchCount}',
@@ -152,7 +158,6 @@ class _SwipeScreenState extends State<SwipeScreen> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Third card (deepest)
           if (_index + 2 < sampleRoommates.length)
             Transform.translate(
               offset: const Offset(0, 30),
@@ -166,7 +171,6 @@ class _SwipeScreenState extends State<SwipeScreen> {
                 ),
               ),
             ),
-          // Second card
           if (_index + 1 < sampleRoommates.length)
             Transform.translate(
               offset: const Offset(0, 16),
@@ -180,7 +184,6 @@ class _SwipeScreenState extends State<SwipeScreen> {
                 ),
               ),
             ),
-          // Top draggable card
           _DragCard(
             key: ValueKey(_index),
             roommate: sampleRoommates[_index],
@@ -199,20 +202,20 @@ class _SwipeScreenState extends State<SwipeScreen> {
         children: [
           ActionButton(
             label: 'Pass',
-            icon: Icons.close_rounded,
+            svgAsset: 'assets/icons/ic_pass.svg',
             color: AppColors.red,
             onTap: () => _handleSwipe(false),
           ),
           ActionButton(
             label: 'Super',
-            icon: Icons.star_rounded,
+            svgAsset: 'assets/icons/ic_super.svg',
             color: AppColors.yellow,
             onTap: () => _handleSwipe(true),
             large: true,
           ),
           ActionButton(
             label: 'Like',
-            icon: Icons.favorite_rounded,
+            svgAsset: 'assets/icons/ic_like.svg',
             color: AppColors.green,
             onTap: () => _handleSwipe(true),
           ),
@@ -231,21 +234,26 @@ class _SwipeScreenState extends State<SwipeScreen> {
             height: 100,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [AppColors.pink, AppColors.purple],
+                colors: [AppColors.blue, AppColors.teal],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.purple.withAlpha(80),
+                  color: AppColors.blue.withAlpha(80),
                   blurRadius: 32,
                   spreadRadius: 4,
                 ),
               ],
             ),
-            child: const Center(
-              child: Text('🏠', style: TextStyle(fontSize: 48)),
+            child: Center(
+              child: SvgPicture.asset(
+                'assets/icons/ic_listings.svg',
+                width: 48,
+                height: 48,
+                colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              ),
             ),
           )
               .animate(onPlay: (c) => c.repeat(reverse: true))
@@ -291,7 +299,6 @@ class _DragCard extends StatefulWidget {
 
 class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
   Offset _offset = Offset.zero;
-
 
   late AnimationController _snapController;
   late Animation<Offset> _snapAnim;
@@ -404,7 +411,6 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
           child: Stack(
             children: [
               RoommateCard(roommate: widget.roommate),
-              // LIKE stamp
               if (likeOpacity > 0.05)
                 Positioned(
                   top: 50,
@@ -414,7 +420,6 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
                     child: const Stamp(text: 'LIKE', color: AppColors.green),
                   ),
                 ),
-              // NOPE stamp
               if (nopeOpacity > 0.05)
                 Positioned(
                   top: 50,
@@ -453,7 +458,7 @@ class _MatchDialog extends StatelessWidget {
             border: Border.all(color: AppColors.border, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: AppColors.purple.withAlpha(80),
+                color: AppColors.blue.withAlpha(80),
                 blurRadius: 40,
                 spreadRadius: 8,
               ),
@@ -462,31 +467,42 @@ class _MatchDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Confetti-like emoji burst
               _ConfettiRow(),
               const SizedBox(height: 16),
-              // Avatars
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _Avatar(emoji: '✨', gradient: const [AppColors.pink, AppColors.purple]),
+                  const _AvatarBox(
+                    svgAsset: 'assets/icons/av_you.svg',
+                    gradient: [AppColors.blue, AppColors.teal],
+                  ),
                   Container(
                     width: 40,
                     height: 40,
                     margin: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: const BoxDecoration(
-                      gradient: AppColors.pinkPurpleGradient,
+                      gradient: AppColors.likeGradient,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.favorite_rounded, color: Colors.white, size: 20),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        'assets/icons/ic_like.svg',
+                        width: 20,
+                        height: 20,
+                        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                      ),
+                    ),
                   ),
-                  _Avatar(emoji: roommate.emoji, gradient: roommate.gradient),
+                  _AvatarBox(
+                    svgAsset: roommate.avatarAsset,
+                    gradient: roommate.gradient,
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
               ShaderMask(
                 shaderCallback: (bounds) => const LinearGradient(
-                  colors: [AppColors.pink, AppColors.purple],
+                  colors: [AppColors.blue, AppColors.teal],
                 ).createShader(bounds),
                 child: const Text(
                   "It's a Match!",
@@ -516,25 +532,30 @@ class _MatchDialog extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [AppColors.pink, AppColors.purple],
+                        colors: [AppColors.blue, AppColors.teal],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.purple.withAlpha(80),
+                          color: AppColors.blue.withAlpha(80),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.chat_bubble_rounded, color: Colors.white, size: 18),
-                        SizedBox(width: 8),
-                        Text(
+                        SvgPicture.asset(
+                          'assets/icons/ic_chat.svg',
+                          width: 18,
+                          height: 18,
+                          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
                           'Start Chatting',
                           style: TextStyle(
                             color: Colors.white,
@@ -567,11 +588,11 @@ class _MatchDialog extends StatelessWidget {
   }
 }
 
-class _Avatar extends StatelessWidget {
-  final String emoji;
+class _AvatarBox extends StatelessWidget {
+  final String svgAsset;
   final List<Color> gradient;
 
-  const _Avatar({required this.emoji, required this.gradient});
+  const _AvatarBox({required this.svgAsset, required this.gradient});
 
   @override
   Widget build(BuildContext context) {
@@ -593,7 +614,10 @@ class _Avatar extends StatelessWidget {
           ),
         ],
       ),
-      child: Center(child: Text(emoji, style: const TextStyle(fontSize: 32))),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: SvgPicture.asset(svgAsset, fit: BoxFit.cover),
+      ),
     );
   }
 }

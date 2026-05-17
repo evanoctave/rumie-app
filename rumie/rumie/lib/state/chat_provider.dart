@@ -8,7 +8,7 @@ class ChatProvider extends ChangeNotifier {
 
   ChatProvider(this.authService);
 
-  List<dynamic> messages = [];
+  List<MessageOut> messages = [];
 
   bool loading = false;
 

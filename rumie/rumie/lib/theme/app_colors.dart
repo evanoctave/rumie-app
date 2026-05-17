@@ -1,66 +1,66 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Dark backgrounds
-  static const Color background = Color(0xFF0C0C1D);
-  static const Color surface = Color(0xFF161628);
-  static const Color cardBg = Color(0xFF1E1E38);
-  static const Color border = Color(0xFF2A2A4A);
-  static const Color borderBright = Color(0xFF3D3D66);
+  // Backgrounds — dark teal-navy
+  static const Color background = Color(0xFF131F24);
+  static const Color surface = Color(0xFF1A2B35);
+  static const Color cardBg = Color(0xFF22364A);
+  static const Color border = Color(0xFF2C4458);
+  static const Color borderBright = Color(0xFF3A5A72);
 
-  // Vibrant neon accents
-  static const Color pink = Color(0xFFFF3CAC);
-  static const Color purple = Color(0xFFA855F7);
-  static const Color blue = Color(0xFF38BDF8);
-  static const Color green = Color(0xFF4ADE80);
-  static const Color yellow = Color(0xFFFBBF24);
-  static const Color orange = Color(0xFFFB923C);
-  static const Color red = Color(0xFFEF4444);
+  // Duolingo-inspired palette
+  static const Color blue = Color(0xFF1CB0F6);    // primary — discover/chat
+  static const Color green = Color(0xFF58CC02);   // match/success
+  static const Color orange = Color(0xFFFF9600);  // listings/home
+  static const Color red = Color(0xFFFF4B4B);     // pass/danger
+  static const Color yellow = Color(0xFFFFC800);  // super/featured
+  static const Color teal = Color(0xFF00B8A0);    // secondary accent
 
-  // Soft/dimmed for chip backgrounds
-  static const Color softPink = Color(0xFF3D1530);
-  static const Color softPurple = Color(0xFF2D1A4A);
-  static const Color softBlue = Color(0xFF0F2740);
-  static const Color softGreen = Color(0xFF0F3020);
-  static const Color softYellow = Color(0xFF3D2E00);
+  // Soft chip backgrounds (dark tinted)
+  static const Color softBlue = Color(0xFF0D2A3D);
+  static const Color softGreen = Color(0xFF0D2B10);
+  static const Color softOrange = Color(0xFF3D2200);
+  static const Color softRed = Color(0xFF3D1010);
+  static const Color softYellow = Color(0xFF3D3000);
+  static const Color softTeal = Color(0xFF0A2B28);
 
   // Text
-  static const Color text = Color(0xFFF8FAFC);
-  static const Color textSecondary = Color(0xFF94A3B8);
-  static const Color darkText = Color(0xFF0C0C1D);
-  static const Color gray = Color(0xFF64748B);
+  static const Color text = Color(0xFFEAEFF4);
+  static const Color textSecondary = Color(0xFF8BA9BD);
+  static const Color darkText = Color(0xFF131F24);
+  static const Color gray = Color(0xFF64829A);
 
   // Gradients
   static const LinearGradient brandGradient = LinearGradient(
-    colors: [pink, purple, blue],
+    colors: [blue, teal],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  static const LinearGradient pinkPurpleGradient = LinearGradient(
-    colors: [pink, purple],
+  static const LinearGradient blueTealGradient = LinearGradient(
+    colors: [blue, teal],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  static const LinearGradient purpleBlueGradient = LinearGradient(
-    colors: [purple, blue],
+  static const LinearGradient blueGreenGradient = LinearGradient(
+    colors: [blue, green],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient likeGradient = LinearGradient(
-    colors: [Color(0xFF4ADE80), Color(0xFF22C55E)],
+    colors: [Color(0xFF58CC02), Color(0xFF3DAD00)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient nopeGradient = LinearGradient(
-    colors: [Color(0xFFF87171), Color(0xFFEF4444)],
+    colors: [Color(0xFFFF6B6B), Color(0xFFFF4B4B)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  // Compat shim — cardCream was the old light card; map to dark card
+  // Compat shim
   static const Color cardCream = cardBg;
 }

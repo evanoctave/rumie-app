@@ -111,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: AppColors.purple.withAlpha(20),
+            color: AppColors.blue.withAlpha(20),
             blurRadius: 40,
             spreadRadius: 4,
           ),
@@ -121,20 +121,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           NavItem(
-            icon: Icons.favorite_rounded,
+            svgAsset: 'assets/icons/ic_discover.svg',
             label: 'Discover',
             selected: _selectedIndex == 0,
-            color: AppColors.pink,
+            color: AppColors.blue,
             onTap: () => _onTabTap(0),
           ),
           Stack(
             clipBehavior: Clip.none,
             children: [
               NavItem(
-                icon: Icons.chat_bubble_rounded,
+                svgAsset: 'assets/icons/ic_matches.svg',
                 label: 'Matches',
                 selected: _selectedIndex == 1,
-                color: AppColors.blue,
+                color: AppColors.green,
                 onTap: () => _onTabTap(1),
               ),
               if (_matches.isNotEmpty)
@@ -145,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     width: 16,
                     height: 16,
                     decoration: const BoxDecoration(
-                      gradient: AppColors.pinkPurpleGradient,
+                      color: AppColors.green,
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -165,17 +165,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ],
           ),
           NavItem(
-            icon: Icons.home_work_rounded,
+            svgAsset: 'assets/icons/ic_listings.svg',
             label: 'Listings',
             selected: _selectedIndex == 2,
-            color: AppColors.green,
+            color: AppColors.orange,
             onTap: () => _onTabTap(2),
           ),
           NavItem(
-            icon: Icons.person_rounded,
+            svgAsset: 'assets/icons/ic_profile.svg',
             label: 'Profile',
             selected: _selectedIndex == 3,
-            color: AppColors.purple,
+            color: AppColors.teal,
             onTap: () => _onTabTap(3),
           ),
         ],

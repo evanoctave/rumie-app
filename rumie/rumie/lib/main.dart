@@ -31,13 +31,13 @@ class Rumie extends StatelessWidget {
         brightness: Brightness.dark,
         fontFamily: 'SF Pro Display',
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.purple,
+          seedColor: AppColors.blue,
           brightness: Brightness.dark,
           surface: AppColors.surface,
         ).copyWith(
           surface: AppColors.surface,
-          primary: AppColors.purple,
-          secondary: AppColors.pink,
+          primary: AppColors.blue,
+          secondary: AppColors.teal,
         ),
         textTheme: const TextTheme(
           headlineLarge: TextStyle(

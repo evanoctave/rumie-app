@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'rumie_icon.dart';
+
 class ActionButton extends StatefulWidget {
   final String label;
-  final IconData icon;
+  final String svgAsset;
   final Color color;
   final VoidCallback onTap;
   final bool large;
@@ -11,7 +13,7 @@ class ActionButton extends StatefulWidget {
   const ActionButton({
     super.key,
     required this.label,
-    required this.icon,
+    required this.svgAsset,
     required this.color,
     required this.onTap,
     this.large = false,
@@ -48,6 +50,7 @@ class _ActionButtonState extends State<ActionButton>
   @override
   Widget build(BuildContext context) {
     final size = widget.large ? 90.0 : 76.0;
+    final iconSize = widget.large ? 32.0 : 26.0;
 
     return GestureDetector(
       onTapDown: (_) {
@@ -80,7 +83,7 @@ class _ActionButtonState extends State<ActionButton>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(widget.icon, color: widget.color, size: widget.large ? 32 : 26),
+              RumieIcon(asset: widget.svgAsset, size: iconSize, color: widget.color),
               const SizedBox(height: 3),
               Text(
                 widget.label,

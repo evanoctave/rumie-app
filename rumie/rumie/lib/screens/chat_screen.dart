@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/message.dart';
 import '../models/roommate.dart';
@@ -45,7 +46,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 900),
     )..repeat();
 
-    // Seed with a greeting
     Future.delayed(600.ms, () {
       if (mounted) {
         _addTheirMessage("Hey! Looks like we matched 👋 Can't wait to connect!");
@@ -120,11 +120,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Subtle gradient backdrop
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.background, Color(0xFF10102A)],
+                colors: [AppColors.background, Color(0xFF0D1B22)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -152,7 +151,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.purple.withAlpha(30),
+            color: AppColors.blue.withAlpha(20),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -165,10 +164,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.text, size: 20),
+                icon: SvgPicture.asset(
+                  'assets/icons/ic_back.svg',
+                  width: 20,
+                  height: 20,
+                  colorFilter: const ColorFilter.mode(AppColors.text, BlendMode.srcIn),
+                ),
                 onPressed: () => Navigator.pop(context),
               ),
-              // Avatar
               Container(
                 width: 44,
                 height: 44,
@@ -187,8 +190,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Text(widget.roommate.emoji, style: const TextStyle(fontSize: 22)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
                 ),
               ),
               const SizedBox(width: 12),
@@ -234,11 +238,18 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: AppColors.softPurple,
+                    color: AppColors.softBlue,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: const Icon(Icons.more_horiz_rounded, color: AppColors.text, size: 20),
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'assets/icons/ic_more.svg',
+                      width: 20,
+                      height: 20,
+                      colorFilter: const ColorFilter.mode(AppColors.text, BlendMode.srcIn),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -272,8 +283,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   ),
                 ],
               ),
-              child: Center(
-                child: Text(widget.roommate.emoji, style: const TextStyle(fontSize: 40)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
               ),
             ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
             const SizedBox(height: 16),
@@ -327,8 +339,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Center(
-              child: Text(widget.roommate.emoji, style: const TextStyle(fontSize: 16)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
             ),
           ),
           const SizedBox(width: 8),
@@ -482,7 +495,7 @@ class _SendButtonState extends State<_SendButton> with SingleTickerProviderState
           height: 46,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [AppColors.pink, AppColors.purple],
+              colors: [AppColors.blue, AppColors.teal],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -491,16 +504,19 @@ class _SendButtonState extends State<_SendButton> with SingleTickerProviderState
                 ? []
                 : [
                     BoxShadow(
-                      color: AppColors.purple.withAlpha(80),
+                      color: AppColors.blue.withAlpha(80),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
           ),
-          child: const Icon(
-            Icons.send_rounded,
-            color: Colors.white,
-            size: 20,
+          child: Center(
+            child: SvgPicture.asset(
+              'assets/icons/ic_send.svg',
+              width: 20,
+              height: 20,
+              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            ),
           ),
         ),
       ),
@@ -542,8 +558,9 @@ class _MessageBubble extends StatelessWidget {
                         ),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Center(
-                        child: Text(roommate.emoji, style: const TextStyle(fontSize: 16)),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.cover),
                       ),
                     )
                   : const SizedBox(),
@@ -559,7 +576,7 @@ class _MessageBubble extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: message.isMe
                     ? const LinearGradient(
-                        colors: [AppColors.pink, AppColors.purple],
+                        colors: [AppColors.blue, AppColors.teal],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       )
@@ -575,7 +592,7 @@ class _MessageBubble extends StatelessWidget {
                 boxShadow: message.isMe
                     ? [
                         BoxShadow(
-                          color: AppColors.purple.withAlpha(50),
+                          color: AppColors.blue.withAlpha(50),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),

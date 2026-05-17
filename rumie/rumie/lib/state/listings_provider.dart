@@ -8,7 +8,7 @@ class ListingsProvider extends ChangeNotifier {
 
   ListingsProvider(this.authService);
 
-  List<dynamic> listings = [];
+  List<ListingOut> listings = [];
 
   bool loading = false;
 

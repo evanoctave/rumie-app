@@ -33,16 +33,16 @@ class _ListingCardState extends State<ListingCard>
 
   // Each type maps to a gradient pair
   static const Map<String, List<Color>> _typeGradients = {
-    'Room': [Color(0xFFFF3CAC), Color(0xFFA855F7)],
-    'Apartment': [Color(0xFF38BDF8), Color(0xFF6366F1)],
-    'Condo': [Color(0xFF4ADE80), Color(0xFF38BDF8)],
-    'House': [Color(0xFFFBBF24), Color(0xFFFB923C)],
-    'Duplex': [Color(0xFFA855F7), Color(0xFFEC4899)],
-    'Studio': [Color(0xFF34D399), Color(0xFF38BDF8)],
+    'Room': [Color(0xFF1CB0F6), Color(0xFF00B8A0)],
+    'Apartment': [Color(0xFF1CB0F6), Color(0xFF0284C7)],
+    'Condo': [Color(0xFF58CC02), Color(0xFF1CB0F6)],
+    'House': [Color(0xFFFF9600), Color(0xFFEA580C)],
+    'Duplex': [Color(0xFF00B8A0), Color(0xFF1CB0F6)],
+    'Studio': [Color(0xFF58CC02), Color(0xFF00B8A0)],
   };
 
   List<Color> get _gradient =>
-      _typeGradients[widget.type] ?? [AppColors.purple, AppColors.blue];
+      _typeGradients[widget.type] ?? [AppColors.blue, AppColors.teal];
 
   @override
   void initState() {
