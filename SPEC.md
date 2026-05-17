@@ -88,8 +88,8 @@ T1|x|add deps to `pubspec.yaml` (`dio`, `json_annotation`, `json_serializable`, 
 T2|x|fetch `openapi.json` → commit `lib/data/api/openapi.json`|C
 T3|x|scaffold `lib/data/api/` (`dio_client.dart`, `exceptions.dart`, `interceptors/`)|V10,V11
 T4|x|`SecureTokenStore` wrap `flutter_secure_storage` (read/write/clear access+refresh)|V4
-T5|.|`AuthInterceptor` attach bearer ; 401→refresh-and-retry ; single-flight refresh|V1,V2,V3
-T6|.|`ErrorInterceptor` map 422→`ValidationException`, 5xx→`ServerException`, timeout→`NetworkException`|V5,V6,V9
+T5|x|`AuthInterceptor` attach bearer ; 401→refresh-and-retry ; single-flight refresh|V1,V2,V3
+T6|x|`ErrorInterceptor` map 422→`ValidationException`, 5xx→`ServerException`, timeout→`NetworkException`|V5,V6,V9
 T7|x|`LoggingInterceptor` w/ redaction (debug only)|V13
 T8|.|gen DTO models from OpenAPI schemas → `lib/data/models/*.dart` + `*.g.dart` (build_runner)|V7,V12
 T9|.|`AuthRepository` iface + impl: `login`, `register`, `me`, `logout` (client-clear) ; internal `refresh` for interceptor|I,V9,V14,V15

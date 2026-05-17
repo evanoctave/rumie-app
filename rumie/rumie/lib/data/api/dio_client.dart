@@ -11,19 +11,41 @@ class DioClient {
     defaultValue: 'https://rumie.xyz',
   );
 
-  static Dio create(TokenStore tokenStore) {
-    final dio = Dio(BaseOptions(
-      baseUrl: '$baseUrlEnv/api/v1',
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 30),
-      sendTimeout: const Duration(seconds: 30),
-      headers: const {'Content-Type': 'application/json'},
-    ));
+  static String get baseUrl => '$baseUrlEnv/api/v1';
+
+  /// Bare Dio used by [AuthInterceptor] to call `/auth/refresh` without
+  /// recursing through itself. Carries logging only.
+  static Dio createRefreshDio() {
+    final dio = _base();
+    dio.interceptors.add(LoggingInterceptor());
+    return dio;
+  }
+
+  static Dio create({
+    required TokenStore tokenStore,
+    required Dio refreshDio,
+    required Dio Function() mainDio,
+    void Function()? onLogout,
+  }) {
+    final dio = _base();
     dio.interceptors.addAll([
-      AuthInterceptor(tokenStore),
+      AuthInterceptor(
+        tokenStore: tokenStore,
+        refreshDio: refreshDio,
+        mainDio: mainDio,
+        onLogout: onLogout,
+      ),
       ErrorInterceptor(),
       LoggingInterceptor(),
     ]);
     return dio;
   }
+
+  static Dio _base() => Dio(BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
+        headers: const {'Content-Type': 'application/json'},
+      ));
 }
