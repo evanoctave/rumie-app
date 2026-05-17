@@ -7,7 +7,6 @@ import '../data/sample_data.dart';
 import '../models/roommate.dart';
 import '../theme/app_colors.dart';
 import '../widgets/action_button.dart';
-import '../widgets/animated_background.dart';
 import '../widgets/roommate_card.dart';
 import '../widgets/stamp.dart';
 
@@ -36,11 +35,8 @@ class _SwipeScreenState extends State<SwipeScreen> {
       widget.onMatch(sampleRoommates[_index]);
       _showMatchDialog(sampleRoommates[_index]);
     }
-
     setState(() {
-      _index = _index < sampleRoommates.length - 1
-          ? _index + 1
-          : sampleRoommates.length;
+      _index = _index < sampleRoommates.length - 1 ? _index + 1 : sampleRoommates.length;
     });
   }
 
@@ -49,34 +45,33 @@ class _SwipeScreenState extends State<SwipeScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'dismiss',
-      barrierColor: Colors.black.withAlpha(160),
-      transitionDuration: const Duration(milliseconds: 400),
+      barrierColor: Colors.black.withAlpha(180),
+      transitionDuration: const Duration(milliseconds: 320),
       transitionBuilder: (context, anim, _, child) {
         return ScaleTransition(
-          scale: CurvedAnimation(parent: anim, curve: Curves.elasticOut),
+          scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
           child: FadeTransition(opacity: anim, child: child),
         );
       },
-      pageBuilder: (context, _, __) {
-        return _MatchDialog(roommate: roommate, onChat: () {
+      pageBuilder: (context, _, __) => _MatchDialog(
+        roommate: roommate,
+        onChat: () {
           Navigator.pop(context);
           widget.onOpenMatches();
-        });
-      },
+        },
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final hasMore = _index < sampleRoommates.length;
-
-    return AnimatedBackground(
+    return ColoredBox(
+      color: AppColors.background,
       child: Column(
         children: [
           _buildHeader(),
-          Expanded(
-            child: hasMore ? _buildCardStack() : _buildEmpty(),
-          ),
+          Expanded(child: hasMore ? _buildCardStack() : _buildEmpty()),
           if (hasMore) _buildActions(),
           const SizedBox(height: 12),
         ],
@@ -86,20 +81,15 @@ class _SwipeScreenState extends State<SwipeScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
         children: [
-          ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [AppColors.blue, AppColors.teal],
-            ).createShader(bounds),
-            child: const Text(
-              'Discover',
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
+          const Text(
+            'Discover',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: AppColors.text,
             ),
           ),
           const Spacer(),
@@ -107,65 +97,55 @@ class _SwipeScreenState extends State<SwipeScreen> {
             GestureDetector(
               onTap: widget.onOpenMatches,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.green, AppColors.teal],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.green.withAlpha(80),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  color: AppColors.softGreen,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.green.withAlpha(80)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SvgPicture.asset(
-                      'assets/icons/ic_like.svg',
-                      width: 14,
-                      height: 14,
-                      colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: AppColors.green,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                    const SizedBox(width: 5),
+                    const SizedBox(width: 6),
                     Text(
-                      '${widget.matchCount}',
+                      '${widget.matchCount} match${widget.matchCount == 1 ? '' : 'es'}',
                       style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
+                        color: AppColors.green,
+                        fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
                     ),
                   ],
                 ),
-              )
-                  .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .scaleXY(begin: 1.0, end: 1.04, duration: 1200.ms, curve: Curves.easeInOut),
+              ),
             ),
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1);
+    ).animate().fadeIn(duration: 300.ms);
   }
 
   Widget _buildCardStack() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Stack(
         alignment: Alignment.center,
         children: [
           if (_index + 2 < sampleRoommates.length)
             Transform.translate(
-              offset: const Offset(0, 30),
+              offset: const Offset(0, 28),
               child: Transform.scale(
-                scale: 0.88,
+                scale: 0.90,
                 child: IgnorePointer(
                   child: Opacity(
-                    opacity: 0.25,
+                    opacity: 0.3,
                     child: RoommateCard(roommate: sampleRoommates[_index + 2]),
                   ),
                 ),
@@ -173,12 +153,12 @@ class _SwipeScreenState extends State<SwipeScreen> {
             ),
           if (_index + 1 < sampleRoommates.length)
             Transform.translate(
-              offset: const Offset(0, 16),
+              offset: const Offset(0, 14),
               child: Transform.scale(
-                scale: 0.94,
+                scale: 0.95,
                 child: IgnorePointer(
                   child: Opacity(
-                    opacity: 0.5,
+                    opacity: 0.55,
                     child: RoommateCard(roommate: sampleRoommates[_index + 1]),
                   ),
                 ),
@@ -196,7 +176,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
 
   Widget _buildActions() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -221,77 +201,57 @@ class _SwipeScreenState extends State<SwipeScreen> {
           ),
         ],
       ),
-    ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.2);
+    ).animate().fadeIn(delay: 200.ms, duration: 300.ms);
   }
 
   Widget _buildEmpty() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.blue, AppColors.teal],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.cardBg,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppColors.border),
               ),
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.blue.withAlpha(80),
-                  blurRadius: 32,
-                  spreadRadius: 4,
+              child: Center(
+                child: SvgPicture.asset(
+                  'assets/icons/ic_discover.svg',
+                  width: 40,
+                  height: 40,
+                  colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
                 ),
-              ],
-            ),
-            child: Center(
-              child: SvgPicture.asset(
-                'assets/icons/ic_listings.svg',
-                width: 48,
-                height: 48,
-                colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
               ),
-            ),
-          )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .scaleXY(begin: 1.0, end: 1.06, duration: 2000.ms, curve: Curves.easeInOut),
-          const SizedBox(height: 28),
-          const Text(
-            "You've seen everyone!",
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: AppColors.text,
-            ),
-          ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
-          const SizedBox(height: 8),
-          const Text(
-            'Check back soon for new profiles.',
-            style: TextStyle(
-              fontSize: 15,
-              color: AppColors.textSecondary,
-            ),
-          ).animate().fadeIn(delay: 400.ms),
-        ],
+            ).animate().scale(duration: 400.ms, curve: Curves.easeOut),
+            const SizedBox(height: 20),
+            const Text(
+              "You've seen everyone",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.text),
+            ).animate().fadeIn(delay: 100.ms),
+            const SizedBox(height: 8),
+            const Text(
+              'Check back soon for new profiles.',
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            ).animate().fadeIn(delay: 200.ms),
+          ],
+        ),
       ),
     );
   }
 }
 
-// ─── Draggable card wrapper ──────────────────────────────────────────────────
+// ─── Draggable card ────────────────────────────────────────────────────────
 
 class _DragCard extends StatefulWidget {
   final Roommate roommate;
-  final void Function(bool liked) onSwipe;
+  final void Function(bool) onSwipe;
 
-  const _DragCard({
-    super.key,
-    required this.roommate,
-    required this.onSwipe,
-  });
+  const _DragCard({super.key, required this.roommate, required this.onSwipe});
 
   @override
   State<_DragCard> createState() => _DragCardState();
@@ -299,26 +259,18 @@ class _DragCard extends StatefulWidget {
 
 class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
   Offset _offset = Offset.zero;
+  bool _flying = false;
 
   late AnimationController _snapController;
   late Animation<Offset> _snapAnim;
-
   late AnimationController _flyController;
   late Animation<Offset> _flyAnim;
-
-  bool _flying = false;
 
   @override
   void initState() {
     super.initState();
-    _snapController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 380),
-    );
-    _flyController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 350),
-    );
+    _snapController = AnimationController(vsync: this, duration: const Duration(milliseconds: 360));
+    _flyController  = AnimationController(vsync: this, duration: const Duration(milliseconds: 320));
   }
 
   @override
@@ -334,25 +286,18 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
     _flyController.stop();
   }
 
-  void _onPanUpdate(DragUpdateDetails details) {
+  void _onPanUpdate(DragUpdateDetails d) {
     if (_flying) return;
-    setState(() {
-      _offset += details.delta;
-    });
+    setState(() => _offset += d.delta);
   }
 
-  void _onPanEnd(DragEndDetails details) {
+  void _onPanEnd(DragEndDetails d) {
     if (_flying) return;
-
     const threshold = 110.0;
-    final vel = details.velocity.pixelsPerSecond;
-
-    final isSwipeRight = _offset.dx > threshold || (vel.dx > 600 && _offset.dx > 40);
-    final isSwipeLeft = _offset.dx < -threshold || (vel.dx < -600 && _offset.dx < -40);
-
-    if (isSwipeRight) {
+    final vel = d.velocity.pixelsPerSecond;
+    if (_offset.dx > threshold || (vel.dx > 600 && _offset.dx > 40)) {
       _flyOff(true, vel);
-    } else if (isSwipeLeft) {
+    } else if (_offset.dx < -threshold || (vel.dx < -600 && _offset.dx < -40)) {
       _flyOff(false, vel);
     } else {
       _snapBack();
@@ -361,42 +306,29 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
 
   void _flyOff(bool liked, Offset velPps) {
     _flying = true;
-    final screenW = MediaQuery.of(context).size.width;
-    final screenH = MediaQuery.of(context).size.height;
-    final targetX = liked ? screenW * 1.8 : -screenW * 1.8;
-    final targetY = _offset.dy + velPps.dy * 0.1;
-
-    final fromOffset = _offset;
-    final toOffset = Offset(targetX, targetY.clamp(-screenH * 0.5, screenH * 0.5));
-
-    _flyAnim = Tween<Offset>(begin: fromOffset, end: toOffset).animate(
-      CurvedAnimation(parent: _flyController, curve: Curves.easeIn),
+    final sw = MediaQuery.of(context).size.width;
+    final sh = MediaQuery.of(context).size.height;
+    final target = Offset(
+      liked ? sw * 1.8 : -sw * 1.8,
+      (_offset.dy + velPps.dy * 0.1).clamp(-sh * 0.5, sh * 0.5),
     );
-
-    _flyAnim.addListener(() {
-      setState(() => _offset = _flyAnim.value);
-    });
-
-    _flyController.forward().then((_) {
-      widget.onSwipe(liked);
-    });
+    _flyAnim = Tween<Offset>(begin: _offset, end: target)
+        .animate(CurvedAnimation(parent: _flyController, curve: Curves.easeIn));
+    _flyAnim.addListener(() => setState(() => _offset = _flyAnim.value));
+    _flyController.forward().then((_) => widget.onSwipe(liked));
   }
 
   void _snapBack() {
-    final fromOffset = _offset;
-    _snapAnim = Tween<Offset>(begin: fromOffset, end: Offset.zero).animate(
-      CurvedAnimation(parent: _snapController, curve: Curves.elasticOut),
-    );
+    _snapAnim = Tween<Offset>(begin: _offset, end: Offset.zero)
+        .animate(CurvedAnimation(parent: _snapController, curve: Curves.elasticOut));
     _snapController.reset();
-    _snapAnim.addListener(() {
-      setState(() => _offset = _snapAnim.value);
-    });
+    _snapAnim.addListener(() => setState(() => _offset = _snapAnim.value));
     _snapController.forward();
   }
 
   @override
   Widget build(BuildContext context) {
-    final rotation = (_offset.dx / 400).clamp(-0.35, 0.35);
+    final rotation   = (_offset.dx / 400).clamp(-0.30, 0.30);
     final likeOpacity = (_offset.dx / 120).clamp(0.0, 1.0);
     final nopeOpacity = (-_offset.dx / 120).clamp(0.0, 1.0);
 
@@ -413,8 +345,8 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
               RoommateCard(roommate: widget.roommate),
               if (likeOpacity > 0.05)
                 Positioned(
-                  top: 50,
-                  left: 24,
+                  top: 48,
+                  left: 20,
                   child: Opacity(
                     opacity: likeOpacity.clamp(0.0, 1.0),
                     child: const Stamp(text: 'LIKE', color: AppColors.green),
@@ -422,8 +354,8 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
                 ),
               if (nopeOpacity > 0.05)
                 Positioned(
-                  top: 50,
-                  right: 24,
+                  top: 48,
+                  right: 20,
                   child: Opacity(
                     opacity: nopeOpacity.clamp(0.0, 1.0),
                     child: const Stamp(text: 'NOPE', color: AppColors.red),
@@ -437,7 +369,7 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
   }
 }
 
-// ─── Match dialog ────────────────────────────────────────────────────────────
+// ─── Match dialog ─────────────────────────────────────────────────────────
 
 class _MatchDialog extends StatelessWidget {
   final Roommate roommate;
@@ -449,135 +381,76 @@ class _MatchDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+        padding: const EdgeInsets.symmetric(horizontal: 28),
         child: Container(
           padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: AppColors.border, width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.blue.withAlpha(80),
-                blurRadius: 40,
-                spreadRadius: 8,
-              ),
-            ],
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.border),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _ConfettiRow(),
-              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const _AvatarBox(
-                    svgAsset: 'assets/icons/av_you.svg',
-                    gradient: [AppColors.blue, AppColors.teal],
-                  ),
+                  _AvatarBox(svgAsset: 'assets/icons/av_you.svg', gradient: roommate.gradient),
                   Container(
-                    width: 40,
-                    height: 40,
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    width: 36,
+                    height: 36,
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
                     decoration: const BoxDecoration(
-                      gradient: AppColors.likeGradient,
+                      color: AppColors.softGreen,
                       shape: BoxShape.circle,
                     ),
                     child: Center(
                       child: SvgPicture.asset(
                         'assets/icons/ic_like.svg',
-                        width: 20,
-                        height: 20,
-                        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                        width: 18,
+                        height: 18,
+                        colorFilter: const ColorFilter.mode(AppColors.green, BlendMode.srcIn),
                       ),
                     ),
                   ),
-                  _AvatarBox(
-                    svgAsset: roommate.avatarAsset,
-                    gradient: roommate.gradient,
-                  ),
+                  _AvatarBox(svgAsset: roommate.avatarAsset, gradient: roommate.gradient),
                 ],
               ),
               const SizedBox(height: 20),
-              ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [AppColors.blue, AppColors.teal],
-                ).createShader(bounds),
-                child: const Text(
-                  "It's a Match!",
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
-                ),
+              const Text(
+                "It's a Match!",
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.text),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
-                'You and ${roommate.name} both liked each other.',
+                'You and ${roommate.name} liked each other.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: AppColors.textSecondary,
-                  height: 1.4,
-                ),
+                style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.4),
               ),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: GestureDetector(
-                  onTap: onChat,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.blue, AppColors.teal],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.blue.withAlpha(80),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icons/ic_chat.svg',
-                          width: 18,
-                          height: 18,
-                          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Start Chatting',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
+              GestureDetector(
+                onTap: onChat,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Start Chatting',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: const Text(
                   'Keep swiping',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                 ),
               ),
             ],
@@ -597,49 +470,17 @@ class _AvatarBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 64,
-      height: 64,
+      width: 60,
+      height: 60,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: gradient.first.withAlpha(80),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: gradient.first.withAlpha(80),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         child: SvgPicture.asset(svgAsset, fit: BoxFit.cover),
       ),
-    );
-  }
-}
-
-class _ConfettiRow extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    const emojis = ['🎉', '✨', '🎊', '💫', '⭐'];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: emojis
-          .asMap()
-          .entries
-          .map((e) => Text(e.value, style: const TextStyle(fontSize: 22))
-              .animate()
-              .scale(
-                delay: (80 * e.key).ms,
-                duration: 400.ms,
-                curve: Curves.elasticOut,
-              )
-              .fadeIn(delay: (80 * e.key).ms))
-          .toList(),
     );
   }
 }

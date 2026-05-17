@@ -11,7 +11,6 @@ import '../theme/app_colors.dart';
 
 class ChatScreen extends StatefulWidget {
   final Roommate roommate;
-
   const ChatScreen({super.key, required this.roommate});
 
   @override
@@ -20,20 +19,20 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final List<Message> _messages = [];
-  final TextEditingController _textController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _textCtrl = TextEditingController();
+  final ScrollController _scrollCtrl = ScrollController();
   bool _isTyping = false;
-  late AnimationController _typingController;
+  late AnimationController _typingCtrl;
 
   static const _responses = [
     "Hey! So excited we matched 🎉",
     "What's your schedule like?",
     "I love that neighborhood too!",
-    "We should definitely meet up and chat more about the living situation.",
+    "We should definitely meet up and chat.",
     "What kind of music are you into?",
-    "Do you cook a lot? I love having people to cook with 🍳",
-    "That sounds amazing honestly.",
-    "I'm pretty flexible on move-in dates, what works for you?",
+    "Do you cook a lot?",
+    "That sounds great honestly.",
+    "I'm flexible on move-in dates — what works for you?",
   ];
 
   final _random = Random();
@@ -41,23 +40,21 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _typingController = AnimationController(
+    _typingCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..repeat();
 
-    Future.delayed(600.ms, () {
-      if (mounted) {
-        _addTheirMessage("Hey! Looks like we matched 👋 Can't wait to connect!");
-      }
+    Future.delayed(700.ms, () {
+      if (mounted) _addTheirMessage("Hey! Looks like we matched 👋");
     });
   }
 
   @override
   void dispose() {
-    _typingController.dispose();
-    _textController.dispose();
-    _scrollController.dispose();
+    _typingCtrl.dispose();
+    _textCtrl.dispose();
+    _scrollCtrl.dispose();
     super.dispose();
   }
 
@@ -74,12 +71,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _scrollToBottom();
   }
 
-  void _sendMessage() {
-    final text = _textController.text.trim();
+  void _send() {
+    final text = _textCtrl.text.trim();
     if (text.isEmpty) return;
-
     HapticFeedback.lightImpact();
-
     setState(() {
       _messages.add(Message(
         id: '${DateTime.now().millisecondsSinceEpoch}',
@@ -87,25 +82,22 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         isMe: true,
         timestamp: DateTime.now(),
       ));
+      _isTyping = true;
     });
-    _textController.clear();
+    _textCtrl.clear();
     _scrollToBottom();
-
-    setState(() => _isTyping = true);
 
     final delay = 1200 + _random.nextInt(1000);
     Future.delayed(Duration(milliseconds: delay), () {
-      if (mounted) {
-        _addTheirMessage(_responses[_random.nextInt(_responses.length)]);
-      }
+      if (mounted) _addTheirMessage(_responses[_random.nextInt(_responses.length)]);
     });
   }
 
   void _scrollToBottom() {
     Future.delayed(80.ms, () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
+      if (_scrollCtrl.hasClients) {
+        _scrollCtrl.animateTo(
+          _scrollCtrl.position.maxScrollExtent,
           duration: 300.ms,
           curve: Curves.easeOut,
         );
@@ -117,146 +109,96 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.background, Color(0xFF0D1B22)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          icon: SvgPicture.asset(
+            'assets/icons/ic_back.svg',
+            width: 20,
+            height: 20,
+            colorFilter: const ColorFilter.mode(AppColors.text, BlendMode.srcIn),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: widget.roommate.gradient.first.withAlpha(80),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
               ),
             ),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.roommate.name,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: AppColors.green,
+                        shape: BoxShape.circle,
+                      ),
+                    )
+                        .animate(onPlay: (c) => c.repeat())
+                        .scaleXY(begin: 0.7, end: 1.3, duration: 1000.ms)
+                        .then()
+                        .scaleXY(begin: 1.3, end: 0.7, duration: 1000.ms),
+                    const SizedBox(width: 4),
+                    const Text(
+                      'Active now',
+                      style: TextStyle(fontSize: 11, color: AppColors.green),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: SvgPicture.asset(
+              'assets/icons/ic_more.svg',
+              width: 20,
+              height: 20,
+              colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
+            ),
+            onPressed: () {},
           ),
-          Column(
-            children: [
-              _buildHeader(),
-              Expanded(child: _buildMessages()),
-              if (_isTyping) _buildTypingIndicator(),
-              _buildInputBar(),
-            ],
-          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: AppColors.border),
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(child: _buildMessages()),
+          if (_isTyping) _buildTypingIndicator(),
+          _buildInputBar(),
         ],
       ),
     );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: const Border(
-          bottom: BorderSide(color: AppColors.border, width: 1),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.blue.withAlpha(20),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 16, 12),
-          child: Row(
-            children: [
-              IconButton(
-                icon: SvgPicture.asset(
-                  'assets/icons/ic_back.svg',
-                  width: 20,
-                  height: 20,
-                  colorFilter: const ColorFilter.mode(AppColors.text, BlendMode.srcIn),
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: widget.roommate.gradient,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: widget.roommate.gradient.first.withAlpha(80),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.roommate.name,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.text,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: const BoxDecoration(
-                            color: AppColors.green,
-                            shape: BoxShape.circle,
-                          ),
-                        )
-                            .animate(onPlay: (c) => c.repeat())
-                            .scaleXY(begin: 0.8, end: 1.2, duration: 1000.ms, curve: Curves.easeInOut)
-                            .then()
-                            .scaleXY(begin: 1.2, end: 0.8, duration: 1000.ms, curve: Curves.easeInOut),
-                        const SizedBox(width: 5),
-                        const Text(
-                          'Active now',
-                          style: TextStyle(fontSize: 12, color: AppColors.green),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () {},
-                child: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: AppColors.softBlue,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Center(
-                    child: SvgPicture.asset(
-                      'assets/icons/ic_more.svg',
-                      width: 20,
-                      height: 20,
-                      colorFilter: const ColorFilter.mode(AppColors.text, BlendMode.srcIn),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.05);
   }
 
   Widget _buildMessages() {
@@ -266,94 +208,76 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 72,
+              height: 72,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: widget.roommate.gradient,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: widget.roommate.gradient.first.withAlpha(60),
-                    blurRadius: 24,
-                    spreadRadius: 4,
-                  ),
-                ],
+                color: widget.roommate.gradient.first.withAlpha(60),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
                 child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
               ),
-            ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
-            const SizedBox(height: 16),
+            ).animate().scale(duration: 400.ms, curve: Curves.easeOut),
+            const SizedBox(height: 14),
             Text(
-              "You matched with ${widget.roommate.name}!",
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.text,
-              ),
-            ).animate().fadeIn(delay: 200.ms),
-            const SizedBox(height: 6),
+              "Matched with ${widget.roommate.name}",
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.text),
+            ).animate().fadeIn(delay: 150.ms),
+            const SizedBox(height: 5),
             const Text(
               "Say hi 👋",
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-            ).animate().fadeIn(delay: 400.ms),
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ).animate().fadeIn(delay: 250.ms),
           ],
         ),
       );
     }
 
     return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      controller: _scrollCtrl,
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
       itemCount: _messages.length,
       itemBuilder: (context, index) {
-        final message = _messages[index];
-        final prevIsMe = index > 0 && _messages[index - 1].isMe == message.isMe;
-        return _MessageBubble(
-          message: message,
+        final msg = _messages[index];
+        final prevIsMe = index > 0 && _messages[index - 1].isMe == msg.isMe;
+        return _Bubble(
+          message: msg,
           roommate: widget.roommate,
-          showAvatar: !message.isMe && !prevIsMe,
-        ).animate().fadeIn(duration: 250.ms).slideY(begin: 0.15, end: 0, duration: 250.ms, curve: Curves.easeOut);
+          showAvatar: !msg.isMe && !prevIsMe,
+        ).animate().fadeIn(duration: 200.ms).slideY(begin: 0.1, duration: 200.ms, curve: Curves.easeOut);
       },
     );
   }
 
   Widget _buildTypingIndicator() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: widget.roommate.gradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10),
+              color: widget.roommate.gradient.first.withAlpha(60),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
             ),
           ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: AppColors.cardBg,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(4),
-                topRight: Radius.circular(18),
-                bottomLeft: Radius.circular(18),
-                bottomRight: Radius.circular(18),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
               ),
               border: Border.all(color: AppColors.border),
             ),
@@ -361,16 +285,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               mainAxisSize: MainAxisSize.min,
               children: List.generate(3, (i) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 2.5),
                   child: AnimatedBuilder(
-                    animation: _typingController,
-                    builder: (context, _) {
-                      final offset = sin((_typingController.value * 2 * pi) - (i * pi / 3));
+                    animation: _typingCtrl,
+                    builder: (_, __) {
+                      final off = sin((_typingCtrl.value * 2 * pi) - (i * pi / 3));
                       return Transform.translate(
-                        offset: Offset(0, -4 * (offset + 1) / 2),
+                        offset: Offset(0, -3 * (off + 1) / 2),
                         child: Container(
-                          width: 7,
-                          height: 7,
+                          width: 6,
+                          height: 6,
                           decoration: const BoxDecoration(
                             color: AppColors.textSecondary,
                             shape: BoxShape.circle,
@@ -385,39 +309,30 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 200.ms).slideY(begin: 0.2);
+    ).animate().fadeIn(duration: 180.ms);
   }
 
   Widget _buildInputBar() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: const Border(
-          top: BorderSide(color: AppColors.border, width: 1),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(60),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
+        border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
           child: Row(
             children: [
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: AppColors.border),
                   ),
                   child: TextField(
-                    controller: _textController,
+                    controller: _textCtrl,
                     style: const TextStyle(color: AppColors.text, fontSize: 15),
                     maxLines: 4,
                     minLines: 1,
@@ -425,15 +340,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     decoration: const InputDecoration(
                       hintText: 'Message...',
                       hintStyle: TextStyle(color: AppColors.gray),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       border: InputBorder.none,
                     ),
-                    onSubmitted: (_) => _sendMessage(),
+                    onSubmitted: (_) => _send(),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              _SendButton(onTap: _sendMessage),
+              _SendButton(onTap: _send),
             ],
           ),
         ),
@@ -451,70 +366,38 @@ class _SendButton extends StatefulWidget {
 }
 
 class _SendButtonState extends State<_SendButton> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  bool _pressed = false;
+  late AnimationController _ctrl;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-      lowerBound: 0.85,
-      upperBound: 1.0,
-      value: 1.0,
-    );
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 120),
+        lowerBound: 0.87, upperBound: 1.0, value: 1.0);
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  void dispose() { _ctrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) {
-        setState(() => _pressed = true);
-        _controller.reverse();
-      },
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        _controller.forward();
-        widget.onTap();
-      },
-      onTapCancel: () {
-        setState(() => _pressed = false);
-        _controller.forward();
-      },
+      onTapDown: (_) => _ctrl.reverse(),
+      onTapUp: (_) { _ctrl.forward(); widget.onTap(); },
+      onTapCancel: () => _ctrl.forward(),
       child: ScaleTransition(
-        scale: _controller,
+        scale: _ctrl,
         child: Container(
-          width: 46,
-          height: 46,
+          width: 42,
+          height: 42,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.blue, AppColors.teal],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: _pressed
-                ? []
-                : [
-                    BoxShadow(
-                      color: AppColors.blue.withAlpha(80),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
             child: SvgPicture.asset(
               'assets/icons/ic_send.svg',
-              width: 20,
-              height: 20,
+              width: 18,
+              height: 18,
               colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
             ),
           ),
@@ -524,85 +407,59 @@ class _SendButtonState extends State<_SendButton> with SingleTickerProviderState
   }
 }
 
-class _MessageBubble extends StatelessWidget {
+class _Bubble extends StatelessWidget {
   final Message message;
   final Roommate roommate;
   final bool showAvatar;
 
-  const _MessageBubble({
-    required this.message,
-    required this.roommate,
-    required this.showAvatar,
-  });
+  const _Bubble({required this.message, required this.roommate, required this.showAvatar});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 5),
       child: Row(
         mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!message.isMe) ...[
             SizedBox(
-              width: 32,
+              width: 28,
               child: showAvatar
                   ? Container(
-                      width: 32,
-                      height: 32,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: roommate.gradient,
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
+                        color: roommate.gradient.first.withAlpha(60),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                         child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.cover),
                       ),
                     )
                   : const SizedBox(),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
           ],
           Flexible(
             child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.72,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.70),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               decoration: BoxDecoration(
-                gradient: message.isMe
-                    ? const LinearGradient(
-                        colors: [AppColors.blue, AppColors.teal],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null,
-                color: message.isMe ? null : AppColors.cardBg,
+                color: message.isMe ? AppColors.primary : AppColors.cardBg,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(message.isMe ? 18 : 4),
-                  bottomRight: Radius.circular(message.isMe ? 4 : 18),
+                  topLeft: const Radius.circular(16),
+                  topRight: const Radius.circular(16),
+                  bottomLeft: Radius.circular(message.isMe ? 16 : 4),
+                  bottomRight: Radius.circular(message.isMe ? 4 : 16),
                 ),
                 border: message.isMe ? null : Border.all(color: AppColors.border),
-                boxShadow: message.isMe
-                    ? [
-                        BoxShadow(
-                          color: AppColors.blue.withAlpha(50),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : null,
               ),
               child: Text(
                 message.text,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   height: 1.4,
                   color: message.isMe ? Colors.white : AppColors.text,
                 ),

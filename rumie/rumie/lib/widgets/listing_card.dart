@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_colors.dart';
 
@@ -27,240 +28,156 @@ class ListingCard extends StatefulWidget {
   State<ListingCard> createState() => _ListingCardState();
 }
 
-class _ListingCardState extends State<ListingCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pressController;
-
-  // Each type maps to a gradient pair
-  static const Map<String, List<Color>> _typeGradients = {
-    'Room': [Color(0xFF1CB0F6), Color(0xFF00B8A0)],
-    'Apartment': [Color(0xFF1CB0F6), Color(0xFF0284C7)],
-    'Condo': [Color(0xFF58CC02), Color(0xFF1CB0F6)],
-    'House': [Color(0xFFFF9600), Color(0xFFEA580C)],
-    'Duplex': [Color(0xFF00B8A0), Color(0xFF1CB0F6)],
-    'Studio': [Color(0xFF58CC02), Color(0xFF00B8A0)],
-  };
-
-  List<Color> get _gradient =>
-      _typeGradients[widget.type] ?? [AppColors.blue, AppColors.teal];
+class _ListingCardState extends State<ListingCard> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
 
   @override
   void initState() {
     super.initState();
-    _pressController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-      lowerBound: 0.97,
-      upperBound: 1.0,
-      value: 1.0,
-    );
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 100),
+        lowerBound: 0.97, upperBound: 1.0, value: 1.0);
   }
 
   @override
-  void dispose() {
-    _pressController.dispose();
-    super.dispose();
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  // Clean single-color accent per type
+  Color get _accent {
+    switch (widget.type) {
+      case 'Room':      return AppColors.primary;
+      case 'Apartment': return AppColors.primary;
+      case 'Condo':     return AppColors.teal;
+      case 'House':     return AppColors.orange;
+      case 'Duplex':    return AppColors.teal;
+      case 'Studio':    return AppColors.green;
+      default:          return AppColors.primary;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => _pressController.reverse(),
-      onTapUp: (_) => _pressController.forward(),
-      onTapCancel: () => _pressController.forward(),
+      onTapDown: (_) => _ctrl.reverse(),
+      onTapUp: (_) => _ctrl.forward(),
+      onTapCancel: () => _ctrl.forward(),
       child: ScaleTransition(
-        scale: _pressController,
+        scale: _ctrl,
         child: Container(
           decoration: BoxDecoration(
             color: AppColors.cardBg,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.border, width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(60),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-              BoxShadow(
-                color: _gradient.first.withAlpha(20),
-                blurRadius: 24,
-                spreadRadius: 2,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildImageArea(),
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        _TypePill(type: widget.type, color: _accent),
+                        const Spacer(),
+                        if (widget.availableDate == 'Now')
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.softGreen,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.green.withAlpha(80)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 5,
+                                  height: 5,
+                                  decoration: const BoxDecoration(color: AppColors.green, shape: BoxShape.circle),
+                                ),
+                                const SizedBox(width: 4),
+                                const Text(
+                                  'Available Now',
+                                  style: TextStyle(color: AppColors.green, fontSize: 11, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      widget.title,
+                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.text),
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        SvgPicture.asset(
+                          'assets/icons/ic_location.svg',
+                          width: 12,
+                          height: 12,
+                          colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          widget.location,
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 7,
+                      runSpacing: 7,
+                      children: [
+                        _InfoTag('\$${widget.rent}/mo', AppColors.green),
+                        _InfoTag(widget.bedsBaths, AppColors.primary),
+                        if (widget.availableDate != 'Now')
+                          _InfoTag('Avail. ${widget.availableDate}', AppColors.yellow),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildImageArea(),
-                Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          _typePill(),
-                          const Spacer(),
-                          if (widget.availableDate == 'Now')
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.softGreen,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.green.withAlpha(80)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.green,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  const Text(
-                                    'Available Now',
-                                    style: TextStyle(
-                                      color: AppColors.green,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        widget.title,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.text,
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_rounded, size: 13, color: AppColors.textSecondary),
-                          const SizedBox(width: 3),
-                          Text(
-                            widget.location,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          _infoChip(
-                            icon: Icons.attach_money_rounded,
-                            text: '\$${widget.rent}/mo',
-                            color: AppColors.green,
-                          ),
-                          const SizedBox(width: 8),
-                          _infoChip(
-                            icon: Icons.bed_rounded,
-                            text: widget.bedsBaths,
-                            color: AppColors.blue,
-                          ),
-                        ],
-                      ),
-                      if (widget.availableDate != 'Now') ...[
-                        const SizedBox(height: 8),
-                        _infoChip(
-                          icon: Icons.calendar_month_rounded,
-                          text: 'Avail. ${widget.availableDate}',
-                          color: AppColors.yellow,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
         )
             .animate()
-            .fadeIn(
-              delay: (80 * widget.animationIndex).ms,
-              duration: 400.ms,
-            )
-            .slideY(
-              begin: 0.1,
-              end: 0,
-              delay: (80 * widget.animationIndex).ms,
-              duration: 400.ms,
-              curve: Curves.easeOut,
-            ),
+            .fadeIn(delay: (70 * widget.animationIndex).ms, duration: 300.ms)
+            .slideY(begin: 0.06, delay: (70 * widget.animationIndex).ms, duration: 300.ms, curve: Curves.easeOut),
       ),
     );
   }
 
   Widget _buildImageArea() {
     return Container(
-      height: 160,
+      height: 130,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: _gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: _accent.withAlpha(30),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
       ),
       child: Stack(
         children: [
-          Positioned(
-            top: -20,
-            right: -20,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(12),
-                shape: BoxShape.circle,
-              ),
+          Center(
+            child: SvgPicture.asset(
+              'assets/icons/ic_listings.svg',
+              width: 48,
+              height: 48,
+              colorFilter: ColorFilter.mode(_accent.withAlpha(100), BlendMode.srcIn),
             ),
           ),
-          Positioned(
-            bottom: -30,
-            left: -10,
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: Colors.black.withAlpha(10),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          const Center(
-            child: Icon(
-              Icons.home_rounded,
-              size: 64,
-              color: Colors.white38,
-            ),
-          ),
-          // Bottom fade
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: Container(
-              height: 50,
-              decoration: const BoxDecoration(
+              height: 32,
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.transparent, AppColors.cardBg],
+                  colors: [Colors.transparent, AppColors.cardBg.withAlpha(220)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -271,62 +188,47 @@ class _ListingCardState extends State<ListingCard>
       ),
     );
   }
+}
 
-  Widget _typePill() {
+class _TypePill extends StatelessWidget {
+  final String type;
+  final Color color;
+  const _TypePill({required this.type, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: _gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: _gradient.first.withAlpha(60),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        color: color.withAlpha(20),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withAlpha(80)),
       ),
       child: Text(
-        widget.type,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
-          fontSize: 12,
-        ),
+        type,
+        style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
       ),
     );
   }
+}
 
-  Widget _infoChip({
-    required IconData icon,
-    required String text,
-    required Color color,
-  }) {
+class _InfoTag extends StatelessWidget {
+  final String text;
+  final Color color;
+  const _InfoTag(this.text, this.color);
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withAlpha(18),
-        borderRadius: BorderRadius.circular(10),
+        color: color.withAlpha(16),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withAlpha(60)),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: color),
-          const SizedBox(width: 5),
-          Text(
-            text,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-            ),
-          ),
-        ],
+      child: Text(
+        text,
+        style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12),
       ),
     );
   }

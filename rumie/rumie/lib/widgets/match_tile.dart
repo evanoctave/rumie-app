@@ -11,92 +11,71 @@ class MatchTile extends StatefulWidget {
   final Roommate roommate;
   final int animationIndex;
 
-  const MatchTile({
-    super.key,
-    required this.roommate,
-    this.animationIndex = 0,
-  });
+  const MatchTile({super.key, required this.roommate, this.animationIndex = 0});
 
   @override
   State<MatchTile> createState() => _MatchTileState();
 }
 
-class _MatchTileState extends State<MatchTile>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pressController;
+class _MatchTileState extends State<MatchTile> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
 
   @override
   void initState() {
     super.initState();
-    _pressController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-      lowerBound: 0.96,
-      upperBound: 1.0,
-      value: 1.0,
-    );
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 100),
+        lowerBound: 0.97, upperBound: 1.0, value: 1.0);
   }
 
   @override
-  void dispose() {
-    _pressController.dispose();
-    super.dispose();
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  void _openChat() {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, a, __) => ChatScreen(roommate: widget.roommate),
+        transitionsBuilder: (_, a, __, child) => SlideTransition(
+          position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+              .animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
+          child: child,
+        ),
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) {
-        HapticFeedback.selectionClick();
-        _pressController.reverse();
-      },
-      onTapUp: (_) {
-        _pressController.forward();
-        _openChat();
-      },
-      onTapCancel: () => _pressController.forward(),
+      onTapDown: (_) { HapticFeedback.selectionClick(); _ctrl.reverse(); },
+      onTapUp: (_) { _ctrl.forward(); _openChat(); },
+      onTapCancel: () => _ctrl.forward(),
       child: ScaleTransition(
-        scale: _pressController,
+        scale: _ctrl,
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: AppColors.cardBg,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.border, width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: widget.roommate.gradient.first.withAlpha(20),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
           ),
           child: Row(
             children: [
               Container(
-                width: 58,
-                height: 58,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: widget.roommate.gradient,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(17),
-                  boxShadow: [
-                    BoxShadow(
-                      color: widget.roommate.gradient.first.withAlpha(70),
-                      blurRadius: 16,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
+                  color: widget.roommate.gradient.first.withAlpha(70),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(17),
+                  borderRadius: BorderRadius.circular(14),
                   child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,61 +83,35 @@ class _MatchTileState extends State<MatchTile>
                     Text(
                       '${widget.roommate.name}, ${widget.roommate.age}',
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.text,
                       ),
                     ),
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icons/ic_location.svg',
-                          width: 12,
-                          height: 12,
-                          colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
-                        ),
-                        const SizedBox(width: 3),
-                        Expanded(
-                          child: Text(
-                            '${widget.roommate.location}  ·  \$${widget.roommate.budget}/mo',
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 2),
+                    Text(
+                      '${widget.roommate.location} · \$${widget.roommate.budget}/mo',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.softGreen,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                         border: Border.all(color: AppColors.green.withAlpha(60)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: AppColors.green,
-                              shape: BoxShape.circle,
-                            ),
+                            width: 5,
+                            height: 5,
+                            decoration: const BoxDecoration(color: AppColors.green, shape: BoxShape.circle),
                           ),
                           const SizedBox(width: 4),
-                          const Text(
-                            'Matched',
-                            style: TextStyle(
-                              color: AppColors.green,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          const Text('Matched', style: TextStyle(color: AppColors.green, fontSize: 11, fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ),
@@ -166,28 +119,17 @@ class _MatchTileState extends State<MatchTile>
                 ),
               ),
               Container(
-                width: 42,
-                height: 42,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.blue, AppColors.teal],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(13),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.blue.withAlpha(60),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
                   child: SvgPicture.asset(
                     'assets/icons/ic_chat.svg',
-                    width: 18,
-                    height: 18,
+                    width: 17,
+                    height: 17,
                     colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                   ),
                 ),
@@ -198,39 +140,7 @@ class _MatchTileState extends State<MatchTile>
       ),
     )
         .animate()
-        .fadeIn(
-          delay: (60 * widget.animationIndex).ms,
-          duration: 350.ms,
-        )
-        .slideX(
-          begin: 0.1,
-          end: 0,
-          delay: (60 * widget.animationIndex).ms,
-          duration: 350.ms,
-          curve: Curves.easeOut,
-        );
-  }
-
-  void _openChat() {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            ChatScreen(roommate: widget.roommate),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(1, 0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            )),
-            child: child,
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 350),
-      ),
-    );
+        .fadeIn(delay: (50 * widget.animationIndex).ms, duration: 280.ms)
+        .slideX(begin: 0.06, end: 0, delay: (50 * widget.animationIndex).ms, duration: 280.ms, curve: Curves.easeOut);
   }
 }

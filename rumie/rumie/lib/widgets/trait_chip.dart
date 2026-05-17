@@ -9,37 +9,27 @@ class TraitChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
       decoration: BoxDecoration(
-        color: trait.color.withAlpha(18),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: trait.color.withAlpha(80), width: 1),
+        color: trait.color.withAlpha(14),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: trait.color.withAlpha(70)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(
-              color: trait.color,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: trait.color.withAlpha(120),
-                  blurRadius: 6,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: trait.color, shape: BoxShape.circle),
           ),
-          const SizedBox(width: 7),
+          const SizedBox(width: 6),
           Text(
             trait.title,
             style: TextStyle(
               color: trait.color,
               fontWeight: FontWeight.w600,
-              fontSize: 13,
+              fontSize: 12,
             ),
           ),
         ],

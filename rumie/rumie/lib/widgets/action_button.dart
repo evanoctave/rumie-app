@@ -25,60 +25,41 @@ class ActionButton extends StatefulWidget {
 
 class _ActionButtonState extends State<ActionButton>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnim;
+  late AnimationController _ctrl;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 120),
+      duration: const Duration(milliseconds: 110),
       lowerBound: 0.88,
       upperBound: 1.0,
       value: 1.0,
     );
-    _scaleAnim = _controller;
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  void dispose() { _ctrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
-    final size = widget.large ? 90.0 : 76.0;
-    final iconSize = widget.large ? 32.0 : 26.0;
+    final size = widget.large ? 84.0 : 70.0;
+    final iconSize = widget.large ? 28.0 : 24.0;
 
     return GestureDetector(
-      onTapDown: (_) {
-        HapticFeedback.mediumImpact();
-        _controller.reverse();
-      },
-      onTapUp: (_) {
-        _controller.forward();
-        widget.onTap();
-      },
-      onTapCancel: () => _controller.forward(),
+      onTapDown: (_) { HapticFeedback.mediumImpact(); _ctrl.reverse(); },
+      onTapUp: (_) { _ctrl.forward(); widget.onTap(); },
+      onTapCancel: () => _ctrl.forward(),
       child: ScaleTransition(
-        scale: _scaleAnim,
+        scale: _ctrl,
         child: Container(
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: widget.color.withAlpha(20),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: widget.color, width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: widget.color.withAlpha(50),
-                blurRadius: 20,
-                spreadRadius: 0,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            color: widget.color.withAlpha(16),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: widget.color.withAlpha(100), width: 1.5),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -91,7 +72,6 @@ class _ActionButtonState extends State<ActionButton>
                   color: widget.color,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3,
                 ),
               ),
             ],

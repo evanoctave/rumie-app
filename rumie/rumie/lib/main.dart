@@ -29,38 +29,42 @@ class Rumie extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.background,
         brightness: Brightness.dark,
-        fontFamily: 'SF Pro Display',
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.blue,
+          seedColor: AppColors.primary,
           brightness: Brightness.dark,
           surface: AppColors.surface,
         ).copyWith(
           surface: AppColors.surface,
-          primary: AppColors.blue,
+          primary: AppColors.primary,
           secondary: AppColors.teal,
         ),
         textTheme: const TextTheme(
-          headlineLarge: TextStyle(
-            fontFamily: 'serif',
-            fontSize: 40,
-            fontWeight: FontWeight.w900,
-            color: AppColors.text,
+          bodyLarge: TextStyle(fontSize: 16, color: AppColors.text),
+          bodyMedium: TextStyle(fontSize: 14, color: AppColors.text),
+        ),
+        inputDecorationTheme: const InputDecorationTheme(
+          hintStyle: TextStyle(color: AppColors.gray),
+        ),
+        switchTheme: SwitchThemeData(
+          thumbColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected) ? Colors.white : AppColors.gray,
           ),
-          headlineMedium: TextStyle(
-            fontFamily: 'serif',
-            fontSize: 28,
-            fontWeight: FontWeight.w900,
-            color: AppColors.text,
+          trackColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected) ? AppColors.primary : AppColors.border,
           ),
-          bodyLarge: TextStyle(
-            fontSize: 16,
-            color: AppColors.text,
-            fontWeight: FontWeight.w600,
-          ),
-          bodyMedium: TextStyle(
-            fontSize: 14,
-            color: AppColors.text,
-          ),
+        ),
+        sliderTheme: const SliderThemeData(
+          activeTrackColor: AppColors.primary,
+          inactiveTrackColor: AppColors.border,
+          thumbColor: AppColors.primary,
+          overlayColor: Color(0x201A8CFF),
+        ),
+        dropdownMenuTheme: const DropdownMenuThemeData(
+          textStyle: TextStyle(color: AppColors.text),
+        ),
+        snackBarTheme: const SnackBarThemeData(
+          backgroundColor: AppColors.cardBg,
+          contentTextStyle: TextStyle(color: AppColors.text),
         ),
       ),
       home: const HomeScreen(),

@@ -1,199 +1,421 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../models/user_profile.dart';
 import '../theme/app_colors.dart';
-import '../widgets/animated_background.dart';
-import '../widgets/pref_row.dart';
+import 'profile_create_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final UserProfile profile;
+  final void Function(UserProfile) onProfileUpdated;
+
+  const ProfileScreen({
+    super.key,
+    required this.profile,
+    required this.onProfileUpdated,
+  });
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _avatarController;
-
-  @override
-  void initState() {
-    super.initState();
-    _avatarController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _avatarController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBackground(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(22, 16, 22, 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 24),
-            _buildAvatarSection(),
-            const SizedBox(height: 28),
-            _buildStatsRow(),
-            const SizedBox(height: 28),
-            _buildPreferences(),
-            const SizedBox(height: 24),
-            _buildActionButtons(),
-          ],
+class _ProfileScreenState extends State<ProfileScreen> {
+  void _openEdit() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfileCreateScreen(
+          existing: widget.profile,
+          onSave: (updated) {
+            widget.onProfileUpdated(updated);
+            Navigator.pop(context);
+          },
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return ShaderMask(
-      shaderCallback: (bounds) => const LinearGradient(
-        colors: [AppColors.teal, AppColors.blue],
-      ).createShader(bounds),
-      child: const Text(
-        'Your Profile',
-        style: TextStyle(
-          fontSize: 30,
-          fontWeight: FontWeight.w900,
-          color: Colors.white,
-        ),
-      ),
-    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.05);
+  @override
+  Widget build(BuildContext context) {
+    final p = widget.profile;
+    final hasProfile = p.isComplete;
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: hasProfile ? _buildProfile(p) : _buildEmpty(),
+    );
   }
 
-  Widget _buildAvatarSection() {
-    return Center(
-      child: Column(
-        children: [
-          AnimatedBuilder(
-            animation: _avatarController,
-            builder: (context, child) {
-              return Container(
-                width: 120,
-                height: 120,
+  Widget _buildEmpty() {
+    return SafeArea(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(36),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 88,
+                height: 88,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(36),
-                  gradient: SweepGradient(
-                    startAngle: _avatarController.value * 6.28,
-                    endAngle: _avatarController.value * 6.28 + 6.28,
-                    colors: const [
-                      AppColors.teal,
-                      AppColors.blue,
-                      AppColors.green,
-                      AppColors.orange,
-                      AppColors.teal,
+                  color: AppColors.cardBg,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.border, width: 1.5),
+                ),
+                child: Center(
+                  child: SvgPicture.asset(
+                    'assets/icons/ic_profile.svg',
+                    width: 36,
+                    height: 36,
+                    colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
+                  ),
+                ),
+              ).animate().scale(duration: 400.ms, curve: Curves.easeOut),
+              const SizedBox(height: 20),
+              const Text(
+                'Set up your profile',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text,
+                ),
+              ).animate().fadeIn(delay: 100.ms),
+              const SizedBox(height: 8),
+              const Text(
+                'Add your photo, bio, and preferences so potential roommates can find you.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+              ).animate().fadeIn(delay: 200.ms),
+              const SizedBox(height: 28),
+              GestureDetector(
+                onTap: _openEdit,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 32),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Create Profile',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfile(UserProfile p) {
+    return CustomScrollView(
+      slivers: [
+        _buildSliverHeader(p),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              _buildBioCard(p),
+              const SizedBox(height: 16),
+              _buildStatsRow(p),
+              const SizedBox(height: 16),
+              _buildPrefsCard(p),
+              if (p.traits.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _buildTraitsCard(p),
+              ],
+              const SizedBox(height: 28),
+              _buildActionButtons(),
+            ]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSliverHeader(UserProfile p) {
+    return SliverAppBar(
+      expandedHeight: 220,
+      pinned: true,
+      backgroundColor: AppColors.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      leading: const SizedBox.shrink(),
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          color: AppColors.surface,
+          child: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: _openEdit,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 96,
+                        height: 96,
+                        decoration: BoxDecoration(
+                          color: AppColors.cardBg,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 2.5,
+                          ),
+                        ),
+                        child: _buildAvatar(p),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.surface, width: 2),
+                          ),
+                          child: const Icon(Icons.edit_rounded, color: Colors.white, size: 14),
+                        ),
+                      ),
                     ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.blue.withAlpha(100),
-                      blurRadius: 32,
-                      spreadRadius: 4,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '${p.name}, ${p.age}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.location_on_rounded, size: 13, color: AppColors.textSecondary),
+                    const SizedBox(width: 3),
+                    Text(
+                      p.location,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.all(3),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(34),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(34),
-                    child: SvgPicture.asset('assets/icons/av_you.svg', fit: BoxFit.cover),
-                  ),
-                ),
-              );
-            },
-          )
-              .animate()
-              .scale(duration: 600.ms, curve: Curves.elasticOut),
-          const SizedBox(height: 14),
-          const Text(
-            'You, 23',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: AppColors.text,
+              ],
             ),
-          ).animate().fadeIn(delay: 200.ms),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SvgPicture.asset(
-                'assets/icons/ic_location.svg',
-                width: 13,
-                height: 13,
-                colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
-              ),
-              const SizedBox(width: 3),
-              const Text(
-                'SF Bay Area',
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-              ),
-            ],
-          ).animate().fadeIn(delay: 300.ms),
+          ),
+        ),
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Container(height: 1, color: AppColors.border),
+      ),
+    );
+  }
+
+  Widget _buildAvatar(UserProfile p) {
+    if (p.photoPath.isNotEmpty) {
+      return ClipOval(child: Image.file(File(p.photoPath), fit: BoxFit.cover));
+    }
+    return Center(
+      child: SvgPicture.asset(
+        'assets/icons/av_you.svg',
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget _buildBioCard(UserProfile p) {
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _CardLabel('About'),
+          const SizedBox(height: 8),
+          Text(
+            p.bio,
+            style: const TextStyle(
+              fontSize: 15,
+              color: AppColors.text,
+              height: 1.5,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatsRow() {
+  Widget _buildStatsRow(UserProfile p) {
     return Row(
       children: [
-        _statCard('12', 'Swipes', AppColors.blue),
-        const SizedBox(width: 12),
-        _statCard('3', 'Matches', AppColors.green),
-        const SizedBox(width: 12),
-        _statCard('1', 'Chats', AppColors.teal),
+        _StatTile(label: 'Budget', value: '\$${p.budgetMin}–\$${p.budgetMax}'),
+        const SizedBox(width: 10),
+        _StatTile(label: 'Move-in', value: p.moveIn),
+        const SizedBox(width: 10),
+        _StatTile(label: 'Schedule', value: p.schedule),
       ],
-    ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1);
+    );
   }
 
-  Widget _statCard(String value, String label, Color color) {
+  Widget _buildPrefsCard(UserProfile p) {
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _CardLabel('Preferences'),
+          const SizedBox(height: 10),
+          _prefRow('Tidiness', p.tidiness),
+          _prefRow('Pets', p.haspets ? 'Yes' : 'No'),
+        ],
+      ),
+    );
+  }
+
+  Widget _prefRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+          const Spacer(),
+          Text(value, style: const TextStyle(color: AppColors.text, fontSize: 14, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTraitsCard(UserProfile p) {
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _CardLabel('Traits'),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: p.traits.map((t) => _TraitPill(t)).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        _FullButton(
+          label: 'Edit Profile',
+          primary: true,
+          onTap: _openEdit,
+        ),
+        const SizedBox(height: 10),
+        _FullButton(
+          label: 'Settings',
+          primary: false,
+          onTap: () {},
+        ),
+        const SizedBox(height: 10),
+        _FullButton(
+          label: 'Log Out',
+          primary: false,
+          danger: true,
+          onTap: () {},
+        ),
+      ],
+    ).animate().fadeIn(delay: 200.ms, duration: 300.ms);
+  }
+}
+
+// ─── Shared sub-widgets ───────────────────────────────────────────────────────
+
+class _Card extends StatelessWidget {
+  final Widget child;
+  const _Card({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _CardLabel extends StatelessWidget {
+  final String text;
+  const _CardLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text.toUpperCase(),
+      style: const TextStyle(
+        color: AppColors.textSecondary,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  final String label;
+  final String value;
+  const _StatTile({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
         decoration: BoxDecoration(
-          color: color.withAlpha(18),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: color.withAlpha(60), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: color.withAlpha(30),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
+          color: AppColors.cardBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
         ),
         child: Column(
           children: [
             Text(
               value,
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-                color: color,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text,
               ),
             ),
             const SizedBox(height: 3),
             Text(
               label,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -201,156 +423,85 @@ class _ProfileScreenState extends State<ProfileScreen>
       ),
     );
   }
+}
 
-  Widget _buildPreferences() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Text(
-              'Preferences',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.text,
-              ),
-            ),
-            const Spacer(),
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: AppColors.softBlue,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.blue.withAlpha(60)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/ic_edit.svg',
-                      width: 13,
-                      height: 13,
-                      colorFilter: const ColorFilter.mode(AppColors.blue, BlendMode.srcIn),
-                    ),
-                    const SizedBox(width: 5),
-                    const Text(
-                      'Edit',
-                      style: TextStyle(
-                        color: AppColors.blue,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+class _TraitPill extends StatelessWidget {
+  final String text;
+  const _TraitPill(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.softBlue,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withAlpha(60)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: AppColors.primary,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
         ),
-        const SizedBox(height: 14),
-        const PrefRow(emoji: '💰', label: 'Budget', value: '\$1,000–1,500/mo'),
-        const PrefRow(emoji: '📍', label: 'Location', value: 'SF Bay Area'),
-        const PrefRow(emoji: '🛌', label: 'Move-in', value: 'Within 1 month'),
-        const PrefRow(emoji: '🧹', label: 'Tidiness', value: 'Tidy'),
-        const PrefRow(emoji: '🐱', label: 'Pets', value: 'Cat-friendly'),
-      ],
-    ).animate().fadeIn(delay: 300.ms, duration: 400.ms).slideY(begin: 0.05);
+      ),
+    );
   }
+}
 
-  Widget _buildActionButtons() {
-    return Column(
-      children: [
-        _gradientButton(
-          label: 'Edit Profile',
-          svgAsset: 'assets/icons/ic_edit.svg',
-          colors: [AppColors.blue, AppColors.teal],
-          onTap: () {},
-        ),
-        const SizedBox(height: 12),
-        GestureDetector(
-          onTap: () {},
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 15),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border, width: 1.5),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgPicture.asset(
-                  'assets/icons/ic_settings.svg',
-                  width: 18,
-                  height: 18,
-                  colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Settings',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    ).animate().fadeIn(delay: 400.ms, duration: 400.ms).slideY(begin: 0.05);
-  }
+class _FullButton extends StatelessWidget {
+  final String label;
+  final bool primary;
+  final bool danger;
+  final VoidCallback onTap;
 
-  Widget _gradientButton({
-    required String label,
-    required String svgAsset,
-    required List<Color> colors,
-    required VoidCallback onTap,
-  }) {
+  const _FullButton({
+    required this.label,
+    required this.primary,
+    this.danger = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Color bg;
+    Color textColor;
+    Color borderColor;
+
+    if (primary) {
+      bg = AppColors.primary;
+      textColor = Colors.white;
+      borderColor = AppColors.primary;
+    } else if (danger) {
+      bg = AppColors.softRed;
+      textColor = AppColors.red;
+      borderColor = AppColors.red.withAlpha(60);
+    } else {
+      bg = AppColors.cardBg;
+      textColor = AppColors.textSecondary;
+      borderColor = AppColors.border;
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 15),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: colors,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: colors.first.withAlpha(80),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
+          color: bg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              svgAsset,
-              width: 18,
-              height: 18,
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
             ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
