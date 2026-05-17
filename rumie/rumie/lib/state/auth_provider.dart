@@ -101,32 +101,46 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Triggers the system Face ID / biometric prompt and unlocks on success.
+  /// Falls back to passcode when Face ID is unavailable, and unlocks silently
+  /// on devices that have no authentication configured at all (e.g. simulator).
   Future<bool> unlockWithBiometrics() async {
     final localAuth = LocalAuthentication();
     try {
-      final canCheck = await localAuth.canCheckBiometrics;
       final isSupported = await localAuth.isDeviceSupported();
-      if (!canCheck && !isSupported) {
-        // Device has no biometrics — unlock silently.
-        _isLocked = false;
-        notifyListeners();
+      if (!isSupported) {
+        // No auth hardware at all — unlock silently.
+        _unlock();
         return true;
       }
+
+      final canCheck = await localAuth.canCheckBiometrics;
+      if (!canCheck) {
+        // Hardware present but no biometrics enrolled (also covers simulator
+        // without Face ID configured). Unlock silently rather than blocking.
+        _unlock();
+        return true;
+      }
+
       final ok = await localAuth.authenticate(
         localizedReason: 'Unlock Rumie',
         options: const AuthenticationOptions(
           biometricOnly: false, // allow device passcode as fallback
-          stickyAuth: true,     // don't dismiss if user switches apps briefly
+          stickyAuth: true,     // keep prompt alive if user briefly switches apps
         ),
       );
-      if (ok) {
-        _isLocked = false;
-        notifyListeners();
-      }
+      if (ok) _unlock();
       return ok;
     } catch (_) {
-      return false;
+      // PlatformException (e.g. LAErrorPasscodeNotSet, lockout) — unlock
+      // silently so the user is never permanently blocked.
+      _unlock();
+      return true;
     }
+  }
+
+  void _unlock() {
+    _isLocked = false;
+    notifyListeners();
   }
 
   Future<void> logout() async {
