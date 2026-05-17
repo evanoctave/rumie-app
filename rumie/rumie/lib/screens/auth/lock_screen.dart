@@ -68,19 +68,23 @@ class _LockScreenState extends State<LockScreen> {
                   width: 84,
                   height: 84,
                   decoration: BoxDecoration(
-                    color: _loading
-                        ? AppColors.primary.withAlpha(18)
-                        : AppColors.cardBg,
+                    color:
+                        _loading
+                            ? AppColors.primary.withAlpha(18)
+                            : AppColors.cardBg,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: _error != null
-                          ? AppColors.red.withAlpha(140)
-                          : AppColors.primary.withAlpha(80),
+                      color:
+                          _error != null
+                              ? AppColors.red.withAlpha(140)
+                              : AppColors.primary.withAlpha(80),
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: (_error != null ? AppColors.red : AppColors.primary)
+                        color: (_error != null
+                                ? AppColors.red
+                                : AppColors.primary)
                             .withAlpha(_loading ? 20 : 40),
                         blurRadius: 20,
                         offset: const Offset(0, 6),
@@ -88,32 +92,35 @@ class _LockScreenState extends State<LockScreen> {
                     ],
                   ),
                   child: Center(
-                    child: _loading
-                        ? const SizedBox(
-                            width: 28,
-                            height: 28,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              valueColor:
-                                  AlwaysStoppedAnimation(AppColors.primary),
+                    child:
+                        _loading
+                            ? const SizedBox(
+                              width: 28,
+                              height: 28,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor: AlwaysStoppedAnimation(
+                                  AppColors.primary,
+                                ),
+                              ),
+                            )
+                            : Icon(
+                              _error != null
+                                  ? Icons.face_retouching_off_rounded
+                                  : Icons.face_rounded,
+                              size: 38,
+                              color:
+                                  _error != null
+                                      ? AppColors.red
+                                      : AppColors.primary,
                             ),
-                          )
-                        : Icon(
-                            _error != null
-                                ? Icons.face_retouching_off_rounded
-                                : Icons.face_rounded,
-                            size: 38,
-                            color: _error != null
-                                ? AppColors.red
-                                : AppColors.primary,
-                          ),
                   ),
                 ),
               ).animate().scale(
-                    duration: 500.ms,
-                    curve: Curves.easeOutBack,
-                    delay: 100.ms,
-                  ),
+                duration: 500.ms,
+                curve: Curves.easeOutBack,
+                delay: 100.ms,
+              ),
               const SizedBox(height: 22),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
@@ -123,9 +130,10 @@ class _LockScreenState extends State<LockScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: _error != null
-                        ? AppColors.red
-                        : AppColors.textSecondary,
+                    color:
+                        _error != null
+                            ? AppColors.red
+                            : AppColors.textSecondary,
                   ),
                 ),
               ).animate().fadeIn(delay: 200.ms),
