@@ -77,7 +77,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
               itemCount: _visible.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (ctx, i) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final l = _visible[index];
                 return ListingCard(
@@ -146,7 +146,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
         itemCount: _types.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (ctx, i) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final type = _types[index];
           final selected = _selectedType == type;

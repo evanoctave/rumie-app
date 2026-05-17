@@ -53,7 +53,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
           child: FadeTransition(opacity: anim, child: child),
         );
       },
-      pageBuilder: (context, _, __) => _MatchDialog(
+      pageBuilder: (context, anim, secAnim) => _MatchDialog(
         roommate: roommate,
         onChat: () {
           Navigator.pop(context);

@@ -63,7 +63,7 @@ class MatchesScreen extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 60),
       itemCount: matches.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (ctx, i) => const SizedBox(height: 10),
       itemBuilder: (context, index) => MatchTile(
         roommate: matches[index],
         animationIndex: index,

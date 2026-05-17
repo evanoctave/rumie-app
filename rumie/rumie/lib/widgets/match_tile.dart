@@ -34,10 +34,10 @@ class _MatchTileState extends State<MatchTile> with SingleTickerProviderStateMix
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, a, __) => ChatScreen(roommate: widget.roommate),
-        transitionsBuilder: (_, a, __, child) => SlideTransition(
+        pageBuilder: (ctx, anim, secAnim) => ChatScreen(roommate: widget.roommate),
+        transitionsBuilder: (ctx, anim, secAnim, child) => SlideTransition(
           position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
-              .animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
+              .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
           child: child,
         ),
         transitionDuration: const Duration(milliseconds: 300),

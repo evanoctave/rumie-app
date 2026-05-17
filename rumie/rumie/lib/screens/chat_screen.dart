@@ -288,7 +288,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   padding: const EdgeInsets.symmetric(horizontal: 2.5),
                   child: AnimatedBuilder(
                     animation: _typingCtrl,
-                    builder: (_, __) {
+                    builder: (ctx, anim) {
                       final off = sin((_typingCtrl.value * 2 * pi) - (i * pi / 3));
                       return Transform.translate(
                         offset: Offset(0, -3 * (off + 1) / 2),
