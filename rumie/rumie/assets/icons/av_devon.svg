@@ -1,24 +1,49 @@
-<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="40" cy="40" r="40" fill="#0891B2"/>
-  <circle cx="40" cy="40" r="40" fill="url(#devon_grad)"/>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="devon_grad" cx="35%" cy="30%" r="70%">
-      <stop offset="0%" stop-color="white" stop-opacity="0.15"/>
-      <stop offset="100%" stop-color="black" stop-opacity="0.1"/>
+    <radialGradient id="bg_devon" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#9D6A89"/>
+      <stop offset="100%" stop-color="#251528"/>
+    </radialGradient>
+    <radialGradient id="skin_devon" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#8A5C28"/>
+      <stop offset="100%" stop-color="#6A3C10"/>
     </radialGradient>
   </defs>
-  <!-- Body -->
-  <path d="M12 80C12 63.4 24.5 50 40 50C55.5 50 68 63.4 68 80" fill="rgba(255,255,255,0.9)"/>
-  <!-- Head -->
-  <circle cx="40" cy="32" r="14" fill="rgba(255,255,255,0.9)"/>
-  <!-- Headphone band (over head) -->
-  <path d="M27 30C27 22.3 33.3 16 41 16C48.7 16 55 22.3 55 30" stroke="#0891B2" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-  <!-- Headphone cups -->
-  <rect x="23" y="28" width="6" height="9" rx="3" fill="#0891B2"/>
-  <rect x="51" y="28" width="6" height="9" rx="3" fill="#0891B2"/>
+  <rect width="200" height="200" fill="url(#bg_devon)"/>
+  <ellipse cx="100" cy="213" rx="80" ry="55" fill="#4A2840"/>
+  <path d="M83 150L100 168L117 150" fill="#EE92C2" opacity="0.45"/>
+  <rect x="89" y="132" width="22" height="22" rx="8" fill="url(#skin_devon)"/>
+  <ellipse cx="100" cy="108" rx="37" ry="43" fill="url(#skin_devon)"/>
+  <!-- Curly hair -->
+  <circle cx="78" cy="72" r="18" fill="#1A0A08"/>
+  <circle cx="100" cy="64" r="20" fill="#1A0A08"/>
+  <circle cx="122" cy="72" r="18" fill="#1A0A08"/>
+  <circle cx="68" cy="86" r="15" fill="#1A0A08"/>
+  <circle cx="132" cy="86" r="15" fill="#1A0A08"/>
+  <circle cx="90" cy="68" r="16" fill="#231510"/>
+  <circle cx="110" cy="68" r="16" fill="#231510"/>
+  <!-- Hair texture curls -->
+  <path d="M70 76C68 72 70 67 74 66" stroke="#2A1A10" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+  <path d="M96 60C94 56 96 51 100 50" stroke="#2A1A10" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+  <path d="M126 78C124 74 126 69 130 68" stroke="#2A1A10" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
   <!-- Eyes -->
-  <circle cx="36" cy="32" r="2" fill="#0891B2"/>
-  <circle cx="44" cy="32" r="2" fill="#0891B2"/>
-  <!-- Smile -->
-  <path d="M36.5 37C38 39 42 39 43.5 37" stroke="#0891B2" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <ellipse cx="87" cy="107" rx="6.5" ry="7" fill="white"/>
+  <ellipse cx="113" cy="107" rx="6.5" ry="7" fill="white"/>
+  <ellipse cx="87" cy="108" rx="4" ry="4.5" fill="#1A0808"/>
+  <ellipse cx="113" cy="108" rx="4" ry="4.5" fill="#1A0808"/>
+  <circle cx="88.5" cy="106.5" r="1.6" fill="white"/>
+  <circle cx="114.5" cy="106.5" r="1.6" fill="white"/>
+  <!-- Eyebrows full & arched -->
+  <path d="M79 99C82 95 90 94 94 96" stroke="#1A0808" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M106 96C110 94 118 95 121 99" stroke="#1A0808" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- Nose broader -->
+  <path d="M94 114C92 120 94 122 100 123C106 122 108 120 106 114" stroke="#5A3010" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <circle cx="95" cy="121" r="2" fill="#5A3010" opacity="0.3"/>
+  <circle cx="105" cy="121" r="2" fill="#5A3010" opacity="0.3"/>
+  <!-- Lips -->
+  <path d="M88 128C92 133 96 135 100 135C104 135 108 133 112 128" fill="#7A3A28"/>
+  <path d="M92 128C95 126 105 126 108 128" fill="#9A5040" opacity="0.6"/>
+  <!-- Cheeks -->
+  <ellipse cx="79" cy="119" rx="9" ry="6" fill="#EFBC9B" opacity="0.12"/>
+  <ellipse cx="121" cy="119" rx="9" ry="6" fill="#EFBC9B" opacity="0.12"/>
 </svg>

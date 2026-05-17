@@ -1,25 +1,54 @@
-<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="40" cy="40" r="40" fill="#FF9600"/>
-  <circle cx="40" cy="40" r="40" fill="url(#aria_grad)"/>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="aria_grad" cx="35%" cy="30%" r="70%">
-      <stop offset="0%" stop-color="white" stop-opacity="0.15"/>
-      <stop offset="100%" stop-color="black" stop-opacity="0.1"/>
+    <radialGradient id="bg_aria" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#EFBC9B"/>
+      <stop offset="100%" stop-color="#8A4830"/>
+    </radialGradient>
+    <radialGradient id="skin_aria" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#FAE0C8"/>
+      <stop offset="100%" stop-color="#F0C098"/>
     </radialGradient>
   </defs>
-  <!-- Body -->
-  <path d="M12 80C12 63.4 24.5 50 40 50C55.5 50 68 63.4 68 80" fill="rgba(255,255,255,0.9)"/>
-  <!-- Head -->
-  <circle cx="40" cy="32" r="14" fill="rgba(255,255,255,0.9)"/>
-  <!-- Eyes -->
-  <circle cx="35.5" cy="30.5" r="2.2" fill="#FF9600"/>
-  <circle cx="44.5" cy="30.5" r="2.2" fill="#FF9600"/>
-  <!-- Eyelashes -->
-  <path d="M33 27.5L35 29.5M35.5 27L35.5 29.5M38 27.5L36.5 29.5" stroke="#FF9600" stroke-width="1.3" stroke-linecap="round"/>
-  <!-- Smile -->
-  <path d="M36 36C37.5 38 43 38 44 36" stroke="#FF9600" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-  <!-- Paint splash on top -->
-  <circle cx="52" cy="16" r="5" fill="white" fill-opacity="0.9"/>
-  <circle cx="55" cy="20" r="3" fill="white" fill-opacity="0.7"/>
-  <circle cx="48" cy="19" r="2.5" fill="white" fill-opacity="0.6"/>
+  <rect width="200" height="200" fill="url(#bg_aria)"/>
+  <ellipse cx="100" cy="212" rx="80" ry="55" fill="#6A3820"/>
+  <path d="M84 152L100 170L116 152" fill="#EFBC9B" opacity="0.6"/>
+  <rect x="89" y="134" width="22" height="20" rx="8" fill="url(#skin_aria)"/>
+  <ellipse cx="100" cy="108" rx="36" ry="42" fill="url(#skin_aria)"/>
+  <!-- Long blonde wavy hair -->
+  <path d="M64 96C64 71 79 55 100 55C121 55 136 71 136 96V92C130 66 116 60 100 60C84 60 70 66 64 92Z" fill="#D4AA55"/>
+  <!-- Left flowing hair -->
+  <path d="M64 96C59 110 57 130 60 155L68 152C65 130 65 110 67 98Z" fill="#D4AA55"/>
+  <path d="M64 96C61 106 59 118 61 135L66 133C63 118 63 106 66 98Z" fill="#C09040" opacity="0.6"/>
+  <!-- Right flowing hair -->
+  <path d="M136 96C141 110 143 130 140 155L132 152C135 130 135 110 133 98Z" fill="#D4AA55"/>
+  <!-- Hair shine -->
+  <path d="M80 65C82 60 90 57 95 57" stroke="#F0D080" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <!-- Eyes — wide -->
+  <ellipse cx="87" cy="107" rx="7" ry="7.5" fill="white"/>
+  <ellipse cx="113" cy="107" rx="7" ry="7.5" fill="white"/>
+  <ellipse cx="87" cy="108" rx="4.5" ry="5" fill="#3A6080"/>
+  <ellipse cx="113" cy="108" rx="4.5" ry="5" fill="#3A6080"/>
+  <ellipse cx="87" cy="108" rx="2.5" ry="3" fill="#1A2530"/>
+  <ellipse cx="113" cy="108" rx="2.5" ry="3" fill="#1A2530"/>
+  <circle cx="88.5" cy="106.5" r="1.5" fill="white"/>
+  <circle cx="114.5" cy="106.5" r="1.5" fill="white"/>
+  <!-- Long lashes -->
+  <path d="M81 104L78 101M83 103L81 99M85 103L84 99" stroke="#2A1A10" stroke-width="1.3" stroke-linecap="round"/>
+  <path d="M108 103L106 100M110 103L109 99M112 104L112 100" stroke="#2A1A10" stroke-width="1.3" stroke-linecap="round"/>
+  <!-- Light eyebrows -->
+  <path d="M80 99C83 96 90 95 94 96" stroke="#A07840" stroke-width="2" stroke-linecap="round"/>
+  <path d="M106 96C110 95 117 96 120 99" stroke="#A07840" stroke-width="2" stroke-linecap="round"/>
+  <!-- Nose -->
+  <path d="M98 115C98 118 100 120 102 118" stroke="#D0A080" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+  <!-- Lips — soft pink -->
+  <path d="M89 127C92 131 96 133 100 133C104 133 108 131 111 127" fill="#D08088" opacity="0.85"/>
+  <path d="M92 127C96 125 104 125 108 127" fill="#E0A0A8" opacity="0.55"/>
+  <!-- Freckles -->
+  <circle cx="82" cy="117" r="1.2" fill="#C09070" opacity="0.4"/>
+  <circle cx="85" cy="114" r="1" fill="#C09070" opacity="0.35"/>
+  <circle cx="115" cy="114" r="1" fill="#C09070" opacity="0.35"/>
+  <circle cx="118" cy="117" r="1.2" fill="#C09070" opacity="0.4"/>
+  <!-- Blush -->
+  <ellipse cx="79" cy="118" rx="10" ry="6" fill="#EFBC9B" opacity="0.25"/>
+  <ellipse cx="121" cy="118" rx="10" ry="6" fill="#EFBC9B" opacity="0.25"/>
 </svg>

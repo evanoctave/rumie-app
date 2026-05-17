@@ -28,6 +28,23 @@ class SwipeScreen extends StatefulWidget {
 
 class _SwipeScreenState extends State<SwipeScreen> {
   int _index = 0;
+  double _dragRatio = 0.0; // -1 (full left) → +1 (full right)
+
+  void _onDragRatio(double ratio) {
+    setState(() => _dragRatio = ratio.clamp(-1.0, 1.0));
+  }
+
+  Color get _bgColor {
+    const bg = AppColors.background;
+    if (_dragRatio > 0) {
+      // right swipe → sage green tint
+      return Color.lerp(bg, const Color(0xFF2A3D28), _dragRatio * 0.7) ?? bg;
+    } else if (_dragRatio < 0) {
+      // left swipe → pinkish-red tint
+      return Color.lerp(bg, const Color(0xFF3D1222), -_dragRatio * 0.7) ?? bg;
+    }
+    return bg;
+  }
 
   void _handleSwipe(bool liked) {
     if (liked && _index < sampleRoommates.length) {
@@ -36,6 +53,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
       _showMatchDialog(sampleRoommates[_index]);
     }
     setState(() {
+      _dragRatio = 0.0;
       _index = _index < sampleRoommates.length - 1 ? _index + 1 : sampleRoommates.length;
     });
   }
@@ -46,11 +64,15 @@ class _SwipeScreenState extends State<SwipeScreen> {
       barrierDismissible: true,
       barrierLabel: 'dismiss',
       barrierColor: Colors.black.withAlpha(180),
-      transitionDuration: const Duration(milliseconds: 320),
+      transitionDuration: const Duration(milliseconds: 380),
       transitionBuilder: (context, anim, secAnim, child) {
+        final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutBack);
         return ScaleTransition(
-          scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
-          child: FadeTransition(opacity: anim, child: child),
+          scale: curved,
+          child: FadeTransition(
+            opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+            child: child,
+          ),
         );
       },
       pageBuilder: (context, anim, secAnim) => _MatchDialog(
@@ -67,8 +89,9 @@ class _SwipeScreenState extends State<SwipeScreen> {
   Widget build(BuildContext context) {
     final hasMore = _index < sampleRoommates.length;
 
-    return ColoredBox(
-      color: AppColors.background,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 50),
+      color: _bgColor,
       child: Column(
         children: [
           _buildHeader(),
@@ -84,14 +107,19 @@ class _SwipeScreenState extends State<SwipeScreen> {
                     const SizedBox(height: 28),
                     Expanded(
                       child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 240),
+                        duration: const Duration(milliseconds: 280),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
                         transitionBuilder: (child, anim) => FadeTransition(
                           opacity: anim,
                           child: SlideTransition(
                             position: Tween<Offset>(
-                              begin: const Offset(0, 0.04),
+                              begin: const Offset(0, 0.06),
                               end: Offset.zero,
-                            ).animate(anim),
+                            ).animate(CurvedAnimation(
+                              parent: anim,
+                              curve: Curves.easeOutCubic,
+                            )),
                             child: child,
                           ),
                         ),
@@ -116,12 +144,17 @@ class _SwipeScreenState extends State<SwipeScreen> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
         children: [
-          const Text(
-            'Discover',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: AppColors.text,
+          ShaderMask(
+            shaderCallback: (bounds) =>
+                AppColors.primaryGradient.createShader(bounds),
+            child: const Text(
+              'Discover',
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: -0.8,
+              ),
             ),
           ),
           const Spacer(),
@@ -133,7 +166,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.softGreen,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.green.withAlpha(80)),
+                  border: Border.all(color: AppColors.sage.withAlpha(80)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -142,7 +175,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
                       width: 7,
                       height: 7,
                       decoration: const BoxDecoration(
-                        color: AppColors.green,
+                        color: AppColors.sage,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -150,7 +183,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
                     Text(
                       '${widget.matchCount} match${widget.matchCount == 1 ? '' : 'es'}',
                       style: const TextStyle(
-                        color: AppColors.green,
+                        color: AppColors.sage,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
@@ -161,13 +194,12 @@ class _SwipeScreenState extends State<SwipeScreen> {
             ),
         ],
       ),
-    ).animate().fadeIn(duration: 300.ms);
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.2, end: 0, curve: Curves.easeOutCubic);
   }
 
-  // Stacked circles: two ghost circles peek below the draggable front photo.
   Widget _buildPhotoStack() {
-    const size = 180.0;
-    const stackHeight = size + 18.0;
+    const size = 188.0;
+    const stackHeight = size + 22.0;
 
     return SizedBox(
       width: size,
@@ -177,11 +209,11 @@ class _SwipeScreenState extends State<SwipeScreen> {
         children: [
           if (_index + 2 < sampleRoommates.length)
             Positioned(
-              top: 18,
+              top: 22,
               child: Opacity(
-                opacity: 0.22,
+                opacity: 0.18,
                 child: Transform.scale(
-                  scale: 0.88,
+                  scale: 0.86,
                   child: _PhotoCircle(
                     roommate: sampleRoommates[_index + 2],
                     size: size,
@@ -191,11 +223,11 @@ class _SwipeScreenState extends State<SwipeScreen> {
             ),
           if (_index + 1 < sampleRoommates.length)
             Positioned(
-              top: 9,
+              top: 11,
               child: Opacity(
-                opacity: 0.50,
+                opacity: 0.45,
                 child: Transform.scale(
-                  scale: 0.94,
+                  scale: 0.93,
                   child: _PhotoCircle(
                     roommate: sampleRoommates[_index + 1],
                     size: size,
@@ -209,6 +241,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
               key: ValueKey(_index),
               roommate: sampleRoommates[_index],
               onSwipe: _handleSwipe,
+              onDragRatio: _onDragRatio,
               size: size,
             ),
           ),
@@ -231,24 +264,24 @@ class _SwipeScreenState extends State<SwipeScreen> {
                 child: Text(
                   '${r.name}, ${r.age}',
                   style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
                     color: AppColors.text,
-                    letterSpacing: -0.5,
+                    letterSpacing: -0.8,
                   ),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.softGreen,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.green.withAlpha(80)),
+                  border: Border.all(color: AppColors.sage.withAlpha(80)),
                 ),
                 child: Text(
                   '\$${r.budget}/mo',
                   style: const TextStyle(
-                    color: AppColors.green,
+                    color: AppColors.sage,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
@@ -256,14 +289,17 @@ class _SwipeScreenState extends State<SwipeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 7),
           Row(
             children: [
               SvgPicture.asset(
                 'assets/icons/ic_location.svg',
                 width: 13,
                 height: 13,
-                colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
+                colorFilter: const ColorFilter.mode(
+                  AppColors.mauve,
+                  BlendMode.srcIn,
+                ),
               ),
               const SizedBox(width: 5),
               Text(
@@ -275,12 +311,12 @@ class _SwipeScreenState extends State<SwipeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           Text(
             r.bio,
             style: const TextStyle(
               fontSize: 15,
-              height: 1.55,
+              height: 1.6,
               color: AppColors.text,
             ),
           ),
@@ -322,7 +358,12 @@ class _SwipeScreenState extends State<SwipeScreen> {
           ),
         ],
       ),
-    ).animate().fadeIn(delay: 200.ms, duration: 300.ms);
+    ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(
+          begin: 0.3,
+          end: 0,
+          delay: 200.ms,
+          curve: Curves.easeOutCubic,
+        );
   }
 
   Widget _buildEmpty() {
@@ -333,32 +374,53 @@ class _SwipeScreenState extends State<SwipeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 88,
+              height: 88,
               decoration: BoxDecoration(
-                color: AppColors.cardBg,
-                borderRadius: BorderRadius.circular(24),
+                gradient: const LinearGradient(
+                  colors: [AppColors.cardBg, AppColors.surface],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(26),
                 border: Border.all(color: AppColors.border),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.pink.withAlpha(20),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Center(
                 child: SvgPicture.asset(
                   'assets/icons/ic_discover.svg',
-                  width: 40,
-                  height: 40,
-                  colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
+                  width: 42,
+                  height: 42,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.mauve,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
-            ).animate().scale(duration: 400.ms, curve: Curves.easeOut),
-            const SizedBox(height: 20),
+            )
+                .animate()
+                .scale(duration: 500.ms, curve: Curves.easeOutBack)
+                .fadeIn(),
+            const SizedBox(height: 24),
             const Text(
               "You've seen everyone",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.text),
-            ).animate().fadeIn(delay: 100.ms),
-            const SizedBox(height: 8),
+              style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.text,
+                  letterSpacing: -0.5),
+            ).animate().fadeIn(delay: 120.ms),
+            const SizedBox(height: 10),
             const Text(
               'Check back soon for new profiles.',
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-            ).animate().fadeIn(delay: 200.ms),
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.5),
+            ).animate().fadeIn(delay: 240.ms),
           ],
         ),
       ),
@@ -380,14 +442,29 @@ class _PhotoCircle extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: roommate.gradient.first.withAlpha(80),
+        color: roommate.gradient.first.withAlpha(60),
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withAlpha(20), width: 2),
+        gradient: RadialGradient(
+          colors: [
+            roommate.gradient.first.withAlpha(100),
+            roommate.gradient.last.withAlpha(60),
+          ],
+        ),
+        border: Border.all(
+          color: Colors.white.withAlpha(18),
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(70),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: roommate.gradient.first.withAlpha(60),
+            blurRadius: 32,
+            offset: const Offset(0, 10),
+            spreadRadius: -4,
+          ),
+          BoxShadow(
+            color: Colors.black.withAlpha(80),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -403,12 +480,14 @@ class _PhotoCircle extends StatelessWidget {
 class _DragCard extends StatefulWidget {
   final Roommate roommate;
   final void Function(bool) onSwipe;
+  final void Function(double) onDragRatio;
   final double size;
 
   const _DragCard({
     super.key,
     required this.roommate,
     required this.onSwipe,
+    required this.onDragRatio,
     required this.size,
   });
 
@@ -428,8 +507,14 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _snapController = AnimationController(vsync: this, duration: const Duration(milliseconds: 360));
-    _flyController  = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _snapController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+    _flyController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    );
   }
 
   @override
@@ -448,6 +533,8 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
   void _onPanUpdate(DragUpdateDetails d) {
     if (_flying) return;
     setState(() => _offset += d.delta);
+    final sw = MediaQuery.of(context).size.width;
+    widget.onDragRatio(_offset.dx / (sw * 0.45));
   }
 
   void _onPanEnd(DragEndDetails d) {
@@ -471,25 +558,33 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
       liked ? sw * 2.0 : -sw * 2.0,
       (_offset.dy + velPps.dy * 0.08).clamp(-sh * 0.4, sh * 0.4),
     );
-    _flyAnim = Tween<Offset>(begin: _offset, end: target)
-        .animate(CurvedAnimation(parent: _flyController, curve: Curves.easeIn));
-    _flyAnim.addListener(() => setState(() => _offset = _flyAnim.value));
-    _flyController.forward().then((anim) => widget.onSwipe(liked));
+    _flyAnim = Tween<Offset>(begin: _offset, end: target).animate(
+      CurvedAnimation(parent: _flyController, curve: Curves.easeIn),
+    );
+    _flyAnim.addListener(() {
+      setState(() => _offset = _flyAnim.value);
+      widget.onDragRatio((_flyAnim.value.dx / (sw * 0.45)).clamp(-1.0, 1.0));
+    });
+    _flyController.forward().then((_) => widget.onSwipe(liked));
   }
 
   void _snapBack() {
-    _snapAnim = Tween<Offset>(begin: _offset, end: Offset.zero)
-        .animate(CurvedAnimation(parent: _snapController, curve: Curves.elasticOut));
+    _snapAnim = Tween<Offset>(begin: _offset, end: Offset.zero).animate(
+      CurvedAnimation(parent: _snapController, curve: Curves.elasticOut),
+    );
     _snapController.reset();
-    _snapAnim.addListener(() => setState(() => _offset = _snapAnim.value));
+    _snapAnim.addListener(() {
+      setState(() => _offset = _snapAnim.value);
+      widget.onDragRatio(_snapAnim.value.dx / 120.0);
+    });
     _snapController.forward();
   }
 
   @override
   Widget build(BuildContext context) {
-    final rotation    = (_offset.dx / 450).clamp(-0.28, 0.28);
-    final likeOpacity = (_offset.dx / 90).clamp(0.0, 1.0);
-    final nopeOpacity = (-_offset.dx / 90).clamp(0.0, 1.0);
+    final rotation = (_offset.dx / 480).clamp(-0.30, 0.30);
+    final likeOpacity = (_offset.dx / 80).clamp(0.0, 1.0);
+    final nopeOpacity = (-_offset.dx / 80).clamp(0.0, 1.0);
 
     return GestureDetector(
       onPanStart: _onPanStart,
@@ -503,19 +598,19 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
             clipBehavior: Clip.none,
             children: [
               _PhotoCircle(roommate: widget.roommate, size: widget.size),
-              if (likeOpacity > 0.05)
+              if (likeOpacity > 0.04)
                 Positioned(
                   top: 14,
-                  left: 8,
+                  left: 6,
                   child: Opacity(
                     opacity: likeOpacity.clamp(0.0, 1.0),
-                    child: const Stamp(text: 'LIKE', color: AppColors.green),
+                    child: const Stamp(text: 'LIKE', color: AppColors.sage),
                   ),
                 ),
-              if (nopeOpacity > 0.05)
+              if (nopeOpacity > 0.04)
                 Positioned(
                   top: 14,
-                  right: 8,
+                  right: 6,
                   child: Opacity(
                     opacity: nopeOpacity.clamp(0.0, 1.0),
                     child: const Stamp(text: 'NOPE', color: AppColors.red),
@@ -543,11 +638,18 @@ class _MatchDialog extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28),
         child: Container(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.all(30),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(28),
             border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.pink.withAlpha(30),
+                blurRadius: 40,
+                spreadRadius: -4,
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -555,47 +657,83 @@ class _MatchDialog extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _AvatarBox(svgAsset: 'assets/icons/av_you.svg', gradient: roommate.gradient),
+                  _AvatarBox(
+                    svgAsset: 'assets/icons/av_you.svg',
+                    gradient: roommate.gradient,
+                  ),
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 38,
+                    height: 38,
                     margin: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: const BoxDecoration(
-                      color: AppColors.softGreen,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.pink.withAlpha(80),
+                          blurRadius: 14,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Center(
                       child: SvgPicture.asset(
                         'assets/icons/ic_like.svg',
                         width: 18,
                         height: 18,
-                        colorFilter: const ColorFilter.mode(AppColors.green, BlendMode.srcIn),
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
                       ),
                     ),
+                  ).animate(onPlay: (c) => c.repeat(reverse: true))
+                      .scaleXY(begin: 0.9, end: 1.1, duration: 800.ms, curve: Curves.easeInOut),
+                  _AvatarBox(
+                    svgAsset: roommate.avatarAsset,
+                    gradient: roommate.gradient,
                   ),
-                  _AvatarBox(svgAsset: roommate.avatarAsset, gradient: roommate.gradient),
                 ],
               ),
-              const SizedBox(height: 20),
-              const Text(
-                "It's a Match!",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.text),
+              const SizedBox(height: 22),
+              ShaderMask(
+                shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
+                child: const Text(
+                  "It's a Match!",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 'You and ${roommate.name} liked each other.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.4),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 26),
               GestureDetector(
                 onTap: onChat,
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(12),
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.pink.withAlpha(80),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
                   child: const Center(
                     child: Text(
@@ -604,17 +742,22 @@ class _MatchDialog extends StatelessWidget {
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
+                        letterSpacing: 0.2,
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: const Text(
                   'Keep swiping',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
@@ -634,12 +777,26 @@ class _AvatarBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 60,
-      height: 60,
+      width: 64,
+      height: 64,
       decoration: BoxDecoration(
-        color: gradient.first.withAlpha(80),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        gradient: LinearGradient(
+          colors: [
+            gradient.first.withAlpha(100),
+            gradient.last.withAlpha(60),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: gradient.first.withAlpha(60),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),

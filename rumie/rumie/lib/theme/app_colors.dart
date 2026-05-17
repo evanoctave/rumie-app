@@ -1,55 +1,68 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Backgrounds — deep navy
-  static const Color background = Color(0xFF0F1923);
-  static const Color surface    = Color(0xFF162029);
-  static const Color cardBg     = Color(0xFF1C2A37);
-  static const Color border     = Color(0xFF233040);
-  static const Color borderBright = Color(0xFF2D3F52);
+  // ── Backgrounds — deep dark mauve ──────────────────────────────────────────
+  static const Color background   = Color(0xFF120D11);
+  static const Color surface      = Color(0xFF1C1520);
+  static const Color cardBg       = Color(0xFF251A23);
+  static const Color border       = Color(0xFF3D2B37);
+  static const Color borderBright = Color(0xFF52404C);
 
-  // Single accent + semantic
-  static const Color primary  = Color(0xFF1A8CFF);  // blue accent
-  static const Color green    = Color(0xFF22C55E);  // match / success
-  static const Color red      = Color(0xFFEF4444);  // pass / danger
-  static const Color yellow   = Color(0xFFF59E0B);  // super / featured
+  // ── Brand palette ─────────────────────────────────────────────────────────
+  static const Color peach     = Color(0xFFEFBC9B); // warm peach — money / featured
+  static const Color pink      = Color(0xFFEE92C2); // primary pink — CTA / interactive
+  static const Color mauve     = Color(0xFF9D6A89); // secondary / muted
+  static const Color darkMauve = Color(0xFF725D68); // deeper tone / dividers
+  static const Color sage      = Color(0xFFA8B4A5); // sage green — match / success
 
-  // Compat aliases (used by existing widgets)
-  static const Color blue   = primary;
-  static const Color orange = Color(0xFFF97316);
-  static const Color teal   = Color(0xFF0EA5E9);
+  // ── Semantic ──────────────────────────────────────────────────────────────
+  static const Color primary = pink;
+  static const Color green   = sage;
+  static const Color red     = Color(0xFFE05070); // pinkish-red danger / pass
+  static const Color yellow  = peach;
 
-  // Soft tinted backgrounds
-  static const Color softBlue  = Color(0xFF0D1F30);
-  static const Color softGreen = Color(0xFF0D2117);
-  static const Color softRed   = Color(0xFF2A1010);
+  // ── Compat aliases ────────────────────────────────────────────────────────
+  static const Color blue   = pink;
+  static const Color orange = peach;
+  static const Color teal   = mauve;
 
-  // Text
-  static const Color text          = Color(0xFFF0F4F8);
-  static const Color textSecondary = Color(0xFF6B8FAD);
-  static const Color darkText      = Color(0xFF0F1923);
-  static const Color gray          = Color(0xFF3D5468);
+  // ── Soft tinted backgrounds ───────────────────────────────────────────────
+  static const Color softBlue  = Color(0xFF1E1327); // primary-tinted bg
+  static const Color softGreen = Color(0xFF141C14); // sage-tinted bg
+  static const Color softRed   = Color(0xFF231118); // red-tinted bg
 
-  // Single gradient — used only for primary CTA
+  // ── Text ──────────────────────────────────────────────────────────────────
+  static const Color text          = Color(0xFFF5EEF5);
+  static const Color textSecondary = Color(0xFF9D7A92);
+  static const Color darkText      = Color(0xFF120D11);
+  static const Color gray          = Color(0xFF5C4458);
+
+  // ── Gradients ─────────────────────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF1A8CFF), Color(0xFF0EA5E9)],
+    colors: [Color(0xFFEE92C2), Color(0xFF9D6A89)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient likeGradient = LinearGradient(
-    colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+    colors: [Color(0xFFA8B4A5), Color(0xFF7A9676)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient nopeGradient = LinearGradient(
-    colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+    colors: [Color(0xFFE05070), Color(0xFFB03055)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  // Compat shims
+  static const LinearGradient peachGradient = LinearGradient(
+    colors: [Color(0xFFEFBC9B), Color(0xFFD9956A)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // ── Compat shims ──────────────────────────────────────────────────────────
   static const Color cardCream     = cardBg;
   static const Color brandGradient = primary;
 }

@@ -1,3 +1,17 @@
+class Pet {
+  final String name;
+  final String type;
+  final int age;
+
+  const Pet({required this.name, required this.type, this.age = 0});
+
+  Pet copyWith({String? name, String? type, int? age}) => Pet(
+        name: name ?? this.name,
+        type: type ?? this.type,
+        age: age ?? this.age,
+      );
+}
+
 class UserProfile {
   final String name;
   final int age;
@@ -5,12 +19,13 @@ class UserProfile {
   final String location;
   final int budgetMin;
   final int budgetMax;
-  final String photoPath; // local file path or empty
+  final String photoPath;
   final List<String> traits;
   final String moveIn;
   final bool haspets;
-  final String schedule; // 'Early bird' | 'Night owl' | 'Flexible'
-  final String tidiness; // 'Tidy' | 'Relaxed' | 'Very tidy'
+  final List<Pet> pets;
+  final String schedule;
+  final String tidiness;
 
   const UserProfile({
     required this.name,
@@ -23,6 +38,7 @@ class UserProfile {
     this.traits = const [],
     this.moveIn = 'Flexible',
     this.haspets = false,
+    this.pets = const [],
     this.schedule = 'Flexible',
     this.tidiness = 'Relaxed',
   });
@@ -38,6 +54,7 @@ class UserProfile {
     List<String>? traits,
     String? moveIn,
     bool? haspets,
+    List<Pet>? pets,
     String? schedule,
     String? tidiness,
   }) {
@@ -52,10 +69,12 @@ class UserProfile {
       traits: traits ?? this.traits,
       moveIn: moveIn ?? this.moveIn,
       haspets: haspets ?? this.haspets,
+      pets: pets ?? this.pets,
       schedule: schedule ?? this.schedule,
       tidiness: tidiness ?? this.tidiness,
     );
   }
 
-  bool get isComplete => name.isNotEmpty && age > 0 && bio.isNotEmpty && location.isNotEmpty;
+  bool get isComplete =>
+      name.isNotEmpty && age > 0 && bio.isNotEmpty && location.isNotEmpty;
 }
