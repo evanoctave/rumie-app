@@ -9,11 +9,11 @@ class TraitChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: trait.color.withAlpha(14),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: trait.color.withAlpha(70)),
+        color: trait.color.withAlpha(22),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: trait.color.withAlpha(90)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

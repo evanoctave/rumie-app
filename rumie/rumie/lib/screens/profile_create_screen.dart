@@ -343,7 +343,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               min: 400,
               max: 5000,
               divisions: 92,
-              activeColor: AppColors.primary,
+              activeColor: AppColors.secondary,
               inactiveColor: AppColors.border,
               onChanged: (v) => setState(() {
                 _budgetMin = v.start.round();
@@ -424,17 +424,17 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.softBlue,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.primary.withAlpha(80)),
+                  border: Border.all(color: AppColors.secondary.withAlpha(80)),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_rounded, color: AppColors.primary, size: 14),
+                    Icon(Icons.add_rounded, color: AppColors.secondary, size: 14),
                     SizedBox(width: 4),
                     Text(
                       'Add pet',
                       style: TextStyle(
-                        color: AppColors.primary,
+                        color: AppColors.secondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
@@ -595,7 +595,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
       ),
     );
   }
@@ -625,7 +625,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
               ),
             ),
           ),
@@ -669,7 +669,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                 border: Border.all(
                   color: _photoPath.isEmpty
                       ? AppColors.border
-                      : AppColors.primary,
+                      : AppColors.secondary,
                   width: _photoPath.isEmpty ? 1.5 : 2.5,
                 ),
                 boxShadow: _photoPath.isNotEmpty
@@ -786,7 +786,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
@@ -836,11 +836,11 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : AppColors.cardBg,
+                    color: isSelected ? AppColors.secondary : AppColors.cardBg,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
                       color: isSelected
-                          ? AppColors.primary
+                          ? AppColors.secondary
                           : AppColors.border,
                     ),
                     boxShadow: isSelected
@@ -904,7 +904,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               onChanged(v);
             },
             activeThumbColor: Colors.white,
-            activeTrackColor: AppColors.primary,
+            activeTrackColor: AppColors.secondary,
           ),
         ],
       ),
@@ -936,11 +936,11 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               duration: const Duration(milliseconds: 180),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: selected ? AppColors.primary : AppColors.cardBg,
+                color: selected ? AppColors.secondary : AppColors.cardBg,
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
                   color: selected
-                      ? AppColors.primary
+                      ? AppColors.secondary
                       : disabled
                           ? AppColors.border.withAlpha(100)
                           : AppColors.border,

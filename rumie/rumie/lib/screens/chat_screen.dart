@@ -156,7 +156,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       width: 6,
                       height: 6,
                       decoration: const BoxDecoration(
-                        color: AppColors.green,
+                        color: AppColors.secondary,
                         shape: BoxShape.circle,
                       ),
                     )
@@ -167,7 +167,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     const SizedBox(width: 4),
                     const Text(
                       'Active now',
-                      style: TextStyle(fontSize: 11, color: AppColors.green),
+                      style: TextStyle(fontSize: 11, color: AppColors.secondary),
                     ),
                   ],
                 ),
@@ -327,8 +327,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(100),
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: AppColors.border),
                   ),
                   child: TextField(
@@ -340,8 +340,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     decoration: const InputDecoration(
                       hintText: 'Message...',
                       hintStyle: TextStyle(color: AppColors.gray),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       border: InputBorder.none,
+                      filled: false,
                     ),
                     onSubmitted: (_) => _send(),
                   ),
@@ -390,8 +391,8 @@ class _SendButtonState extends State<_SendButton> with SingleTickerProviderState
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(8),
+            color: AppColors.secondary,
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
             child: SvgPicture.asset(
@@ -447,7 +448,7 @@ class _Bubble extends StatelessWidget {
               constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.70),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               decoration: BoxDecoration(
-                color: message.isMe ? AppColors.primary : AppColors.cardBg,
+                color: message.isMe ? AppColors.secondary : AppColors.surface,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),

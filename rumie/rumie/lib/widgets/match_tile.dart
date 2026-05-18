@@ -57,21 +57,28 @@ class _MatchTileState extends State<MatchTile> with SingleTickerProviderStateMix
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: AppColors.cardBg,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(8),
+                blurRadius: 12,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Row(
             children: [
               Container(
-                width: 52,
-                height: 52,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: widget.roommate.gradient.first.withAlpha(70),
-                  borderRadius: BorderRadius.circular(6),
+                  color: widget.roommate.gradient.first.withAlpha(60),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.border),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(14),
                   child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.cover),
                 ),
               ),
@@ -94,13 +101,13 @@ class _MatchTileState extends State<MatchTile> with SingleTickerProviderStateMix
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.softGreen,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.green.withAlpha(60)),
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -108,10 +115,20 @@ class _MatchTileState extends State<MatchTile> with SingleTickerProviderStateMix
                           Container(
                             width: 5,
                             height: 5,
-                            decoration: const BoxDecoration(color: AppColors.green, shape: BoxShape.circle),
+                            decoration: const BoxDecoration(
+                              color: AppColors.secondary,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                           const SizedBox(width: 4),
-                          const Text('Matched', style: TextStyle(color: AppColors.green, fontSize: 11, fontWeight: FontWeight.w600)),
+                          const Text(
+                            'Matched',
+                            style: TextStyle(
+                              color: AppColors.secondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -119,11 +136,11 @@ class _MatchTileState extends State<MatchTile> with SingleTickerProviderStateMix
                 ),
               ),
               Container(
-                width: 38,
-                height: 38,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(4),
+                  color: AppColors.secondary,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
                   child: SvgPicture.asset(

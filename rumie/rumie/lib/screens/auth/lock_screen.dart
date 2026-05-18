@@ -70,21 +70,21 @@ class _LockScreenState extends State<LockScreen> {
                   decoration: BoxDecoration(
                     color:
                         _loading
-                            ? AppColors.primary.withAlpha(18)
+                            ? AppColors.secondary.withAlpha(18)
                             : AppColors.cardBg,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color:
                           _error != null
                               ? AppColors.red.withAlpha(140)
-                              : AppColors.primary.withAlpha(80),
+                              : AppColors.secondary.withAlpha(80),
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: (_error != null
                                 ? AppColors.red
-                                : AppColors.primary)
+                                : AppColors.secondary)
                             .withAlpha(_loading ? 20 : 40),
                         blurRadius: 20,
                         offset: const Offset(0, 6),
@@ -100,7 +100,7 @@ class _LockScreenState extends State<LockScreen> {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
                                 valueColor: AlwaysStoppedAnimation(
-                                  AppColors.primary,
+                                  AppColors.secondary,
                                 ),
                               ),
                             )
@@ -112,7 +112,7 @@ class _LockScreenState extends State<LockScreen> {
                               color:
                                   _error != null
                                       ? AppColors.red
-                                      : AppColors.primary,
+                                      : AppColors.secondary,
                             ),
                   ),
                 ),

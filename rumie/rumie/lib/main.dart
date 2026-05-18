@@ -16,8 +16,9 @@ void main() {
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark,
       systemNavigationBarColor: AppColors.background,
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
   Animate.restartOnHotReload = true;
@@ -72,14 +73,14 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
       title: 'Rumie',
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.background,
-        brightness: Brightness.dark,
+        brightness: Brightness.light,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          brightness: Brightness.dark,
+          seedColor: AppColors.secondary,
+          brightness: Brightness.light,
           surface: AppColors.surface,
         ).copyWith(
           surface: AppColors.surface,
-          primary: AppColors.primary,
+          primary: AppColors.secondary,
           secondary: AppColors.darkGreen,
         ),
         textTheme: const TextTheme(
@@ -95,21 +96,35 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
-          hintStyle: TextStyle(color: AppColors.textSecondary.withAlpha(120)),
+          hintStyle: TextStyle(color: AppColors.textSecondary.withAlpha(140)),
+          filled: true,
+          fillColor: AppColors.surface,
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderSide: BorderSide(color: AppColors.border),
+          ),
+          enabledBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderSide: BorderSide(color: AppColors.border),
+          ),
+          focusedBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderSide: BorderSide(color: AppColors.secondary, width: 1.5),
+          ),
         ),
         switchTheme: SwitchThemeData(
           thumbColor: WidgetStateProperty.resolveWith(
-            (s) => s.contains(WidgetState.selected) ? Colors.black : AppColors.gray,
+            (s) => s.contains(WidgetState.selected) ? Colors.white : AppColors.gray,
           ),
           trackColor: WidgetStateProperty.resolveWith(
-            (s) => s.contains(WidgetState.selected) ? AppColors.primary : AppColors.border,
+            (s) => s.contains(WidgetState.selected) ? AppColors.secondary : AppColors.border,
           ),
         ),
         sliderTheme: const SliderThemeData(
-          activeTrackColor: AppColors.primary,
+          activeTrackColor: AppColors.secondary,
           inactiveTrackColor: AppColors.border,
-          thumbColor: AppColors.primary,
-          overlayColor: Color(0x2022C55E),
+          thumbColor: AppColors.secondary,
+          overlayColor: Color(0x2096E6B3),
         ),
         dropdownMenuTheme: const DropdownMenuThemeData(
           textStyle: TextStyle(color: AppColors.text),
@@ -117,6 +132,12 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
         snackBarTheme: const SnackBarThemeData(
           backgroundColor: AppColors.cardBg,
           contentTextStyle: TextStyle(color: AppColors.text),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.surface,
+          foregroundColor: AppColors.text,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
         ),
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: {
@@ -161,7 +182,7 @@ class _AuthGate extends StatelessWidget {
           backgroundColor: AppColors.background,
           body: Center(
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation(AppColors.primary),
+              valueColor: AlwaysStoppedAnimation(AppColors.secondary),
             ),
           ),
         ),

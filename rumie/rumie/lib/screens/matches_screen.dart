@@ -41,14 +41,14 @@ class MatchesScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.softGreen,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: AppColors.green.withAlpha(80)),
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
               ),
               child: Text(
                 '${matches.length}',
                 style: const TextStyle(
-                  color: AppColors.green,
+                  color: AppColors.secondary,
                   fontWeight: FontWeight.w800,
                   fontSize: 13,
                 ),
@@ -82,8 +82,8 @@ class MatchesScreen extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.cardBg,
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AppColors.border),
               ),
               child: Center(
@@ -91,7 +91,7 @@ class MatchesScreen extends StatelessWidget {
                   'assets/icons/ic_matches.svg',
                   width: 38,
                   height: 38,
-                  colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
+                  colorFilter: const ColorFilter.mode(AppColors.secondary, BlendMode.srcIn),
                 ),
               ),
             ).animate().scale(duration: 400.ms, curve: Curves.easeOut),

@@ -37,9 +37,9 @@ class _SwipeScreenState extends State<SwipeScreen> {
   Color get _bgColor {
     const bg = AppColors.background;
     if (_dragRatio > 0) {
-      return Color.lerp(bg, const Color(0xFF082A10), _dragRatio * 0.8) ?? bg;
+      return Color.lerp(bg, const Color(0xFFBBF7D0), _dragRatio * 0.6) ?? bg;
     } else if (_dragRatio < 0) {
-      return Color.lerp(bg, const Color(0xFF2A0808), -_dragRatio * 0.8) ?? bg;
+      return Color.lerp(bg, const Color(0xFFFECACA), -_dragRatio * 0.6) ?? bg;
     }
     return bg;
   }
@@ -145,17 +145,13 @@ class _SwipeScreenState extends State<SwipeScreen> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
         children: [
-          ShaderMask(
-            shaderCallback: (bounds) =>
-                AppColors.primaryGradient.createShader(bounds),
-            child: const Text(
-              'Discover',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                letterSpacing: -0.8,
-              ),
+          const Text(
+            'Discover',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              color: AppColors.text,
+              letterSpacing: -0.8,
             ),
           ),
           const Spacer(),
@@ -165,9 +161,9 @@ class _SwipeScreenState extends State<SwipeScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                 decoration: BoxDecoration(
-                  color: AppColors.softGreen,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.primary.withAlpha(80)),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.secondary.withAlpha(80)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -176,7 +172,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
                       width: 7,
                       height: 7,
                       decoration: const BoxDecoration(
-                        color: AppColors.primary,
+                        color: AppColors.secondary,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -184,7 +180,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
                     Text(
                       '${widget.matchCount} match${widget.matchCount == 1 ? '' : 'es'}',
                       style: const TextStyle(
-                        color: AppColors.primary,
+                        color: AppColors.secondary,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
@@ -275,14 +271,14 @@ class _SwipeScreenState extends State<SwipeScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.softGreen,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.primary.withAlpha(80)),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Text(
                   '\$${r.budget}/mo',
                   style: const TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.secondary,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
@@ -375,19 +371,15 @@ class _SwipeScreenState extends State<SwipeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 88,
-              height: 88,
+              width: 96,
+              height: 96,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.cardBg, AppColors.surface],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: AppColors.border),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withAlpha(15),
+                    color: AppColors.secondary.withAlpha(30),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
@@ -396,10 +388,10 @@ class _SwipeScreenState extends State<SwipeScreen> {
               child: Center(
                 child: SvgPicture.asset(
                   'assets/icons/ic_discover.svg',
-                  width: 42,
-                  height: 42,
+                  width: 44,
+                  height: 44,
                   colorFilter: const ColorFilter.mode(
-                    AppColors.mauve,
+                    AppColors.secondary,
                     BlendMode.srcIn,
                   ),
                 ),
@@ -412,10 +404,11 @@ class _SwipeScreenState extends State<SwipeScreen> {
             const Text(
               "You've seen everyone",
               style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.text,
-                  letterSpacing: -0.5),
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
+                letterSpacing: -0.5,
+              ),
             ).animate().fadeIn(delay: 120.ms),
             const SizedBox(height: 10),
             const Text(
@@ -452,19 +445,19 @@ class _PhotoCircle extends StatelessWidget {
           ],
         ),
         border: Border.all(
-          color: Colors.white.withAlpha(18),
-          width: 2,
+          color: AppColors.border,
+          width: 2.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: roommate.gradient.first.withAlpha(60),
+            color: roommate.gradient.first.withAlpha(80),
             blurRadius: 32,
             offset: const Offset(0, 10),
             spreadRadius: -4,
           ),
           BoxShadow(
-            color: Colors.black.withAlpha(80),
-            blurRadius: 20,
+            color: Colors.black.withAlpha(20),
+            blurRadius: 16,
             offset: const Offset(0, 6),
           ),
         ],
@@ -605,7 +598,7 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
                   left: 6,
                   child: Opacity(
                     opacity: likeOpacity.clamp(0.0, 1.0),
-                    child: const Stamp(text: 'LIKE', color: AppColors.primary),
+                    child: const Stamp(text: 'LIKE', color: AppColors.secondary),
                   ),
                 ),
               if (nopeOpacity > 0.04)
@@ -641,12 +634,12 @@ class _MatchDialog extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(30),
           decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(10),
+            color: AppColors.cardBg,
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(color: AppColors.border),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withAlpha(20),
+                color: AppColors.secondary.withAlpha(30),
                 blurRadius: 40,
                 spreadRadius: -4,
               ),
@@ -671,7 +664,7 @@ class _MatchDialog extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withAlpha(60),
+                          color: AppColors.secondary.withAlpha(60),
                           blurRadius: 14,
                           offset: const Offset(0, 4),
                         ),
@@ -697,16 +690,13 @@ class _MatchDialog extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 22),
-              ShaderMask(
-                shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
-                child: const Text(
-                  "It's a Match!",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
-                  ),
+              const Text(
+                "It's a Rumie Match!",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.secondary,
+                  letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 8),
@@ -726,11 +716,11 @@ class _MatchDialog extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.secondary,
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withAlpha(60),
+                        color: AppColors.secondary.withAlpha(50),
                         blurRadius: 16,
                         offset: const Offset(0, 6),
                       ),
@@ -738,7 +728,7 @@ class _MatchDialog extends StatelessWidget {
                   ),
                   child: const Center(
                     child: Text(
-                      'Start Chatting',
+                      'Send Message',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -789,18 +779,18 @@ class _AvatarBox extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: gradient.first.withAlpha(60),
+            color: gradient.first.withAlpha(50),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         child: SvgPicture.asset(svgAsset, fit: BoxFit.cover),
       ),
     );

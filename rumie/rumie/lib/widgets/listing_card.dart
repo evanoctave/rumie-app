@@ -44,13 +44,13 @@ class _ListingCardState extends State<ListingCard> with SingleTickerProviderStat
   // Clean single-color accent per type
   Color get _accent {
     switch (widget.type) {
-      case 'Room':      return AppColors.primary;
-      case 'Apartment': return AppColors.primary;
+      case 'Room':      return AppColors.secondary;
+      case 'Apartment': return AppColors.secondary;
       case 'Condo':     return AppColors.teal;
       case 'House':     return AppColors.orange;
       case 'Duplex':    return AppColors.teal;
       case 'Studio':    return AppColors.green;
-      default:          return AppColors.primary;
+      default:          return AppColors.secondary;
     }
   }
 
@@ -134,7 +134,7 @@ class _ListingCardState extends State<ListingCard> with SingleTickerProviderStat
                       runSpacing: 7,
                       children: [
                         _InfoTag('\$${widget.rent}/mo', AppColors.green),
-                        _InfoTag(widget.bedsBaths, AppColors.primary),
+                        _InfoTag(widget.bedsBaths, AppColors.secondary),
                         if (widget.availableDate != 'Now')
                           _InfoTag('Avail. ${widget.availableDate}', AppColors.yellow),
                       ],

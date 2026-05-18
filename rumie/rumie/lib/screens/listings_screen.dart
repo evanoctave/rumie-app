@@ -190,10 +190,10 @@ class _ListingsScreenState extends State<ListingsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: selected ? AppColors.primary : AppColors.cardBg,
+                color: selected ? AppColors.secondary : AppColors.cardBg,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: selected ? AppColors.primary : AppColors.border,
+                  color: selected ? AppColors.secondary : AppColors.border,
                 ),
                 boxShadow: selected
                     ? [
@@ -515,7 +515,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
           color: AppColors.cardBg,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: AppColors.primary.withAlpha(80),
+            color: AppColors.secondary.withAlpha(80),
             style: BorderStyle.solid,
           ),
         ),
@@ -547,7 +547,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
               'Add\nPhotos',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppColors.primary,
+                color: AppColors.secondary,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
@@ -570,7 +570,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                color: isCover ? AppColors.primary : AppColors.border,
+                color: isCover ? AppColors.secondary : AppColors.border,
                 width: isCover ? 2.5 : 1.5,
               ),
               boxShadow: isCover
@@ -676,7 +676,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
             ),
           ),
         ),

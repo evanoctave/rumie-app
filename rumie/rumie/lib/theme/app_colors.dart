@@ -4,56 +4,57 @@ class AppColors {
   AppColors._();
 
   // ── Backgrounds ───────────────────────────────────────────────────────────
-  static const Color background = Color(0xFF060A06);
-  static const Color surface    = Color(0xFF0B130B);
-  static const Color cardBg     = Color(0xFF0F1A0F);
-  static const Color border     = Color(0xFF1A2E1A);
+  static const Color background = Color(0xFFF1FFFA);
+  static const Color surface    = Color(0xFFCCFCCB);
+  static const Color cardBg     = Color(0xFFFFFFFF);
+  static const Color border     = Color(0xFFB8E8C8);
 
   // ── Brand / Primary ───────────────────────────────────────────────────────
-  static const Color primary   = Color(0xFF22C55E);
-  static const Color darkGreen = Color(0xFF16A34A);
-  static const Color accent    = Color(0xFF4ADE80);
+  static const Color primary    = Color(0xFF96E6B3);
+  static const Color secondary  = Color(0xFF568259);
+  static const Color darkGreen  = Color(0xFF568259);
+  static const Color accent     = Color(0xFF96E6B3);
 
   // ── Semantic ──────────────────────────────────────────────────────────────
-  static const Color green  = primary;
+  static const Color green  = Color(0xFF96E6B3);
   static const Color red    = Color(0xFFEF4444);
-  static const Color yellow = Color(0xFFEAB308);
+  static const Color yellow = Color(0xFFF59E0B);
 
   // ── Text ──────────────────────────────────────────────────────────────────
-  static const Color text          = Color(0xFFEAF7EA);
-  static const Color textSecondary = Color(0xFF4A7050);
-  static const Color gray          = Color(0xFF283C28);
+  static const Color text          = Color(0xFF464E47);
+  static const Color textSecondary = Color(0xFF568259);
+  static const Color gray          = Color(0xFFA8C4AE);
 
   // ── Soft tints (badge / chip backgrounds) ────────────────────────────────
-  static const Color softGreen  = Color(0xFF081508);
-  static const Color softRed    = Color(0xFF180808);
-  static const Color softBlue   = Color(0xFF080F18);
-  static const Color softYellow = Color(0xFF181508);
+  static const Color softGreen  = Color(0xFFDCFCE7);
+  static const Color softRed    = Color(0xFFFEE2E2);
+  static const Color softBlue   = Color(0xFFDBEAFE);
+  static const Color softYellow = Color(0xFFFEF9C3);
 
   // ── Compat aliases ────────────────────────────────────────────────────────
   static const Color teal      = Color(0xFF0D9488);
   static const Color orange    = yellow;
-  static const Color blue      = primary;
-  static const Color pink      = primary;
+  static const Color blue      = Color(0xFF3B82F6);
+  static const Color pink      = secondary;
   static const Color peach     = yellow;
-  static const Color mauve     = darkGreen;
+  static const Color mauve     = secondary;
   static const Color sage      = primary;
-  static const Color darkMauve = darkGreen;
+  static const Color darkMauve = secondary;
 
   // Legacy shims
-  static const Color borderBright   = Color(0xFF2A4A2A);
+  static const Color borderBright   = Color(0xFF96E6B3);
   static const Color cardCream      = cardBg;
   static const Color brandGradient  = primary;
-  static const Color darkText       = Color(0xFF060A06);
+  static const Color darkText       = text;
 
   // ── Gradients ─────────────────────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+    colors: [Color(0xFF96E6B3), Color(0xFF568259)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
   static const LinearGradient likeGradient = LinearGradient(
-    colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+    colors: [Color(0xFF96E6B3), Color(0xFF568259)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -63,7 +64,7 @@ class AppColors {
     end: Alignment.bottomRight,
   );
   static const LinearGradient peachGradient = LinearGradient(
-    colors: [Color(0xFFEAB308), Color(0xFFCA8A04)],
+    colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

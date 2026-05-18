@@ -90,20 +90,29 @@ class LandingScreen extends StatelessWidget {
         const Text(
           'rumie',
           style: TextStyle(
-            fontSize: 48,
+            fontSize: 52,
             fontWeight: FontWeight.w900,
-            color: AppColors.text,
-            letterSpacing: -2.5,
+            color: AppColors.secondary,
+            letterSpacing: -3.0,
           ),
         ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.15, end: 0, curve: Curves.easeOutCubic),
         const SizedBox(height: 8),
         const Text(
-          'Find your next roommate or room.',
+          'Find your ideal roommate.',
           style: TextStyle(
             fontSize: 16,
+            color: AppColors.text,
+            fontWeight: FontWeight.w500,
+          ),
+        ).animate().fadeIn(delay: 80.ms, duration: 400.ms),
+        const SizedBox(height: 4),
+        const Text(
+          'Swipe, match, and chat.',
+          style: TextStyle(
+            fontSize: 15,
             color: AppColors.textSecondary,
           ),
-        ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+        ).animate().fadeIn(delay: 160.ms, duration: 400.ms),
       ],
     );
   }
@@ -154,18 +163,18 @@ class LandingScreen extends StatelessWidget {
     return _TapButton(
       onTap: onTap,
       child: Container(
-        height: 52,
+        height: 56,
         alignment: Alignment.center,
         decoration: const BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.all(Radius.circular(8)),
+          color: AppColors.secondary,
+          borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
         child: Text(
           label,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
       ),
@@ -176,10 +185,11 @@ class LandingScreen extends StatelessWidget {
     return _TapButton(
       onTap: onTap,
       child: Container(
-        height: 52,
+        height: 56,
         alignment: Alignment.center,
         decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.all(Radius.circular(20)),
           border: Border.fromBorderSide(BorderSide(color: AppColors.border, width: 1.5)),
         ),
         child: Text(
@@ -187,7 +197,7 @@ class LandingScreen extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.text,
+            color: AppColors.secondary,
           ),
         ),
       ),
@@ -198,9 +208,9 @@ class LandingScreen extends StatelessWidget {
     HapticFeedback.mediumImpact();
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.cardBg,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => _RoleSheet(
         onSelect: (role) {
@@ -230,10 +240,10 @@ class _SocialButton extends StatelessWidget {
     return _TapButton(
       onTap: onTap,
       child: Container(
-        height: 52,
+        height: 56,
         decoration: const BoxDecoration(
           color: AppColors.cardBg,
-          borderRadius: BorderRadius.all(Radius.circular(8)),
+          borderRadius: BorderRadius.all(Radius.circular(20)),
           border: Border.fromBorderSide(BorderSide(color: AppColors.border)),
         ),
         child: Row(
@@ -272,7 +282,7 @@ class _GoogleG extends StatelessWidget {
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w800,
-            color: AppColors.accent,
+            color: AppColors.secondary,
             height: 1,
           ),
         ),
@@ -399,8 +409,8 @@ class _RoleTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: const BoxDecoration(
-            color: AppColors.cardBg,
-            borderRadius: BorderRadius.all(Radius.circular(8)),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.all(Radius.circular(16)),
             border: Border.fromBorderSide(BorderSide(color: AppColors.border)),
           ),
           child: Row(
@@ -409,8 +419,8 @@ class _RoleTile extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(22),
-                  borderRadius: BorderRadius.circular(6),
+                  color: AppColors.secondary.withAlpha(80),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(child: Text(emoji, style: const TextStyle(fontSize: 22))),
               ),

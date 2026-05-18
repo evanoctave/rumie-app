@@ -111,9 +111,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     ];
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(bottom: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg,
+        border: const Border(top: BorderSide(color: AppColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(12),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
         children: List.generate(items.length, (i) {
@@ -141,13 +148,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           RumieIcon(
                             asset: item.asset,
                             size: 22,
-                            color: selected ? AppColors.primary : AppColors.gray,
+                            color: selected ? AppColors.secondary : AppColors.gray,
                           ),
                           const SizedBox(height: 4),
                           Text(
                             item.label,
                             style: TextStyle(
-                              color: selected ? AppColors.primary : AppColors.gray,
+                              color: selected ? AppColors.secondary : AppColors.gray,
                               fontSize: 10,
                               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                             ),
@@ -157,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             duration: const Duration(milliseconds: 200),
                             width: selected ? 20 : 0,
                             height: 2,
-                            color: AppColors.primary,
+                            color: AppColors.secondary,
                           ),
                         ],
                       ),
@@ -169,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             width: 16,
                             height: 16,
                             decoration: const BoxDecoration(
-                              color: AppColors.green,
+                              color: AppColors.secondary,
                               shape: BoxShape.circle,
                             ),
                             child: Center(

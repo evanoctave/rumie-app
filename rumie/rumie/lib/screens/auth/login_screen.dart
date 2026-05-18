@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
               'Enable',
-              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
+              style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w700),
             ),
           ),
         ],
@@ -219,14 +219,14 @@ class _LoginScreenState extends State<LoginScreen> {
         hintStyle: TextStyle(color: AppColors.textSecondary.withAlpha(120)),
         suffixIcon: suffix,
         filled: true,
-        fillColor: AppColors.cardBg,
+        fillColor: AppColors.surface,
         counterText: '',
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: const OutlineInputBorder(borderRadius: radius, borderSide: side),
         enabledBorder: const OutlineInputBorder(borderRadius: radius, borderSide: side),
         focusedBorder: const OutlineInputBorder(
           borderRadius: radius,
-          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColors.secondary, width: 1.5),
         ),
         errorBorder: const OutlineInputBorder(
           borderRadius: radius,
@@ -282,8 +282,8 @@ class _SubmitButtonState extends State<_SubmitButton> {
             width: double.infinity,
             height: 52,
             decoration: const BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.all(Radius.circular(8)),
+              color: AppColors.secondary,
+              borderRadius: BorderRadius.all(Radius.circular(20)),
             ),
             alignment: Alignment.center,
             child: widget.loading
@@ -292,7 +292,7 @@ class _SubmitButtonState extends State<_SubmitButton> {
                     height: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
-                      valueColor: AlwaysStoppedAnimation(Colors.black),
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
                     ),
                   )
                 : Text(
@@ -300,7 +300,7 @@ class _SubmitButtonState extends State<_SubmitButton> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black,
+                      color: Colors.white,
                     ),
                   ),
           ),

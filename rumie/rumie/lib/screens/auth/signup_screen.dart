@@ -90,7 +90,7 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Enable', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+            child: const Text('Enable', style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -150,16 +150,16 @@ class _SignupScreenState extends State<SignupScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(20),
+                        color: AppColors.secondary.withAlpha(20),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.primary.withAlpha(60)),
+                        border: Border.all(color: AppColors.secondary.withAlpha(60)),
                       ),
                       child: Text(
                         roleLabel,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          color: AppColors.secondary,
                         ),
                       ),
                     ),
@@ -252,10 +252,10 @@ class _SignupScreenState extends State<SignupScreen> {
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: selected ? AppColors.primary.withAlpha(20) : AppColors.cardBg,
+              color: selected ? AppColors.secondary.withAlpha(20) : AppColors.cardBg,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                color: selected ? AppColors.primary : AppColors.border,
+                color: selected ? AppColors.secondary : AppColors.border,
                 width: selected ? 1.5 : 1,
               ),
             ),
@@ -264,7 +264,7 @@ class _SignupScreenState extends State<SignupScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                color: selected ? AppColors.primary : AppColors.textSecondary,
+                color: selected ? AppColors.secondary : AppColors.textSecondary,
               ),
             ),
           ),
@@ -296,7 +296,7 @@ class _SignupScreenState extends State<SignupScreen> {
         hintStyle: const TextStyle(color: AppColors.gray),
         suffixIcon: suffix,
         filled: true,
-        fillColor: AppColors.cardBg,
+        fillColor: AppColors.surface,
         counterText: '',
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
@@ -309,7 +309,7 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
@@ -355,8 +355,8 @@ class _SubmitButtonState extends State<_SubmitButton> {
           width: double.infinity,
           height: 52,
           decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(8),
+            color: AppColors.secondary,
+            borderRadius: BorderRadius.circular(20),
           ),
           alignment: Alignment.center,
           child: widget.loading
@@ -373,7 +373,7 @@ class _SubmitButtonState extends State<_SubmitButton> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                 ),
         ),

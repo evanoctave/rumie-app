@@ -102,13 +102,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 32),
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(6),
+                    color: AppColors.secondary,
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
                     'Create Profile',
                     style: TextStyle(
-                      color: Colors.black,
+                      color: Colors.white,
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
                     ),
@@ -175,7 +175,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: AppColors.cardBg,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: AppColors.primary,
+                            color: AppColors.secondary,
                             width: 2.5,
                           ),
                         ),
@@ -188,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           width: 28,
                           height: 28,
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: AppColors.secondary,
                             shape: BoxShape.circle,
                             border: Border.all(color: AppColors.surface, width: 2),
                           ),
@@ -521,12 +521,12 @@ class _TraitPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.softBlue,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.primary.withAlpha(60)),
+        border: Border.all(color: AppColors.secondary.withAlpha(60)),
       ),
       child: Text(
         text,
         style: const TextStyle(
-          color: AppColors.primary,
+          color: AppColors.secondary,
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
@@ -555,9 +555,9 @@ class _FullButton extends StatelessWidget {
     Color borderColor;
 
     if (primary) {
-      bg = AppColors.primary;
+      bg = AppColors.secondary;
       textColor = Colors.white;
-      borderColor = AppColors.primary;
+      borderColor = AppColors.secondary;
     } else if (danger) {
       bg = AppColors.softRed;
       textColor = AppColors.red;
@@ -619,11 +619,11 @@ class _SettingsTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(20),
+                color: AppColors.secondary.withAlpha(20),
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: AppColors.primary.withAlpha(60)),
+                border: Border.all(color: AppColors.secondary.withAlpha(60)),
               ),
-              child: Text(badge!, style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w600)),
+              child: Text(badge!, style: const TextStyle(color: AppColors.secondary, fontSize: 11, fontWeight: FontWeight.w600)),
             )
           else
             const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textSecondary),
