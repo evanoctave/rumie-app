@@ -3,13 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/roommate.dart';
 import '../models/trait.dart';
 
-// Trait chip colors — soft tinted backgrounds that read well on light theme
-const _green   = Color(0xFF96E6B3); // mint primary
-const _forest  = Color(0xFF568259); // forest secondary
-const _amber   = Color(0xFFF59E0B); // warm amber
-const _teal    = Color(0xFF0D9488); // teal accent
-const _blue    = Color(0xFF3B82F6); // blue accent
-
 const List<Roommate> sampleRoommates = [
   Roommate(
     name: 'Maya',
@@ -19,12 +12,12 @@ const List<Roommate> sampleRoommates = [
     location: 'Mission District',
     bio: 'Grad student, loves plants and quiet evenings. Looking for a chill space to call home.',
     traits: [
-      Trait(title: 'Very tidy',  color: _forest),
-      Trait(title: 'Night owl',  color: _teal),
-      Trait(title: 'Has a cat',  color: _forest),
-      Trait(title: 'Studious',   color: _green),
+      Trait(title: 'Very tidy',  color: Color(0xFF10B981)),
+      Trait(title: 'Night owl',  color: Color(0xFF7C3AED)),
+      Trait(title: 'Has a cat',  color: Color(0xFFEC4899)),
+      Trait(title: 'Studious',   color: Color(0xFFF59E0B)),
     ],
-    gradient: [Color(0xFF96E6B3), Color(0xFF568259)],
+    gradient: [Color(0xFF7C3AED), Color(0xFFEC4899)],
   ),
   Roommate(
     name: 'Jordan',
@@ -34,12 +27,12 @@ const List<Roommate> sampleRoommates = [
     location: 'SoMa',
     bio: 'Software engineer. Big fan of weekend coffee runs and weekday silence.',
     traits: [
-      Trait(title: 'Works from home', color: _forest),
-      Trait(title: 'Early bird',      color: _amber),
-      Trait(title: 'Non-smoker',      color: _green),
-      Trait(title: 'Gamer',           color: _teal),
+      Trait(title: 'Works from home', color: Color(0xFF3B82F6)),
+      Trait(title: 'Early bird',      color: Color(0xFFF59E0B)),
+      Trait(title: 'Non-smoker',      color: Color(0xFF10B981)),
+      Trait(title: 'Gamer',           color: Color(0xFF7C3AED)),
     ],
-    gradient: [Color(0xFF96E6B3), Color(0xFF2D6A4F)],
+    gradient: [Color(0xFF3B82F6), Color(0xFF7C3AED)],
   ),
   Roommate(
     name: 'Aria',
@@ -49,12 +42,12 @@ const List<Roommate> sampleRoommates = [
     location: 'Oakland',
     bio: 'Art student. I bake a lot. Sometimes paint at 2am. Sorry not sorry.',
     traits: [
-      Trait(title: 'Creative',      color: _amber),
-      Trait(title: 'Loves cooking', color: _green),
-      Trait(title: 'Night owl',     color: _teal),
-      Trait(title: 'Vegetarian',    color: _forest),
+      Trait(title: 'Creative',      color: Color(0xFFEC4899)),
+      Trait(title: 'Loves cooking', color: Color(0xFFF97316)),
+      Trait(title: 'Night owl',     color: Color(0xFF7C3AED)),
+      Trait(title: 'Vegetarian',    color: Color(0xFF10B981)),
     ],
-    gradient: [Color(0xFF568259), Color(0xFF2D6A4F)],
+    gradient: [Color(0xFFEC4899), Color(0xFFF97316)],
   ),
   Roommate(
     name: 'Sam',
@@ -64,12 +57,12 @@ const List<Roommate> sampleRoommates = [
     location: 'Berkeley',
     bio: 'Yoga teacher, dog parent, plant collector. Looking for someone calm and respectful.',
     traits: [
-      Trait(title: 'Zen vibes',  color: _green),
-      Trait(title: 'Has a dog',  color: _amber),
-      Trait(title: 'Early bird', color: _forest),
-      Trait(title: 'Very tidy',  color: _teal),
+      Trait(title: 'Zen vibes',   color: Color(0xFF14B8A6)),
+      Trait(title: 'Has a dog',   color: Color(0xFFF59E0B)),
+      Trait(title: 'Early bird',  color: Color(0xFF10B981)),
+      Trait(title: 'Very tidy',   color: Color(0xFF7C3AED)),
     ],
-    gradient: [Color(0xFF96E6B3), Color(0xFF568259)],
+    gradient: [Color(0xFF14B8A6), Color(0xFF10B981)],
   ),
   Roommate(
     name: 'Devon',
@@ -79,56 +72,11 @@ const List<Roommate> sampleRoommates = [
     location: 'Outer Sunset',
     bio: 'Musician + barista. Headphones are my love language. Quiet apartment, loud songs.',
     traits: [
-      Trait(title: 'Music lover', color: _teal),
-      Trait(title: 'Night owl',   color: _forest),
-      Trait(title: 'Loves cooking', color: _amber),
-      Trait(title: 'Non-smoker',  color: _green),
+      Trait(title: 'Music lover',   color: Color(0xFFF97316)),
+      Trait(title: 'Night owl',     color: Color(0xFF7C3AED)),
+      Trait(title: 'Loves cooking', color: Color(0xFFF59E0B)),
+      Trait(title: 'Non-smoker',    color: Color(0xFF10B981)),
     ],
-    gradient: [Color(0xFF568259), Color(0xFF2D6A4F)],
-  ),
-  Roommate(
-    name: 'Riley',
-    age: 23,
-    avatarAsset: 'assets/icons/av_riley.svg',
-    budget: 1350,
-    location: 'Hayes Valley',
-    bio: 'College senior. Neat, quiet, mostly in class or the library. Great at keeping shared spaces clean.',
-    traits: [
-      Trait(title: 'Student',     color: _blue),
-      Trait(title: 'Very clean',  color: _green),
-      Trait(title: 'Early bird',  color: _amber),
-      Trait(title: 'Non-smoker', color: _forest),
-    ],
-    gradient: [Color(0xFF96E6B3), Color(0xFF3B82F6)],
-  ),
-  Roommate(
-    name: 'Alex',
-    age: 31,
-    avatarAsset: 'assets/icons/av_alex.svg',
-    budget: 2000,
-    location: 'Nob Hill',
-    bio: 'Finance professional. Work hard, relax harder. Enjoy hosting friends on weekends.',
-    traits: [
-      Trait(title: 'Social',       color: _amber),
-      Trait(title: 'Professional', color: _forest),
-      Trait(title: 'Host',         color: _teal),
-      Trait(title: 'Gym-goer',     color: _green),
-    ],
-    gradient: [Color(0xFF568259), Color(0xFF96E6B3)],
-  ),
-  Roommate(
-    name: 'Priya',
-    age: 26,
-    avatarAsset: 'assets/icons/av_priya.svg',
-    budget: 1400,
-    location: 'Richmond District',
-    bio: 'UX designer working hybrid. I cook Indian food almost every night — always sharing.',
-    traits: [
-      Trait(title: 'Hybrid WFH',    color: _forest),
-      Trait(title: 'Loves cooking', color: _amber),
-      Trait(title: 'Has plants',    color: _green),
-      Trait(title: 'Night owl',     color: _teal),
-    ],
-    gradient: [Color(0xFF96E6B3), Color(0xFF568259)],
+    gradient: [Color(0xFFF97316), Color(0xFFF59E0B)],
   ),
 ];

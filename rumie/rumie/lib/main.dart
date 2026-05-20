@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'di/locator.dart';
@@ -83,13 +84,13 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
           primary: AppColors.secondary,
           secondary: AppColors.darkGreen,
         ),
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(
+        textTheme: GoogleFonts.dmSansTextTheme().copyWith(
+          bodyLarge: GoogleFonts.dmSans(
             fontSize: 16,
             color: AppColors.text,
             decoration: TextDecoration.none,
           ),
-          bodyMedium: TextStyle(
+          bodyMedium: GoogleFonts.dmSans(
             fontSize: 14,
             color: AppColors.text,
             decoration: TextDecoration.none,

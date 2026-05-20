@@ -21,6 +21,7 @@ dependencies:
   json_annotation: ^4.9.0
   get_it: ^9.2.1
   local_auth: ^2.3.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:

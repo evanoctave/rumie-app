@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../models/roommate.dart';
 import '../theme/app_colors.dart';
@@ -26,31 +27,58 @@ class MatchesScreen extends StatelessWidget {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 18),
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border)),
+        color: AppColors.background,
+        border: Border(
+          bottom: BorderSide(color: AppColors.border, width: 1.5),
+        ),
       ),
       child: Row(
         children: [
-          const Text(
-            'Matches',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.text),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Matches',
+                style: GoogleFonts.dmSans(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.text,
+                  letterSpacing: -0.8,
+                ),
+              ),
+              Text(
+                'People who liked you back',
+                style: GoogleFonts.dmSans(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
           const Spacer(),
           if (matches.isNotEmpty)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.border),
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withAlpha(50),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: Text(
                 '${matches.length}',
-                style: const TextStyle(
-                  color: AppColors.secondary,
+                style: GoogleFonts.dmSans(
+                  color: Colors.white,
                   fontWeight: FontWeight.w800,
-                  fontSize: 13,
+                  fontSize: 14,
                 ),
               ),
             ),
@@ -61,9 +89,9 @@ class MatchesScreen extends StatelessWidget {
 
   Widget _buildList() {
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 60),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       itemCount: matches.length,
-      separatorBuilder: (ctx, i) => const SizedBox(height: 10),
+      separatorBuilder: (ctx, i) => const SizedBox(height: 12),
       itemBuilder: (context, index) => MatchTile(
         roommate: matches[index],
         animationIndex: index,
@@ -79,32 +107,45 @@ class MatchesScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 88,
+              height: 88,
               decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.border),
+                gradient: const LinearGradient(
+                  colors: [AppColors.softPurple, Color(0xFFE0D9FF)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: AppColors.cardShadow,
               ),
               child: Center(
                 child: SvgPicture.asset(
                   'assets/icons/ic_matches.svg',
-                  width: 38,
-                  height: 38,
-                  colorFilter: const ColorFilter.mode(AppColors.secondary, BlendMode.srcIn),
+                  width: 40,
+                  height: 40,
+                  colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
                 ),
               ),
-            ).animate().scale(duration: 400.ms, curve: Curves.easeOut),
-            const SizedBox(height: 20),
-            const Text(
+            ).animate().scale(duration: 500.ms, curve: Curves.easeOutBack),
+            const SizedBox(height: 24),
+            Text(
               'No matches yet',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.text),
+              style: GoogleFonts.dmSans(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
+                letterSpacing: -0.4,
+              ),
             ).animate().fadeIn(delay: 100.ms),
-            const SizedBox(height: 8),
-            const Text(
-              'Swipe right on someone you like and wait for them to match back.',
+            const SizedBox(height: 10),
+            Text(
+              'Swipe right on someone you like\nand wait for them to match back.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.5),
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                height: 1.55,
+              ),
             ).animate().fadeIn(delay: 200.ms),
           ],
         ),

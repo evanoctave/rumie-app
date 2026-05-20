@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../data/models/role.dart';
 import '../../theme/app_colors.dart';
@@ -14,11 +15,12 @@ class LandingScreen extends StatelessWidget {
     return PageRouteBuilder(
       pageBuilder: (ctx, anim, sec) => screen,
       transitionsBuilder: (ctx, anim, sec, child) => SlideTransition(
-        position: Tween(begin: const Offset(1, 0), end: Offset.zero)
-            .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+        position: Tween(begin: const Offset(1, 0), end: Offset.zero).animate(
+          CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
+        ),
         child: child,
       ),
-      transitionDuration: const Duration(milliseconds: 280),
+      transitionDuration: const Duration(milliseconds: 320),
     );
   }
 
@@ -26,59 +28,83 @@ class LandingScreen extends StatelessWidget {
     HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.cardBg,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(6)),
-          side: BorderSide(color: AppColors.border),
-        ),
-        content: Text(
-          '$provider sign-in coming soon — use email for now.',
-          style: const TextStyle(color: AppColors.text, fontSize: 13),
-        ),
+        content: Text('$provider sign-in coming soon — use email for now.'),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height
-                  - MediaQuery.of(context).padding.top
-                  - MediaQuery.of(context).padding.bottom,
-            ),
-            child: IntrinsicHeight(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 72),
-                  _buildBrand(),
-                  const Spacer(),
-                  _buildSocialSection(context),
-                  const SizedBox(height: 20),
-                  _buildDivider(),
-                  const SizedBox(height: 20),
-                  _buildPrimaryButton(
-                    label: 'Sign in with Email',
-                    onTap: () => Navigator.push(context, slideRoute(const LoginScreen())),
-                  ).animate().fadeIn(delay: 250.ms, duration: 300.ms),
-                  const SizedBox(height: 12),
-                  _buildSecondaryButton(
-                    label: 'Create an Account',
-                    onTap: () => _showRoleSheet(context),
-                  ).animate().fadeIn(delay: 300.ms, duration: 300.ms),
-                  const SizedBox(height: 48),
-                ],
+      body: Stack(
+        children: [
+          // ── Decorative blobs ───────────────────────────────────────────────
+          Positioned(
+            top: -80,
+            right: -60,
+            child: const _Blob(size: 280, color: AppColors.softPurple, opacity: 1.0)
+                .animate()
+                .scale(begin: const Offset(0.6, 0.6), end: const Offset(1, 1),
+                    duration: 900.ms, curve: Curves.easeOutCubic)
+                .fadeIn(duration: 600.ms),
+          ),
+          Positioned(
+            top: 120,
+            left: -50,
+            child: const _Blob(size: 160, color: AppColors.softPink, opacity: 0.85)
+                .animate()
+                .scale(begin: const Offset(0.4, 0.4), end: const Offset(1, 1),
+                    delay: 120.ms, duration: 800.ms, curve: Curves.easeOutCubic)
+                .fadeIn(delay: 120.ms, duration: 600.ms),
+          ),
+          Positioned(
+            bottom: size.height * 0.32,
+            right: -30,
+            child: const _Blob(size: 130, color: AppColors.softGreen, opacity: 0.9)
+                .animate()
+                .scale(begin: const Offset(0.4, 0.4), end: const Offset(1, 1),
+                    delay: 200.ms, duration: 800.ms, curve: Curves.easeOutCubic)
+                .fadeIn(delay: 200.ms, duration: 600.ms),
+          ),
+          Positioned(
+            bottom: size.height * 0.18,
+            left: -40,
+            child: const _Blob(size: 110, color: AppColors.softYellow, opacity: 0.8)
+                .animate()
+                .scale(begin: const Offset(0.4, 0.4), end: const Offset(1, 1),
+                    delay: 300.ms, duration: 800.ms, curve: Curves.easeOutCubic)
+                .fadeIn(delay: 300.ms, duration: 600.ms),
+          ),
+
+          // ── Main content ───────────────────────────────────────────────────
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: size.height
+                      - MediaQuery.of(context).padding.top
+                      - MediaQuery.of(context).padding.bottom,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 64),
+                      _buildBrand(),
+                      const Spacer(),
+                      _buildActionSection(context),
+                      const SizedBox(height: 48),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -87,120 +113,155 @@ class LandingScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'rumie',
-          style: TextStyle(
-            fontSize: 52,
-            fontWeight: FontWeight.w900,
-            color: AppColors.secondary,
-            letterSpacing: -3.0,
+        // Logo
+        ShaderMask(
+          shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
+          child: Text(
+            'rumie',
+            style: GoogleFonts.dmSans(
+              fontSize: 60,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -3,
+              height: 1.0,
+            ),
           ),
-        ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.15, end: 0, curve: Curves.easeOutCubic),
-        const SizedBox(height: 8),
-        const Text(
-          'Find your ideal roommate.',
-          style: TextStyle(
-            fontSize: 16,
+        )
+            .animate()
+            .fadeIn(duration: 500.ms)
+            .slideY(begin: -0.2, end: 0, curve: Curves.easeOutCubic),
+        const SizedBox(height: 20),
+        // Headline
+        Text(
+          'Find your\npeople.',
+          style: GoogleFonts.dmSans(
+            fontSize: 44,
+            fontWeight: FontWeight.w800,
             color: AppColors.text,
-            fontWeight: FontWeight.w500,
+            letterSpacing: -1.8,
+            height: 1.1,
           ),
-        ).animate().fadeIn(delay: 80.ms, duration: 400.ms),
-        const SizedBox(height: 4),
-        const Text(
-          'Swipe, match, and chat.',
-          style: TextStyle(
-            fontSize: 15,
+        )
+            .animate()
+            .fadeIn(delay: 80.ms, duration: 500.ms)
+            .slideY(begin: 0.15, end: 0, curve: Curves.easeOutCubic),
+        const SizedBox(height: 14),
+        // Subline
+        Text(
+          'Match with roommates, discover listings,\nand move in with confidence.',
+          style: GoogleFonts.dmSans(
+            fontSize: 16,
             color: AppColors.textSecondary,
+            height: 1.55,
           ),
-        ).animate().fadeIn(delay: 160.ms, duration: 400.ms),
+        )
+            .animate()
+            .fadeIn(delay: 160.ms, duration: 500.ms),
       ],
     );
   }
 
-  Widget _buildSocialSection(BuildContext context) {
+  Widget _buildActionSection(BuildContext context) {
     return Column(
       children: [
-        Semantics(
+        // Social logins
+        _SocialButton(
           label: 'Continue with Google',
-          button: true,
-          child: _SocialButton(
-            label: 'Continue with Google',
-            iconWidget: const _GoogleG(),
-            onTap: () => _socialSnack(context, 'Google'),
-          ),
-        ),
+          iconWidget: const _GoogleG(),
+          onTap: () => _socialSnack(context, 'Google'),
+        ).animate().fadeIn(delay: 250.ms, duration: 400.ms).slideY(begin: 0.12, end: 0, curve: Curves.easeOutCubic),
         const SizedBox(height: 10),
-        Semantics(
+        _SocialButton(
           label: 'Continue with Apple',
-          button: true,
-          child: _SocialButton(
-            label: 'Continue with Apple',
-            iconWidget: const Icon(Icons.apple, color: AppColors.text, size: 20),
-            onTap: () => _socialSnack(context, 'Apple'),
+          iconWidget: const Icon(Icons.apple_rounded, color: AppColors.text, size: 22),
+          onTap: () => _socialSnack(context, 'Apple'),
+        ).animate().fadeIn(delay: 300.ms, duration: 400.ms).slideY(begin: 0.12, end: 0, curve: Curves.easeOutCubic),
+        const SizedBox(height: 20),
+
+        // Divider
+        Row(
+          children: [
+            const Expanded(child: Divider(color: AppColors.border, thickness: 1.5)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Text(
+                'or',
+                style: GoogleFonts.dmSans(
+                  color: AppColors.gray,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const Expanded(child: Divider(color: AppColors.border, thickness: 1.5)),
+          ],
+        ).animate().fadeIn(delay: 340.ms, duration: 300.ms),
+        const SizedBox(height: 20),
+
+        // Primary CTA — Create Account
+        _TapButton(
+          onTap: () => _showRoleSheet(context),
+          child: Container(
+            height: 56,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: AppColors.buttonShadow,
+            ),
+            child: Text(
+              'Create an Account',
+              style: GoogleFonts.dmSans(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: 0.2,
+              ),
+            ),
           ),
-        ),
+        ).animate().fadeIn(delay: 390.ms, duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutBack),
+        const SizedBox(height: 14),
+
+        // Secondary CTA — Sign In
+        _TapButton(
+          onTap: () => Navigator.push(context, slideRoute(const LoginScreen())),
+          child: Container(
+            height: 56,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(5),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              'Sign in with Email',
+              style: GoogleFonts.dmSans(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.text,
+              ),
+            ),
+          ),
+        ).animate().fadeIn(delay: 440.ms, duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
+
+        const SizedBox(height: 20),
+        Text(
+          'By continuing, you agree to our Terms & Privacy Policy.',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.dmSans(
+            color: AppColors.gray,
+            fontSize: 11.5,
+            height: 1.5,
+          ),
+        ).animate().fadeIn(delay: 500.ms, duration: 400.ms),
       ],
-    ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.08, end: 0);
-  }
-
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        const Expanded(child: Divider(color: AppColors.border, thickness: 1)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Text(
-            'or',
-            style: TextStyle(color: AppColors.textSecondary.withAlpha(140), fontSize: 13),
-          ),
-        ),
-        const Expanded(child: Divider(color: AppColors.border, thickness: 1)),
-      ],
-    );
-  }
-
-  Widget _buildPrimaryButton({required String label, required VoidCallback onTap}) {
-    return _TapButton(
-      onTap: onTap,
-      child: Container(
-        height: 56,
-        alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          color: AppColors.secondary,
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSecondaryButton({required String label, required VoidCallback onTap}) {
-    return _TapButton(
-      onTap: onTap,
-      child: Container(
-        height: 56,
-        alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-          border: Border.fromBorderSide(BorderSide(color: AppColors.border, width: 1.5)),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.secondary,
-          ),
-        ),
-      ),
     );
   }
 
@@ -208,9 +269,9 @@ class LandingScreen extends StatelessWidget {
     HapticFeedback.mediumImpact();
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.cardBg,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (_) => _RoleSheet(
         onSelect: (role) {
@@ -222,7 +283,32 @@ class LandingScreen extends StatelessWidget {
   }
 }
 
-// ── Social button ─────────────────────────────────────────────────────────────
+// ── Decorative blob ────────────────────────────────────────────────────────────
+
+class _Blob extends StatelessWidget {
+  final double size;
+  final Color color;
+  final double opacity;
+
+  const _Blob({required this.size, required this.color, required this.opacity});
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: opacity,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Social button ──────────────────────────────────────────────────────────────
 
 class _SocialButton extends StatelessWidget {
   final String label;
@@ -240,11 +326,18 @@ class _SocialButton extends StatelessWidget {
     return _TapButton(
       onTap: onTap,
       child: Container(
-        height: 56,
-        decoration: const BoxDecoration(
-          color: AppColors.cardBg,
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-          border: Border.fromBorderSide(BorderSide(color: AppColors.border)),
+        height: 54,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(6),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -253,7 +346,7 @@ class _SocialButton extends StatelessWidget {
             const SizedBox(width: 10),
             Text(
               label,
-              style: const TextStyle(
+              style: GoogleFonts.dmSans(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
                 color: AppColors.text,
@@ -266,7 +359,7 @@ class _SocialButton extends StatelessWidget {
   }
 }
 
-// ── Google "G" icon ───────────────────────────────────────────────────────────
+// ── Google "G" icon ────────────────────────────────────────────────────────────
 
 class _GoogleG extends StatelessWidget {
   const _GoogleG();
@@ -274,15 +367,15 @@ class _GoogleG extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SizedBox(
-      width: 20,
-      height: 20,
+      width: 22,
+      height: 22,
       child: Center(
         child: Text(
           'G',
           style: TextStyle(
-            fontSize: 17,
+            fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: AppColors.secondary,
+            color: Color(0xFF4285F4),
             height: 1,
           ),
         ),
@@ -291,7 +384,7 @@ class _GoogleG extends StatelessWidget {
   }
 }
 
-// ── Generic tap wrapper ───────────────────────────────────────────────────────
+// ── Tap wrapper with spring press ──────────────────────────────────────────────
 
 class _TapButton extends StatefulWidget {
   final Widget child;
@@ -319,15 +412,16 @@ class _TapButtonState extends State<_TapButton> {
       },
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 100),
+        scale: _pressed ? 0.96 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutBack,
         child: widget.child,
       ),
     );
   }
 }
 
-// ── Role chooser sheet ────────────────────────────────────────────────────────
+// ── Role chooser sheet ─────────────────────────────────────────────────────────
 
 class _RoleSheet extends StatelessWidget {
   final void Function(Role) onSelect;
@@ -338,7 +432,7 @@ class _RoleSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        24, 20, 24, MediaQuery.of(context).padding.bottom + 20,
+        24, 12, 24, MediaQuery.of(context).padding.bottom + 28,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -346,35 +440,48 @@ class _RoleSheet extends StatelessWidget {
         children: [
           Center(
             child: Container(
-              width: 36,
+              width: 40,
               height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: const BoxDecoration(
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
                 color: AppColors.border,
-                borderRadius: BorderRadius.all(Radius.circular(2)),
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
-          const Text(
+          Text(
             'I want to...',
-            style: TextStyle(
-              fontSize: 20,
+            style: GoogleFonts.dmSans(
+              fontSize: 22,
               fontWeight: FontWeight.w800,
               color: AppColors.text,
+              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
+          Text(
+            'Choose your path to get started.',
+            style: GoogleFonts.dmSans(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 20),
           _RoleTile(
             emoji: '🏠',
             title: 'Find a room',
-            sub: "Looking for a room or shared space",
+            sub: 'Looking for a room or shared space',
+            accentColor: AppColors.primary,
+            accentBg: AppColors.softPurple,
             onTap: () => onSelect(Role.rumie),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           _RoleTile(
             emoji: '🔑',
             title: 'List a property',
             sub: 'I have a room or property to rent out',
+            accentColor: AppColors.green,
+            accentBg: AppColors.softGreen,
             onTap: () => onSelect(Role.landlord),
           ),
         ],
@@ -383,64 +490,78 @@ class _RoleSheet extends StatelessWidget {
   }
 }
 
-class _RoleTile extends StatelessWidget {
+class _RoleTile extends StatefulWidget {
   final String emoji;
   final String title;
   final String sub;
+  final Color accentColor;
+  final Color accentBg;
   final VoidCallback onTap;
 
   const _RoleTile({
     required this.emoji,
     required this.title,
     required this.sub,
+    required this.accentColor,
+    required this.accentBg,
     required this.onTap,
   });
 
   @override
+  State<_RoleTile> createState() => _RoleTileState();
+}
+
+class _RoleTileState extends State<_RoleTile> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Semantics(
-      label: title,
-      button: true,
-      child: GestureDetector(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
+    return GestureDetector(
+      onTapDown: (_) { HapticFeedback.selectionClick(); setState(() => _pressed = true); },
+      onTapUp: (_) { setState(() => _pressed = false); widget.onTap(); },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOutBack,
         child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.all(Radius.circular(16)),
-            border: Border.fromBorderSide(BorderSide(color: AppColors.border)),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.border, width: 1.5),
+            boxShadow: AppColors.cardShadow,
           ),
           child: Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 50,
+                height: 50,
                 decoration: BoxDecoration(
-                  color: AppColors.secondary.withAlpha(80),
-                  borderRadius: BorderRadius.circular(12),
+                  color: widget.accentBg,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Center(child: Text(emoji, style: const TextStyle(fontSize: 22))),
+                child: Center(
+                  child: Text(widget.emoji, style: const TextStyle(fontSize: 24)),
+                ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 15,
+                      widget.title,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: AppColors.text,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
-                      sub,
-                      style: const TextStyle(
+                      widget.sub,
+                      style: GoogleFonts.dmSans(
                         fontSize: 13,
                         color: AppColors.textSecondary,
                       ),
@@ -448,7 +569,7 @@ class _RoleTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
+              Icon(Icons.arrow_forward_ios_rounded, color: widget.accentColor, size: 16),
             ],
           ),
         ),

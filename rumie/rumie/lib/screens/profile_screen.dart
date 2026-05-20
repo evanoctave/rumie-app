@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user_profile.dart';
@@ -44,13 +45,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final p = widget.profile;
-    final hasProfile = p.isComplete;
-
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: hasProfile ? _buildProfile(p) : _buildEmpty(),
+      body: p.isComplete ? _buildProfile(p) : _buildEmpty(),
     );
   }
+
+  // ── Empty state ──────────────────────────────────────────────────────────────
 
   Widget _buildEmpty() {
     return SafeArea(
@@ -61,60 +62,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 88,
-                height: 88,
+                width: 96,
+                height: 96,
                 decoration: BoxDecoration(
-                  color: AppColors.cardBg,
+                  gradient: const LinearGradient(
+                    colors: [AppColors.softPurple, Color(0xFFE0D9FF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.border, width: 1.5),
+                  boxShadow: AppColors.cardShadow,
                 ),
                 child: Center(
                   child: SvgPicture.asset(
                     'assets/icons/ic_profile.svg',
-                    width: 36,
-                    height: 36,
-                    colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
+                    width: 40,
+                    height: 40,
+                    colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
                   ),
                 ),
-              ).animate().scale(duration: 400.ms, curve: Curves.easeOut),
-              const SizedBox(height: 20),
-              const Text(
+              ).animate().scale(duration: 450.ms, curve: Curves.easeOutBack),
+              const SizedBox(height: 24),
+              Text(
                 'Set up your profile',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
+                style: GoogleFonts.dmSans(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.text,
+                  letterSpacing: -0.4,
                 ),
               ).animate().fadeIn(delay: 100.ms),
-              const SizedBox(height: 8),
-              const Text(
-                'Add your photo, bio, and preferences so potential roommates can find you.',
+              const SizedBox(height: 10),
+              Text(
+                'Add your photo, bio, and preferences so\npotential roommates can find you.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: GoogleFonts.dmSans(
                   fontSize: 14,
                   color: AppColors.textSecondary,
-                  height: 1.5,
+                  height: 1.55,
                 ),
               ).animate().fadeIn(delay: 200.ms),
-              const SizedBox(height: 28),
-              GestureDetector(
-                onTap: _openEdit,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 32),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    'Create Profile',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-              ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1),
+              const SizedBox(height: 32),
+              _PrimaryButton(label: 'Create Profile', onTap: _openEdit)
+                  .animate()
+                  .fadeIn(delay: 300.ms)
+                  .slideY(begin: 0.12, end: 0, curve: Curves.easeOutBack),
             ],
           ),
         ),
@@ -122,25 +114,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // ── Full profile ─────────────────────────────────────────────────────────────
+
   Widget _buildProfile(UserProfile p) {
     return CustomScrollView(
       slivers: [
         _buildSliverHeader(p),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               _buildBioCard(p),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               _buildStatsRow(p),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               _buildPrefsCard(p),
               if (p.traits.isNotEmpty) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 _buildTraitsCard(p),
               ],
               const SizedBox(height: 28),
-              _buildActionButtons(),
+              _buildActions(),
             ]),
           ),
         ),
@@ -150,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildSliverHeader(UserProfile p) {
     return SliverAppBar(
-      expandedHeight: 220,
+      expandedHeight: 240,
       pinned: true,
       backgroundColor: AppColors.surface,
       surfaceTintColor: Colors.transparent,
@@ -158,39 +152,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
       leading: const SizedBox.shrink(),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          color: AppColors.surface,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.softPurple, Color(0xFFF5F0FF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
           child: SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 GestureDetector(
                   onTap: _openEdit,
                   child: Stack(
                     children: [
                       Container(
-                        width: 96,
-                        height: 96,
+                        width: 100,
+                        height: 100,
                         decoration: BoxDecoration(
-                          color: AppColors.cardBg,
+                          color: AppColors.surface,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.secondary,
-                            width: 2.5,
-                          ),
+                          border: Border.all(color: AppColors.primary, width: 3),
+                          boxShadow: AppColors.floatingShadow,
                         ),
-                        child: _buildAvatar(p),
+                        child: ClipOval(child: _buildAvatar(p)),
                       ),
                       Positioned(
-                        bottom: 0,
-                        right: 0,
+                        bottom: 2,
+                        right: 2,
                         child: Container(
-                          width: 28,
-                          height: 28,
+                          width: 30,
+                          height: 30,
                           decoration: BoxDecoration(
-                            color: AppColors.secondary,
+                            gradient: AppColors.primaryGradient,
                             shape: BoxShape.circle,
                             border: Border.all(color: AppColors.surface, width: 2),
+                            boxShadow: AppColors.buttonShadow,
                           ),
                           child: const Icon(Icons.edit_rounded, color: Colors.white, size: 14),
                         ),
@@ -198,26 +197,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 Text(
                   '${p.name}, ${p.age}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
+                  style: GoogleFonts.dmSans(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
                     color: AppColors.text,
+                    letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 5),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.location_on_rounded, size: 13, color: AppColors.textSecondary),
+                    const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
                     const SizedBox(width: 3),
                     Text(
                       p.location,
-                      style: const TextStyle(
+                      style: GoogleFonts.dmSans(
                         fontSize: 13,
                         color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -236,30 +237,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildAvatar(UserProfile p) {
     if (p.photoPath.isNotEmpty) {
-      return ClipOval(child: Image.file(File(p.photoPath), fit: BoxFit.cover));
+      return Image.file(File(p.photoPath), fit: BoxFit.cover);
     }
-    return Center(
-      child: SvgPicture.asset(
-        'assets/icons/av_you.svg',
-        fit: BoxFit.cover,
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: SvgPicture.asset('assets/icons/av_you.svg', fit: BoxFit.contain),
     );
   }
 
   Widget _buildBioCard(UserProfile p) {
     return _Card(
+      accentColor: AppColors.primary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _CardLabel('About'),
-          const SizedBox(height: 8),
+          const _CardLabel('About', color: AppColors.primary),
+          const SizedBox(height: 10),
           Text(
             p.bio,
-            style: const TextStyle(
-              fontSize: 15,
-              color: AppColors.text,
-              height: 1.5,
-            ),
+            style: GoogleFonts.dmSans(fontSize: 15, color: AppColors.text, height: 1.55),
           ),
         ],
       ),
@@ -269,37 +265,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildStatsRow(UserProfile p) {
     return Row(
       children: [
-        _StatTile(label: 'Budget', value: '\$${p.budgetMin}–\$${p.budgetMax}'),
+        _StatTile(label: 'Budget', value: '\$${p.budgetMin}–${p.budgetMax}', color: AppColors.green),
         const SizedBox(width: 10),
-        _StatTile(label: 'Move-in', value: p.moveIn),
+        _StatTile(label: 'Move-in', value: p.moveIn, color: AppColors.orange),
         const SizedBox(width: 10),
-        _StatTile(label: 'Schedule', value: p.schedule),
+        _StatTile(label: 'Schedule', value: p.schedule, color: AppColors.blue),
       ],
     );
   }
 
   Widget _buildPrefsCard(UserProfile p) {
     return _Card(
+      accentColor: AppColors.teal,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _CardLabel('Preferences'),
-          const SizedBox(height: 10),
-          _prefRow('Tidiness', p.tidiness),
-          _prefRow('Pets', p.haspets ? 'Yes' : 'No'),
+          const _CardLabel('Preferences', color: AppColors.teal),
+          const SizedBox(height: 12),
+          _prefRow('Tidiness', p.tidiness, AppColors.teal),
+          _prefRow('Pets', p.haspets ? 'Yes' : 'No', AppColors.yellow),
         ],
       ),
     );
   }
 
-  Widget _prefRow(String label, String value) {
+  Widget _prefRow(String label, String value, Color accent) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+          Text(
+            label,
+            style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 14),
+          ),
           const Spacer(),
-          Text(value, style: const TextStyle(color: AppColors.text, fontSize: 14, fontWeight: FontWeight.w600)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: accent.withAlpha(20),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              value,
+              style: GoogleFonts.dmSans(
+                color: accent,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -307,42 +321,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildTraitsCard(UserProfile p) {
     return _Card(
+      accentColor: AppColors.pink,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _CardLabel('Traits'),
-          const SizedBox(height: 10),
+          const _CardLabel('Traits', color: AppColors.pink),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: p.traits.map((t) => _TraitPill(t)).toList(),
+            children: p.traits
+                .asMap()
+                .entries
+                .map((e) => _TraitPill(e.value, _traitColor(e.key)))
+                .toList(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionButtons() {
+  Color _traitColor(int i) {
+    const colors = [
+      AppColors.primary, AppColors.green, AppColors.pink,
+      AppColors.orange, AppColors.blue, AppColors.teal,
+    ];
+    return colors[i % colors.length];
+  }
+
+  Widget _buildActions() {
     return Column(
       children: [
-        _FullButton(
-          label: 'Edit Profile',
-          primary: true,
-          onTap: _openEdit,
-        ),
+        _PrimaryButton(label: 'Edit Profile', onTap: _openEdit),
         const SizedBox(height: 10),
-        _FullButton(
-          label: 'Settings',
-          primary: false,
-          onTap: () => _openSettings(),
-        ),
+        _SecondaryButton(label: 'Settings', onTap: () => _openSettings()),
         const SizedBox(height: 10),
-        _FullButton(
-          label: 'Log Out',
-          primary: false,
-          danger: true,
-          onTap: () => _confirmLogout(),
-        ),
+        _DangerButton(label: 'Log Out', onTap: () => _confirmLogout()),
       ],
     ).animate().fadeIn(delay: 200.ms, duration: 300.ms);
   }
@@ -353,31 +367,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-          24, 20, 24, MediaQuery.of(ctx).padding.bottom + 24,
-        ),
+        padding: EdgeInsets.fromLTRB(24, 12, 24, MediaQuery.of(ctx).padding.bottom + 28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
               child: Container(
-                width: 36, height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: const BoxDecoration(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
                   color: AppColors.border,
-                  borderRadius: BorderRadius.all(Radius.circular(2)),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            const Text(
+            Text(
               'Settings',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.text),
+              style: GoogleFonts.dmSans(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
+                letterSpacing: -0.4,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             const _SettingsTile(icon: Icons.notifications_outlined, label: 'Notifications', badge: 'Soon'),
             const Divider(color: AppColors.border, height: 1),
             const _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Privacy & Security', badge: 'Soon'),
@@ -396,29 +414,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.cardBg,
+        backgroundColor: AppColors.surface,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-          side: BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
-        title: const Text(
+        title: Text(
           'Log out?',
-          style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w700),
+          style: GoogleFonts.dmSans(
+            fontWeight: FontWeight.w800,
+            color: AppColors.text,
+            fontSize: 18,
+          ),
         ),
-        content: const Text(
+        content: Text(
           'You can sign back in anytime.',
-          style: TextStyle(color: AppColors.textSecondary),
+          style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
+            child: Text(
               'Log Out',
-              style: TextStyle(color: AppColors.red, fontWeight: FontWeight.w700),
+              style: GoogleFonts.dmSans(color: AppColors.red, fontWeight: FontWeight.w700),
             ),
           ),
         ],
@@ -430,21 +454,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// ─── Shared sub-widgets ───────────────────────────────────────────────────────
+// ── Shared sub-widgets ─────────────────────────────────────────────────────────
 
 class _Card extends StatelessWidget {
   final Widget child;
-  const _Card({required this.child});
+  final Color accentColor;
+
+  const _Card({required this.child, required this.accentColor});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: accentColor.withAlpha(30), width: 1.5),
+        boxShadow: AppColors.cardShadow,
       ),
       child: child,
     );
@@ -453,17 +480,19 @@ class _Card extends StatelessWidget {
 
 class _CardLabel extends StatelessWidget {
   final String text;
-  const _CardLabel(this.text);
+  final Color color;
+
+  const _CardLabel(this.text, {required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(
-        color: AppColors.textSecondary,
+      style: GoogleFonts.dmSans(
+        color: color,
         fontSize: 11,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.2,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.4,
       ),
     );
   }
@@ -472,36 +501,35 @@ class _CardLabel extends StatelessWidget {
 class _StatTile extends StatelessWidget {
   final String label;
   final String value;
-  const _StatTile({required this.label, required this.value});
+  final Color color;
+
+  const _StatTile({required this.label, required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: AppColors.cardBg,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.border),
+          color: color.withAlpha(12),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withAlpha(40), width: 1.5),
         ),
         child: Column(
           children: [
             Text(
               value,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: GoogleFonts.dmSans(
                 fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.text,
+                fontWeight: FontWeight.w800,
+                color: color,
               ),
             ),
             const SizedBox(height: 3),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textSecondary,
-              ),
+              style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -512,21 +540,23 @@ class _StatTile extends StatelessWidget {
 
 class _TraitPill extends StatelessWidget {
   final String text;
-  const _TraitPill(this.text);
+  final Color color;
+
+  const _TraitPill(this.text, this.color);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.softBlue,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.secondary.withAlpha(60)),
+        color: color.withAlpha(16),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withAlpha(60)),
       ),
       child: Text(
         text,
-        style: const TextStyle(
-          color: AppColors.secondary,
+        style: GoogleFonts.dmSans(
+          color: color,
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
@@ -535,56 +565,45 @@ class _TraitPill extends StatelessWidget {
   }
 }
 
-class _FullButton extends StatelessWidget {
+class _PrimaryButton extends StatefulWidget {
   final String label;
-  final bool primary;
-  final bool danger;
   final VoidCallback onTap;
 
-  const _FullButton({
-    required this.label,
-    required this.primary,
-    this.danger = false,
-    required this.onTap,
-  });
+  const _PrimaryButton({required this.label, required this.onTap});
+
+  @override
+  State<_PrimaryButton> createState() => _PrimaryButtonState();
+}
+
+class _PrimaryButtonState extends State<_PrimaryButton> {
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
-    Color bg;
-    Color textColor;
-    Color borderColor;
-
-    if (primary) {
-      bg = AppColors.secondary;
-      textColor = Colors.white;
-      borderColor = AppColors.secondary;
-    } else if (danger) {
-      bg = AppColors.softRed;
-      textColor = AppColors.red;
-      borderColor = AppColors.red.withAlpha(60);
-    } else {
-      bg = AppColors.cardBg;
-      textColor = AppColors.textSecondary;
-      borderColor = AppColors.border;
-    }
-
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: borderColor),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
+      onTapDown: (_) { HapticFeedback.selectionClick(); setState(() => _pressed = true); },
+      onTapUp: (_) { setState(() => _pressed = false); widget.onTap(); },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.96 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutBack,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 17),
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: AppColors.buttonShadow,
+          ),
+          child: Center(
+            child: Text(
+              widget.label,
+              style: GoogleFonts.dmSans(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
             ),
           ),
         ),
@@ -593,6 +612,72 @@ class _FullButton extends StatelessWidget {
   }
 }
 
+class _SecondaryButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _SecondaryButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 17),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border, width: 1.5),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.dmSans(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DangerButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _DangerButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 17),
+        decoration: BoxDecoration(
+          color: AppColors.softRed,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.red.withAlpha(50), width: 1.5),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.dmSans(
+              color: AppColors.red,
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _SettingsTile extends StatelessWidget {
   final IconData icon;
@@ -607,26 +692,44 @@ class _SettingsTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppColors.textSecondary),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.softPurple,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 18, color: AppColors.primary),
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(fontSize: 15, color: AppColors.text, fontWeight: FontWeight.w500),
+              style: GoogleFonts.dmSans(
+                fontSize: 15,
+                color: AppColors.text,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
           if (badge != null)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: AppColors.secondary.withAlpha(20),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: AppColors.secondary.withAlpha(60)),
+                color: AppColors.softYellow,
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(badge!, style: const TextStyle(color: AppColors.secondary, fontSize: 11, fontWeight: FontWeight.w600)),
+              child: Text(
+                badge!,
+                style: GoogleFonts.dmSans(
+                  color: AppColors.yellow,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             )
           else
-            const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textSecondary),
+            const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray),
         ],
       ),
     );
