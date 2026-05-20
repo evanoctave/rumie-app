@@ -75,18 +75,18 @@ class _SignupScreenState extends State<SignupScreen> {
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.cardBg,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        title: const Text(
+        title: Text(
           'Enable Face ID?',
           style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w700),
         ),
-        content: const Text(
+        content: Text(
           'Sign in instantly with Face ID every time you open Rumie.',
           style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Not now', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Not now', style: TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -117,7 +117,7 @@ class _SignupScreenState extends State<SignupScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.text, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.text, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -130,7 +130,7 @@ class _SignupScreenState extends State<SignupScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Create your\naccount.',
                   style: TextStyle(
                     fontSize: 38,
@@ -143,7 +143,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Text(
+                    Text(
                       'Signing up as ',
                       style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
                     ),
@@ -225,7 +225,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
         color: AppColors.textSecondary,
@@ -289,11 +289,11 @@ class _SignupScreenState extends State<SignupScreen> {
       maxLength: maxLength,
       maxLengthEnforcement: MaxLengthEnforcement.enforced,
       inputFormatters: const [SanitizingFormatter()],
-      style: const TextStyle(color: AppColors.text, fontSize: 15),
+      style: TextStyle(color: AppColors.text, fontSize: 15),
       validator: validator,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.gray),
+        hintStyle: TextStyle(color: AppColors.gray),
         suffixIcon: suffix,
         filled: true,
         fillColor: AppColors.surface,
@@ -301,11 +301,11 @@ class _SignupScreenState extends State<SignupScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),

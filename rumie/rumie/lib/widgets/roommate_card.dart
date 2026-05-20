@@ -44,7 +44,7 @@ class RoommateCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           '${roommate.name}, ${roommate.age}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
                             color: AppColors.text,
@@ -61,12 +61,12 @@ class RoommateCard extends StatelessWidget {
                         'assets/icons/ic_location.svg',
                         width: 13,
                         height: 13,
-                        colorFilter: const ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
+                        colorFilter: ColorFilter.mode(AppColors.textSecondary, BlendMode.srcIn),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         roommate.location,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           color: AppColors.textSecondary,
                         ),
@@ -84,7 +84,7 @@ class RoommateCard extends StatelessWidget {
                     ),
                     child: Text(
                       roommate.bio,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         height: 1.5,
                         color: AppColors.text,
@@ -113,34 +113,36 @@ class RoommateCard extends StatelessWidget {
   }
 
   Widget _buildPhotoArea() {
-    return Container(
-      height: 210,
-      color: roommate.gradient.first.withAlpha(60),
+    final isPhoto = roommate.avatarAsset.endsWith('.jpg') ||
+        roommate.avatarAsset.endsWith('.jpeg') ||
+        roommate.avatarAsset.endsWith('.png');
+
+    return SizedBox(
+      height: 280,
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          Center(
-            child: Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(18),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withAlpha(50), width: 2),
-              ),
-              child: ClipOval(
-                child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.cover),
-              ),
-            ),
-          ),
+          if (isPhoto)
+            Image.asset(
+              roommate.avatarAsset,
+              fit: BoxFit.cover,
+              errorBuilder: (context2, e, _) => _fallbackAvatar(),
+            )
+          else
+            _svgAvatar(),
+          // gradient overlay at bottom for readability
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: Container(
-              height: 48,
+              height: 80,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.transparent, AppColors.cardBg.withAlpha(240)],
+                  colors: [
+                    Colors.transparent,
+                    AppColors.cardBg.withAlpha(230),
+                  ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -148,6 +150,35 @@ class RoommateCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _svgAvatar() {
+    return Container(
+      color: roommate.gradient.first.withAlpha(60),
+      child: Center(
+        child: Container(
+          width: 88,
+          height: 88,
+          decoration: BoxDecoration(
+            color: Colors.white.withAlpha(18),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withAlpha(50), width: 2),
+          ),
+          child: ClipOval(
+            child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.cover),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _fallbackAvatar() {
+    return Container(
+      color: roommate.gradient.first.withAlpha(60),
+      child: Center(
+        child: Icon(Icons.person, size: 64, color: Colors.white.withAlpha(180)),
       ),
     );
   }

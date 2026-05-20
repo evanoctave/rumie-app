@@ -38,14 +38,14 @@ class PrefRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     )),
                 const SizedBox(height: 1),
                 Text(value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       color: AppColors.text,
                       fontWeight: FontWeight.w600,
@@ -53,7 +53,7 @@ class PrefRow extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded, color: AppColors.gray, size: 18),
+          Icon(Icons.chevron_right_rounded, color: AppColors.gray, size: 18),
         ],
       ),
     )

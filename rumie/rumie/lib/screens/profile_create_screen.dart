@@ -245,12 +245,12 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
+          icon: Icon(Icons.close_rounded, color: AppColors.textSecondary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           isEdit ? 'Edit Profile' : 'Create Profile',
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.text,
             fontSize: 17,
             fontWeight: FontWeight.w700,
@@ -378,7 +378,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             const SizedBox(height: 32),
             _sectionLabel('Traits'),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Pick up to 6 — or add your own',
               style: TextStyle(
                 color: AppColors.textSecondary,
@@ -407,7 +407,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
         const SizedBox(height: 16),
         Row(
           children: [
-            const Text(
+            Text(
               'MY PETS',
               style: TextStyle(
                 color: AppColors.textSecondary,
@@ -457,7 +457,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                   color: AppColors.border,
                   style: BorderStyle.solid),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
                 'Tap "Add pet" to list your pets',
                 style: TextStyle(
@@ -493,7 +493,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             children: [
               Text(
                 'Pet ${index + 1}',
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -521,7 +521,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                     _pets[index] = pet.copyWith(name: v);
                     pet = _pets[index];
                   },
-                  style: const TextStyle(color: AppColors.text, fontSize: 14),
+                  style: TextStyle(color: AppColors.text, fontSize: 14),
                   decoration: _inputDeco('Name', 'e.g. Buddy'),
                 ),
               ),
@@ -536,7 +536,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                     _pets[index] = pet.copyWith(age: int.tryParse(v) ?? 0);
                     pet = _pets[index];
                   },
-                  style: const TextStyle(color: AppColors.text, fontSize: 14),
+                  style: TextStyle(color: AppColors.text, fontSize: 14),
                   decoration: _inputDeco('Age', '3'),
                 ),
               ),
@@ -555,8 +555,8 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                 value: _petTypes.contains(pet.type) ? pet.type : _petTypes[0],
                 isExpanded: true,
                 dropdownColor: AppColors.cardBg,
-                style: const TextStyle(color: AppColors.text, fontSize: 14),
-                icon: const Icon(
+                style: TextStyle(color: AppColors.text, fontSize: 14),
+                icon: Icon(
                   Icons.expand_more_rounded,
                   color: AppColors.textSecondary,
                   size: 18,
@@ -579,19 +579,19 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
   InputDecoration _inputDeco(String label, String hint) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+      labelStyle: TextStyle(color: AppColors.textSecondary, fontSize: 12),
       hintText: hint,
-      hintStyle: const TextStyle(color: AppColors.gray),
+      hintStyle: TextStyle(color: AppColors.gray),
       filled: true,
       fillColor: AppColors.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: AppColors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: AppColors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6),
@@ -607,21 +607,21 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
           child: TextField(
             controller: _customTraitCtrl,
             onSubmitted: (_) => _addCustomTrait(),
-            style: const TextStyle(color: AppColors.text, fontSize: 14),
+            style: TextStyle(color: AppColors.text, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Add a custom trait...',
-              hintStyle: const TextStyle(color: AppColors.gray, fontSize: 14),
+              hintStyle: TextStyle(color: AppColors.gray, fontSize: 14),
               filled: true,
               fillColor: AppColors.cardBg,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: AppColors.border),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: AppColors.border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
@@ -691,7 +691,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                         'assets/icons/ic_profile.svg',
                         width: 42,
                         height: 42,
-                        colorFilter: const ColorFilter.mode(
+                        colorFilter: ColorFilter.mode(
                           AppColors.textSecondary,
                           BlendMode.srcIn,
                         ),
@@ -732,7 +732,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         color: AppColors.textSecondary,
         fontSize: 11,
         fontWeight: FontWeight.w700,
@@ -755,7 +755,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -768,21 +768,21 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
           inputFormatters: inputFormatters,
           validator: validator,
           maxLines: maxLines,
-          style: const TextStyle(color: AppColors.text, fontSize: 15),
+          style: TextStyle(color: AppColors.text, fontSize: 15),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppColors.gray),
+            hintStyle: TextStyle(color: AppColors.gray),
             filled: true,
             fillColor: AppColors.cardBg,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
@@ -813,7 +813,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -890,7 +890,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.text,
               fontSize: 15,
               fontWeight: FontWeight.w500,

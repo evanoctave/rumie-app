@@ -109,7 +109,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 18),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.background,
         border: Border(bottom: BorderSide(color: AppColors.border, width: 1.5)),
       ),
@@ -361,7 +361,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
       minChildSize: 0.5,
       maxChildSize: 0.95,
       builder: (context, scrollController) => Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
@@ -404,7 +404,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: AppColors.border),
                           ),
-                          child: const Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 18),
+                          child: Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 18),
                         ),
                       ),
                     ],
@@ -637,11 +637,11 @@ class _PostListingSheetState extends State<_PostListingSheet> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
@@ -680,7 +680,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
               isExpanded: true,
               dropdownColor: AppColors.surface,
               style: GoogleFonts.dmSans(color: AppColors.text, fontSize: 15),
-              icon: const Icon(Icons.expand_more_rounded, color: AppColors.textSecondary, size: 20),
+              icon: Icon(Icons.expand_more_rounded, color: AppColors.textSecondary, size: 20),
               items: options.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
               onChanged: onChanged,
             ),

@@ -59,22 +59,22 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.cardBg,
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(8)),
           side: BorderSide(color: AppColors.border),
         ),
-        title: const Text(
+        title: Text(
           'Enable Face ID?',
           style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w700),
         ),
-        content: const Text(
+        content: Text(
           'Unlock Rumie instantly with Face ID every time you open the app.',
           style: TextStyle(color: AppColors.textSecondary, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Not now', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Not now', style: TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
           label: 'Back',
           button: true,
           child: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.text, size: 22),
+            icon: Icon(Icons.arrow_back_rounded, color: AppColors.text, size: 22),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -124,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Welcome\nback.',
                   style: TextStyle(
                     fontSize: 38,
@@ -135,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ).animate().fadeIn(duration: 300.ms),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'Sign in to continue.',
                   style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
                 ).animate().fadeIn(delay: 80.ms, duration: 300.ms),
@@ -185,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w700,
         color: AppColors.textSecondary,
@@ -204,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
     String? Function(String?)? validator,
   }) {
     const radius = BorderRadius.all(Radius.circular(6));
-    const side = BorderSide(color: AppColors.border);
+    final side = BorderSide(color: AppColors.border);
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -212,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
       maxLength: maxLength,
       maxLengthEnforcement: MaxLengthEnforcement.enforced,
       inputFormatters: const [SanitizingFormatter()],
-      style: const TextStyle(color: AppColors.text, fontSize: 15),
+      style: TextStyle(color: AppColors.text, fontSize: 15),
       validator: validator,
       decoration: InputDecoration(
         hintText: hint,
@@ -222,8 +222,8 @@ class _LoginScreenState extends State<LoginScreen> {
         fillColor: AppColors.surface,
         counterText: '',
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        border: const OutlineInputBorder(borderRadius: radius, borderSide: side),
-        enabledBorder: const OutlineInputBorder(borderRadius: radius, borderSide: side),
+        border: OutlineInputBorder(borderRadius: radius, borderSide: side),
+        enabledBorder: OutlineInputBorder(borderRadius: radius, borderSide: side),
         focusedBorder: const OutlineInputBorder(
           borderRadius: radius,
           borderSide: BorderSide(color: AppColors.secondary, width: 1.5),

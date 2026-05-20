@@ -50,7 +50,7 @@ class _LockScreenState extends State<LockScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Logo
-              const Text(
+              Text(
                 'rumie',
                 style: TextStyle(
                   fontSize: 44,

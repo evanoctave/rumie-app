@@ -45,7 +45,7 @@ class LandingScreen extends StatelessWidget {
           Positioned(
             top: -80,
             right: -60,
-            child: const _Blob(size: 280, color: AppColors.softPurple, opacity: 1.0)
+            child: _Blob(size: 280, color: AppColors.softPurple, opacity: 1.0)
                 .animate()
                 .scale(begin: const Offset(0.6, 0.6), end: const Offset(1, 1),
                     duration: 900.ms, curve: Curves.easeOutCubic)
@@ -173,7 +173,7 @@ class LandingScreen extends StatelessWidget {
         const SizedBox(height: 10),
         _SocialButton(
           label: 'Continue with Apple',
-          iconWidget: const Icon(Icons.apple_rounded, color: AppColors.text, size: 22),
+          iconWidget: Icon(Icons.apple_rounded, color: AppColors.text, size: 22),
           onTap: () => _socialSnack(context, 'Apple'),
         ).animate().fadeIn(delay: 300.ms, duration: 400.ms).slideY(begin: 0.12, end: 0, curve: Curves.easeOutCubic),
         const SizedBox(height: 20),
@@ -181,7 +181,7 @@ class LandingScreen extends StatelessWidget {
         // Divider
         Row(
           children: [
-            const Expanded(child: Divider(color: AppColors.border, thickness: 1.5)),
+            Expanded(child: Divider(color: AppColors.border, thickness: 1.5)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Text(
@@ -193,7 +193,7 @@ class LandingScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const Expanded(child: Divider(color: AppColors.border, thickness: 1.5)),
+            Expanded(child: Divider(color: AppColors.border, thickness: 1.5)),
           ],
         ).animate().fadeIn(delay: 340.ms, duration: 300.ms),
         const SizedBox(height: 20),

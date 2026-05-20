@@ -128,7 +128,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.text),
+        icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.text),
         onPressed: () => Navigator.pop(context),
       ),
       title: Row(
@@ -203,7 +203,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.more_horiz_rounded, color: AppColors.textSecondary, size: 24),
+          icon: Icon(Icons.more_horiz_rounded, color: AppColors.textSecondary, size: 24),
           onPressed: () {},
         ),
       ],
@@ -361,7 +361,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: const Border(top: BorderSide(color: AppColors.border, width: 1.5)),
+        border: Border(top: BorderSide(color: AppColors.border, width: 1.5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(5),

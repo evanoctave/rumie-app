@@ -3,16 +3,25 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // ── Backgrounds ───────────────────────────────────────────────────────────
-  static const Color background = Color(0xFFFAF9F7);
-  static const Color surface    = Color(0xFFFFFFFF);
-  static const Color cardBg     = Color(0xFFFFFFFF);
-  static const Color border     = Color(0xFFEAE5F5);
+  // ── Theme mode flag (set by ThemeProvider) ────────────────────────────────
+  static bool isDark = false;
 
-  // ── Brand Purple (Primary) ────────────────────────────────────────────────
+  // ── Backgrounds (adaptive) ────────────────────────────────────────────────
+  static Color get background   => isDark ? const Color(0xFF0D0B1A) : const Color(0xFFFAF9F7);
+  static Color get surface      => isDark ? const Color(0xFF16132B) : const Color(0xFFFFFFFF);
+  static Color get cardBg       => isDark ? const Color(0xFF16132B) : const Color(0xFFFFFFFF);
+  static Color get border       => isDark ? const Color(0xFF2D2947) : const Color(0xFFEAE5F5);
+  static Color get softPurple   => isDark ? const Color(0xFF1E1440) : const Color(0xFFEDE9FE);
+  static Color get borderBright => isDark ? const Color(0xFF5B3FA8) : const Color(0xFFD8B4FE);
+
+  // ── Text (adaptive) ───────────────────────────────────────────────────────
+  static Color get text          => isDark ? const Color(0xFFF0EEFF) : const Color(0xFF0F0F23);
+  static Color get textSecondary => isDark ? const Color(0xFF9CA3AF) : const Color(0xFF64748B);
+  static Color get gray          => isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
+
+  // ── Brand Purple (Primary) — stays constant ───────────────────────────────
   static const Color primary      = Color(0xFF7C3AED);
   static const Color primaryLight = Color(0xFF8B5CF6);
-  static const Color softPurple   = Color(0xFFEDE9FE);
 
   // ── Brand Green (Secondary) ───────────────────────────────────────────────
   static const Color green     = Color(0xFF10B981);
@@ -40,22 +49,16 @@ class AppColors {
   static const Color softRed = Color(0xFFFEE2E2);
   static const Color teal   = Color(0xFF14B8A6);
 
-  // ── Text ──────────────────────────────────────────────────────────────────
-  static const Color text          = Color(0xFF0F0F23);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color gray          = Color(0xFF94A3B8);
-
-  // ── Legacy aliases (keeps existing code compiling) ────────────────────────
-  static const Color accent      = primaryLight;
-  static const Color darkGreen   = greenDark;
-  static const Color borderBright = Color(0xFFD8B4FE);
-  static const Color cardCream   = cardBg;
-  static const Color darkText    = text;
-  static const Color secondary   = primary;      // compat alias — was the old brand green
-  static const Color mauve       = primary;
-  static const Color darkMauve   = Color(0xFF6D28D9);
-  static const Color sage        = green;
-  static const Color peach       = orange;
+  // ── Legacy aliases ────────────────────────────────────────────────────────
+  static const Color accent    = primaryLight;
+  static const Color darkGreen = greenDark;
+  static Color get cardCream  => cardBg;
+  static Color get darkText   => text;
+  static const Color secondary = primary;
+  static const Color mauve     = primary;
+  static const Color darkMauve = Color(0xFF6D28D9);
+  static const Color sage      = green;
+  static const Color peach     = orange;
 
   // ── Gradients ─────────────────────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
@@ -97,13 +100,13 @@ class AppColors {
   // ── Shadows ───────────────────────────────────────────────────────────────
   static List<BoxShadow> get cardShadow => [
     BoxShadow(
-      color: const Color(0xFF7C3AED).withAlpha(14),
+      color: const Color(0xFF7C3AED).withAlpha(isDark ? 30 : 14),
       blurRadius: 28,
       offset: const Offset(0, 10),
       spreadRadius: -6,
     ),
     BoxShadow(
-      color: Colors.black.withAlpha(6),
+      color: Colors.black.withAlpha(isDark ? 40 : 6),
       blurRadius: 8,
       offset: const Offset(0, 2),
     ),
@@ -111,13 +114,13 @@ class AppColors {
 
   static List<BoxShadow> get floatingShadow => [
     BoxShadow(
-      color: const Color(0xFF7C3AED).withAlpha(20),
+      color: const Color(0xFF7C3AED).withAlpha(isDark ? 40 : 20),
       blurRadius: 36,
       offset: const Offset(0, 14),
       spreadRadius: -8,
     ),
     BoxShadow(
-      color: Colors.black.withAlpha(10),
+      color: Colors.black.withAlpha(isDark ? 60 : 10),
       blurRadius: 16,
       offset: const Offset(0, 4),
     ),
@@ -125,13 +128,13 @@ class AppColors {
 
   static List<BoxShadow> get navShadow => [
     BoxShadow(
-      color: const Color(0xFF7C3AED).withAlpha(18),
+      color: const Color(0xFF7C3AED).withAlpha(isDark ? 40 : 18),
       blurRadius: 40,
       spreadRadius: 0,
       offset: const Offset(0, -6),
     ),
     BoxShadow(
-      color: Colors.black.withAlpha(8),
+      color: Colors.black.withAlpha(isDark ? 60 : 8),
       blurRadius: 20,
       offset: const Offset(0, -2),
     ),

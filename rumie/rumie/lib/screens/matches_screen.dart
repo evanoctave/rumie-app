@@ -28,7 +28,7 @@ class MatchesScreen extends StatelessWidget {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 18),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.background,
         border: Border(
           bottom: BorderSide(color: AppColors.border, width: 1.5),
@@ -110,7 +110,7 @@ class MatchesScreen extends StatelessWidget {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [AppColors.softPurple, Color(0xFFE0D9FF)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,

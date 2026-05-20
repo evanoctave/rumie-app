@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 
 import '../models/user_profile.dart';
 import '../state/auth_provider.dart';
+import '../state/theme_provider.dart';
 import '../theme/app_colors.dart';
 import 'profile_create_screen.dart';
 
@@ -65,7 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: 96,
                 height: 96,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     colors: [AppColors.softPurple, Color(0xFFE0D9FF)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -152,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       leading: const SizedBox.shrink(),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [AppColors.softPurple, Color(0xFFF5F0FF)],
               begin: Alignment.topLeft,
@@ -363,47 +364,92 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _openSettings() {
     HapticFeedback.selectionClick();
+    final themeProvider = context.read<ThemeProvider>();
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(24, 12, 24, MediaQuery.of(ctx).padding.bottom + 28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 24),
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
+      builder: (ctx) => StatefulBuilder(
+        builder: (_, setSheet) => Padding(
+          padding: EdgeInsets.fromLTRB(24, 12, 24, MediaQuery.of(ctx).padding.bottom + 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            Text(
-              'Settings',
-              style: GoogleFonts.dmSans(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.text,
-                letterSpacing: -0.4,
+              Text(
+                'Settings',
+                style: GoogleFonts.dmSans(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.text,
+                  letterSpacing: -0.4,
+                ),
               ),
-            ),
-            const SizedBox(height: 18),
-            const _SettingsTile(icon: Icons.notifications_outlined, label: 'Notifications', badge: 'Soon'),
-            const Divider(color: AppColors.border, height: 1),
-            const _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Privacy & Security', badge: 'Soon'),
-            const Divider(color: AppColors.border, height: 1),
-            const _SettingsTile(icon: Icons.help_outline_rounded, label: 'Help & Support', badge: 'Soon'),
-            const Divider(color: AppColors.border, height: 1),
-            const _SettingsTile(icon: Icons.info_outline_rounded, label: 'About Rumie v0.1.0'),
-          ],
+              const SizedBox(height: 18),
+              // Dark mode toggle
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.softPurple,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        themeProvider.isDark
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        'Dark Mode',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.text,
+                        ),
+                      ),
+                    ),
+                    Switch(
+                      value: themeProvider.isDark,
+                      onChanged: (v) {
+                        themeProvider.setDark(v);
+                        setSheet(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Divider(color: AppColors.border, height: 1),
+              const _SettingsTile(icon: Icons.notifications_outlined, label: 'Notifications', badge: 'Soon'),
+              Divider(color: AppColors.border, height: 1),
+              const _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Privacy & Security', badge: 'Soon'),
+              Divider(color: AppColors.border, height: 1),
+              const _SettingsTile(icon: Icons.help_outline_rounded, label: 'Help & Support', badge: 'Soon'),
+              Divider(color: AppColors.border, height: 1),
+              const _SettingsTile(icon: Icons.info_outline_rounded, label: 'About Rumie v0.1.0'),
+            ],
+          ),
         ),
       ),
     );
@@ -729,7 +775,7 @@ class _SettingsTile extends StatelessWidget {
               ),
             )
           else
-            const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray),
+            Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray),
         ],
       ),
     );

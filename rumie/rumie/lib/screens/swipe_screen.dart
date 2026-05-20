@@ -36,7 +36,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
   }
 
   Color get _bgColor {
-    const bg = AppColors.background;
+    final bg = AppColors.background;
     if (_dragRatio > 0) {
       return Color.lerp(bg, const Color(0xFFD1FAE5), _dragRatio * 0.85) ?? bg;
     } else if (_dragRatio < 0) {
@@ -391,7 +391,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
               width: 96,
               height: 96,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [AppColors.softPurple, Color(0xFFE0D9FF)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
