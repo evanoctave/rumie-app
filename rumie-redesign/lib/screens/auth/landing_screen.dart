@@ -45,7 +45,7 @@ class LandingScreen extends StatelessWidget {
           Positioned(
             top: -80,
             right: -60,
-            child: _Blob(size: 280, color: AppColors.softPurple, opacity: 1.0)
+            child: const _Blob(size: 280, color: AppColors.softPurple, opacity: 1.0)
                 .animate()
                 .scale(begin: const Offset(0.6, 0.6), end: const Offset(1, 1),
                     duration: 900.ms, curve: Curves.easeOutCubic)
@@ -54,7 +54,7 @@ class LandingScreen extends StatelessWidget {
           Positioned(
             top: 120,
             left: -50,
-            child: _Blob(size: 160, color: AppColors.softPink, opacity: 0.85)
+            child: const _Blob(size: 160, color: AppColors.softPink, opacity: 0.85)
                 .animate()
                 .scale(begin: const Offset(0.4, 0.4), end: const Offset(1, 1),
                     delay: 120.ms, duration: 800.ms, curve: Curves.easeOutCubic)
@@ -63,7 +63,7 @@ class LandingScreen extends StatelessWidget {
           Positioned(
             bottom: size.height * 0.32,
             right: -30,
-            child: _Blob(size: 130, color: AppColors.softGreen, opacity: 0.9)
+            child: const _Blob(size: 130, color: AppColors.softGreen, opacity: 0.9)
                 .animate()
                 .scale(begin: const Offset(0.4, 0.4), end: const Offset(1, 1),
                     delay: 200.ms, duration: 800.ms, curve: Curves.easeOutCubic)
@@ -72,7 +72,7 @@ class LandingScreen extends StatelessWidget {
           Positioned(
             bottom: size.height * 0.18,
             left: -40,
-            child: _Blob(size: 110, color: AppColors.softYellow, opacity: 0.8)
+            child: const _Blob(size: 110, color: AppColors.softYellow, opacity: 0.8)
                 .animate()
                 .scale(begin: const Offset(0.4, 0.4), end: const Offset(1, 1),
                     delay: 300.ms, duration: 800.ms, curve: Curves.easeOutCubic)
@@ -181,7 +181,7 @@ class LandingScreen extends StatelessWidget {
         // Divider
         Row(
           children: [
-            Expanded(child: Divider(color: AppColors.border, thickness: 1.5)),
+            const Expanded(child: Divider(color: AppColors.border, thickness: 1.5)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Text(
@@ -193,7 +193,7 @@ class LandingScreen extends StatelessWidget {
                 ),
               ),
             ),
-            Expanded(child: Divider(color: AppColors.border, thickness: 1.5)),
+            const Expanded(child: Divider(color: AppColors.border, thickness: 1.5)),
           ],
         ).animate().fadeIn(delay: 340.ms, duration: 300.ms),
         const SizedBox(height: 20),

@@ -361,7 +361,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1.5)),
+        border: const Border(top: BorderSide(color: AppColors.border, width: 1.5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(5),

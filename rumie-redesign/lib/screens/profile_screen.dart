@@ -251,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CardLabel('About', color: AppColors.primary),
+          const _CardLabel('About', color: AppColors.primary),
           const SizedBox(height: 10),
           Text(
             p.bio,
@@ -280,7 +280,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CardLabel('Preferences', color: AppColors.teal),
+          const _CardLabel('Preferences', color: AppColors.teal),
           const SizedBox(height: 12),
           _prefRow('Tidiness', p.tidiness, AppColors.teal),
           _prefRow('Pets', p.haspets ? 'Yes' : 'No', AppColors.yellow),
@@ -325,7 +325,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CardLabel('Traits', color: AppColors.pink),
+          const _CardLabel('Traits', color: AppColors.pink),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -396,13 +396,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 18),
-            _SettingsTile(icon: Icons.notifications_outlined, label: 'Notifications', badge: 'Soon'),
-            Divider(color: AppColors.border, height: 1),
-            _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Privacy & Security', badge: 'Soon'),
-            Divider(color: AppColors.border, height: 1),
-            _SettingsTile(icon: Icons.help_outline_rounded, label: 'Help & Support', badge: 'Soon'),
-            Divider(color: AppColors.border, height: 1),
-            _SettingsTile(icon: Icons.info_outline_rounded, label: 'About Rumie v0.1.0'),
+            const _SettingsTile(icon: Icons.notifications_outlined, label: 'Notifications', badge: 'Soon'),
+            const Divider(color: AppColors.border, height: 1),
+            const _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Privacy & Security', badge: 'Soon'),
+            const Divider(color: AppColors.border, height: 1),
+            const _SettingsTile(icon: Icons.help_outline_rounded, label: 'Help & Support', badge: 'Soon'),
+            const Divider(color: AppColors.border, height: 1),
+            const _SettingsTile(icon: Icons.info_outline_rounded, label: 'About Rumie v0.1.0'),
           ],
         ),
       ),

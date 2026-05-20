@@ -109,7 +109,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 18),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.background,
         border: Border(bottom: BorderSide(color: AppColors.border, width: 1.5)),
       ),
