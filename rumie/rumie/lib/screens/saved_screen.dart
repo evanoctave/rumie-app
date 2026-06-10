@@ -58,28 +58,30 @@ class _SavedScreenState extends State<SavedScreen> {
           ),
           child: Row(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Saved',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.text,
-                      letterSpacing: -0.8,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Saved',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.text,
+                        letterSpacing: -0.8,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'People and places you want to come back to',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
+                    Text(
+                      'People and places you want to come back to',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: Spacing.sm),
               GestureDetector(
                 onTap:
                     () => Navigator.push(
