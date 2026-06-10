@@ -1,0 +1,12 @@
+import 'package:json_annotation/json_annotation.dart';
+
+enum Gender {
+  @JsonValue('male')
+  male,
+  @JsonValue('female')
+  female,
+  @JsonValue('nonbinary')
+  nonbinary,
+  @JsonValue('other')
+  other,
+}
