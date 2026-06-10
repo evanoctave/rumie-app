@@ -8,9 +8,10 @@ import '../../fakes/fake_http_adapter.dart';
 
 ({Dio dio, FakeHttpAdapter adapter}) _build() {
   final adapter = FakeHttpAdapter();
-  final dio = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
-    ..httpClientAdapter = adapter
-    ..interceptors.add(ErrorInterceptor());
+  final dio =
+      Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
+        ..httpClientAdapter = adapter
+        ..interceptors.add(ErrorInterceptor());
   return (dio: dio, adapter: adapter);
 }
 
@@ -18,8 +19,12 @@ void main() {
   group('DiscoveryRepositoryImpl', () {
     test('discoverGroups returns parsed list', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('GET', '/discovery/groups',
-          const FakeResponse(statusCode: 200, body: [
+      adapter.route(
+        'GET',
+        '/discovery/groups',
+        const FakeResponse(
+          statusCode: 200,
+          body: [
             {
               'id': 'g1',
               'admin_id': 'a1',
@@ -27,7 +32,9 @@ void main() {
               'preferences': {'tags': []},
               'capacity': 3,
             },
-          ]));
+          ],
+        ),
+      );
       final repo = DiscoveryRepositoryImpl(dio);
 
       final list = await repo.discoverGroups(limit: 10);
@@ -37,8 +44,12 @@ void main() {
 
     test('discoverListings returns parsed list', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('GET', '/discovery/listings',
-          const FakeResponse(statusCode: 200, body: [
+      adapter.route(
+        'GET',
+        '/discovery/listings',
+        const FakeResponse(
+          statusCode: 200,
+          body: [
             {
               'id': 'l1',
               'landlord_id': 'll1',
@@ -48,7 +59,9 @@ void main() {
               'location': 'x',
               'photo_urls': <String>[],
             },
-          ]));
+          ],
+        ),
+      );
       final repo = DiscoveryRepositoryImpl(dio);
 
       final list = await repo.discoverListings();
@@ -65,7 +78,11 @@ void main() {
           statusCode: 422,
           body: {
             'detail': [
-              {'loc': ['query', 'limit'], 'msg': 'too big', 'type': 't'},
+              {
+                'loc': ['query', 'limit'],
+                'msg': 'too big',
+                'type': 't',
+              },
             ],
           },
         ),
@@ -76,7 +93,9 @@ void main() {
         await repo.discoverGroups(limit: 9999);
         fail('expected throw');
       } on ValidationException catch (e) {
-        expect(e.fieldErrors, {'limit': ['too big']});
+        expect(e.fieldErrors, {
+          'limit': ['too big'],
+        });
       }
     });
   });

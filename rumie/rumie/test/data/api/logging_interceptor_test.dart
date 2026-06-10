@@ -4,24 +4,28 @@ import 'package:roomie/data/api/interceptors/logging_interceptor.dart';
 void main() {
   group('LoggingInterceptor.redactHeaders (V13)', () {
     test('redacts Authorization header', () {
-      final out = LoggingInterceptor.redactHeaders(
-        {'Authorization': 'Bearer abc123', 'Content-Type': 'application/json'},
-      );
+      final out = LoggingInterceptor.redactHeaders({
+        'Authorization': 'Bearer abc123',
+        'Content-Type': 'application/json',
+      });
       expect(out['Authorization'], LoggingInterceptor.redactedMarker);
       expect(out['Content-Type'], 'application/json');
     });
 
     test('redacts lowercase authorization header', () {
-      final out = LoggingInterceptor.redactHeaders({'authorization': 'Bearer x'});
+      final out = LoggingInterceptor.redactHeaders({
+        'authorization': 'Bearer x',
+      });
       expect(out['authorization'], LoggingInterceptor.redactedMarker);
     });
   });
 
   group('LoggingInterceptor.redactBody (V13)', () {
     test('redacts password field in request body', () {
-      final out = LoggingInterceptor.redactBody(
-        {'email': 'a@b.com', 'password': 'secret'},
-      );
+      final out = LoggingInterceptor.redactBody({
+        'email': 'a@b.com',
+        'password': 'secret',
+      });
       expect(out, {
         'email': 'a@b.com',
         'password': LoggingInterceptor.redactedMarker,
@@ -29,7 +33,10 @@ void main() {
     });
 
     test('redacts access and refresh in token response', () {
-      final out = LoggingInterceptor.redactBody({'access': 'a', 'refresh': 'r'});
+      final out = LoggingInterceptor.redactBody({
+        'access': 'a',
+        'refresh': 'r',
+      });
       expect(out, {
         'access': LoggingInterceptor.redactedMarker,
         'refresh': LoggingInterceptor.redactedMarker,

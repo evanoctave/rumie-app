@@ -16,9 +16,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey   = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
-  final _passCtrl  = TextEditingController();
+  final _passCtrl = TextEditingController();
   bool _obscure = true;
 
   @override
@@ -57,34 +57,44 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.cardBg,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-          side: BorderSide(color: AppColors.border),
-        ),
-        title: Text(
-          'Enable Face ID?',
-          style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w700),
-        ),
-        content: Text(
-          'Unlock Rumie instantly with Face ID every time you open the app.',
-          style: TextStyle(color: AppColors.textSecondary, height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Not now', style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Enable',
-              style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w700),
+      builder:
+          (_) => AlertDialog(
+            backgroundColor: AppColors.cardBg,
+            shape: RoundedRectangleBorder(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              side: BorderSide(color: AppColors.border),
             ),
+            title: Text(
+              'Enable Face ID?',
+              style: TextStyle(
+                color: AppColors.text,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            content: Text(
+              'Unlock Rumie instantly with Face ID every time you open the app.',
+              style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(
+                  'Not now',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  'Enable',
+                  style: TextStyle(
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (confirmed == true && mounted) {
@@ -110,7 +120,11 @@ class _LoginScreenState extends State<LoginScreen> {
           label: 'Back',
           button: true,
           child: IconButton(
-            icon: Icon(Icons.arrow_back_rounded, color: AppColors.text, size: 22),
+            icon: Icon(
+              Icons.arrow_back_rounded,
+              color: AppColors.text,
+              size: 22,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -137,7 +151,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 6),
                 Text(
                   'Sign in to continue.',
-                  style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: AppColors.textSecondary,
+                  ),
                 ).animate().fadeIn(delay: 80.ms, duration: 300.ms),
                 const SizedBox(height: 40),
                 _buildLabel('Email'),
@@ -161,7 +178,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     button: true,
                     child: IconButton(
                       icon: Icon(
-                        _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        _obscure
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
                         color: AppColors.gray,
                         size: 20,
                       ),
@@ -172,7 +191,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator: (v) => validatePassword(v, isLogin: true),
                 ),
                 const SizedBox(height: 32),
-                _SubmitButton(label: 'Sign In', loading: loading, onTap: _submit),
+                _SubmitButton(
+                  label: 'Sign In',
+                  loading: loading,
+                  onTap: _submit,
+                ),
                 const SizedBox(height: 40),
               ],
             ),
@@ -221,9 +244,15 @@ class _LoginScreenState extends State<LoginScreen> {
         filled: true,
         fillColor: AppColors.surface,
         counterText: '',
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(borderRadius: radius, borderSide: side),
-        enabledBorder: OutlineInputBorder(borderRadius: radius, borderSide: side),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: side,
+        ),
         focusedBorder: const OutlineInputBorder(
           borderRadius: radius,
           borderSide: BorderSide(color: AppColors.secondary, width: 1.5),
@@ -286,23 +315,24 @@ class _SubmitButtonState extends State<_SubmitButton> {
               borderRadius: BorderRadius.all(Radius.circular(20)),
             ),
             alignment: Alignment.center,
-            child: widget.loading
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      valueColor: AlwaysStoppedAnimation(Colors.white),
+            child:
+                widget.loading
+                    ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                      ),
+                    )
+                    : Text(
+                      widget.label,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
-                  )
-                : Text(
-                    widget.label,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
           ),
         ),
       ),

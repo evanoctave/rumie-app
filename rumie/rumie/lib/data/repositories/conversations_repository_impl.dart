@@ -13,32 +13,31 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
 
   @override
   Future<List<ConversationOut>> listConversations() => callApi(() async {
-        final r = await _dio.get<dynamic>('/conversations');
-        final list = r.data as List<dynamic>;
-        return list
-            .map((e) => ConversationOut.fromJson(e as Map<String, dynamic>))
-            .toList();
-      });
+    final r = await _dio.get<dynamic>('/conversations');
+    final list = r.data as List<dynamic>;
+    return list
+        .map((e) => ConversationOut.fromJson(e as Map<String, dynamic>))
+        .toList();
+  });
 
   @override
   Future<List<MessageOut>> listMessages(
     String convId, {
     int limit = 50,
     DateTime? before,
-  }) =>
-      callApi(() async {
-        final r = await _dio.get<dynamic>(
-          '/conversations/$convId/messages',
-          queryParameters: {
-            'limit': limit,
-            if (before != null) 'before': before.toUtc().toIso8601String(),
-          },
-        );
-        final list = r.data as List<dynamic>;
-        return list
-            .map((e) => MessageOut.fromJson(e as Map<String, dynamic>))
-            .toList();
-      });
+  }) => callApi(() async {
+    final r = await _dio.get<dynamic>(
+      '/conversations/$convId/messages',
+      queryParameters: {
+        'limit': limit,
+        if (before != null) 'before': before.toUtc().toIso8601String(),
+      },
+    );
+    final list = r.data as List<dynamic>;
+    return list
+        .map((e) => MessageOut.fromJson(e as Map<String, dynamic>))
+        .toList();
+  });
 
   @override
   Future<MessageOut> sendMessage(String convId, String body) =>

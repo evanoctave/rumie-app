@@ -13,11 +13,7 @@ class ProfileCreateScreen extends StatefulWidget {
   final UserProfile? existing;
   final void Function(UserProfile) onSave;
 
-  const ProfileCreateScreen({
-    super.key,
-    this.existing,
-    required this.onSave,
-  });
+  const ProfileCreateScreen({super.key, this.existing, required this.onSave});
 
   @override
   State<ProfileCreateScreen> createState() => _ProfileCreateScreenState();
@@ -42,7 +38,12 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
 
   static const _scheduleOptions = ['Early bird', 'Night owl', 'Flexible'];
   static const _tidinessOptions = ['Very tidy', 'Tidy', 'Relaxed'];
-  static const _moveInOptions = ['ASAP', 'Within 1 month', '1–3 months', 'Flexible'];
+  static const _moveInOptions = [
+    'ASAP',
+    'Within 1 month',
+    '1–3 months',
+    'Flexible',
+  ];
   static const _presetTraits = [
     'Works from home',
     'Non-smoker',
@@ -113,50 +114,51 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
-              ),
+      builder:
+          (_) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _sheetOption(
+                  icon: Icons.photo_library_rounded,
+                  label: 'Choose from library',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickPhoto(ImageSource.gallery);
+                  },
+                ),
+                _sheetOption(
+                  icon: Icons.camera_alt_rounded,
+                  label: 'Take a photo',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickPhoto(ImageSource.camera);
+                  },
+                ),
+                if (_photoPath.isNotEmpty)
+                  _sheetOption(
+                    icon: Icons.delete_outline_rounded,
+                    label: 'Remove photo',
+                    color: AppColors.red,
+                    onTap: () {
+                      setState(() => _photoPath = '');
+                      Navigator.pop(context);
+                    },
+                  ),
+                const SizedBox(height: 12),
+              ],
             ),
-            const SizedBox(height: 20),
-            _sheetOption(
-              icon: Icons.photo_library_rounded,
-              label: 'Choose from library',
-              onTap: () {
-                Navigator.pop(context);
-                _pickPhoto(ImageSource.gallery);
-              },
-            ),
-            _sheetOption(
-              icon: Icons.camera_alt_rounded,
-              label: 'Take a photo',
-              onTap: () {
-                Navigator.pop(context);
-                _pickPhoto(ImageSource.camera);
-              },
-            ),
-            if (_photoPath.isNotEmpty)
-              _sheetOption(
-                icon: Icons.delete_outline_rounded,
-                label: 'Remove photo',
-                color: AppColors.red,
-                onTap: () {
-                  setState(() => _photoPath = '');
-                  Navigator.pop(context);
-                },
-              ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -193,9 +195,9 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
     final text = _customTraitCtrl.text.trim();
     if (text.isEmpty) return;
     if (_selectedTraits.length >= 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Max 6 traits selected')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Max 6 traits selected')));
       return;
     }
     setState(() {
@@ -291,8 +293,8 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               controller: _nameCtrl,
               label: 'Full name',
               hint: 'Your name',
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Required' : null,
+              validator:
+                  (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 12),
             _field(
@@ -314,8 +316,8 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               controller: _locationCtrl,
               label: 'Location',
               hint: 'City, neighborhood',
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Required' : null,
+              validator:
+                  (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 12),
             _field(
@@ -323,8 +325,8 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               label: 'About me',
               hint: 'A short intro about yourself...',
               maxLines: 4,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Required' : null,
+              validator:
+                  (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 32),
             _sectionLabel('Budget'),
@@ -345,22 +347,35 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               divisions: 92,
               activeColor: AppColors.secondary,
               inactiveColor: AppColors.border,
-              onChanged: (v) => setState(() {
-                _budgetMin = v.start.round();
-                _budgetMax = v.end.round();
-              }),
+              onChanged:
+                  (v) => setState(() {
+                    _budgetMin = v.start.round();
+                    _budgetMax = v.end.round();
+                  }),
             ),
             const SizedBox(height: 32),
             _sectionLabel('Living Style'),
             const SizedBox(height: 12),
-            _segmentRow('Schedule', _scheduleOptions, _schedule,
-                (v) => setState(() => _schedule = v)),
+            _segmentRow(
+              'Schedule',
+              _scheduleOptions,
+              _schedule,
+              (v) => setState(() => _schedule = v),
+            ),
             const SizedBox(height: 12),
-            _segmentRow('Tidiness', _tidinessOptions, _tidiness,
-                (v) => setState(() => _tidiness = v)),
+            _segmentRow(
+              'Tidiness',
+              _tidinessOptions,
+              _tidiness,
+              (v) => setState(() => _tidiness = v),
+            ),
             const SizedBox(height: 12),
-            _segmentRow('Move-in', _moveInOptions, _moveIn,
-                (v) => setState(() => _moveIn = v)),
+            _segmentRow(
+              'Move-in',
+              _moveInOptions,
+              _moveIn,
+              (v) => setState(() => _moveIn = v),
+            ),
             const SizedBox(height: 16),
             _toggleRow(
               'Has pets',
@@ -380,10 +395,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             const SizedBox(height: 4),
             Text(
               'Pick up to 6 — or add your own',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 12),
             _buildTraitGrid(),
@@ -420,7 +432,10 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             GestureDetector(
               onTap: _addPet,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.softBlue,
                   borderRadius: BorderRadius.circular(8),
@@ -429,7 +444,11 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_rounded, color: AppColors.secondary, size: 14),
+                    Icon(
+                      Icons.add_rounded,
+                      color: AppColors.secondary,
+                      size: 14,
+                    ),
                     SizedBox(width: 4),
                     Text(
                       'Add pet',
@@ -454,16 +473,14 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               color: AppColors.cardBg,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                  color: AppColors.border,
-                  style: BorderStyle.solid),
+                color: AppColors.border,
+                style: BorderStyle.solid,
+              ),
             ),
             child: Center(
               child: Text(
                 'Tap "Add pet" to list your pets',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
             ),
           )
@@ -477,7 +494,8 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
     Pet pet = _pets[index];
     final nameCtrl = TextEditingController(text: pet.name);
     final ageCtrl = TextEditingController(
-        text: pet.age > 0 ? '${pet.age}' : '');
+      text: pet.age > 0 ? '${pet.age}' : '',
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -561,9 +579,10 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                   color: AppColors.textSecondary,
                   size: 18,
                 ),
-                items: _petTypes
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                    .toList(),
+                items:
+                    _petTypes
+                        .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                        .toList(),
                 onChanged: (v) {
                   if (v == null) return;
                   setState(() => _pets[index] = pet.copyWith(type: v));
@@ -613,8 +632,10 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               hintStyle: TextStyle(color: AppColors.gray, fontSize: 14),
               filled: true,
               fillColor: AppColors.cardBg,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
                 borderSide: BorderSide(color: AppColors.border),
@@ -625,7 +646,10 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
+                borderSide: const BorderSide(
+                  color: AppColors.secondary,
+                  width: 1.5,
+                ),
               ),
             ),
           ),
@@ -667,36 +691,39 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                 color: AppColors.cardBg,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: _photoPath.isEmpty
-                      ? AppColors.border
-                      : AppColors.secondary,
+                  color:
+                      _photoPath.isEmpty
+                          ? AppColors.border
+                          : AppColors.secondary,
                   width: _photoPath.isEmpty ? 1.5 : 2.5,
                 ),
-                boxShadow: _photoPath.isNotEmpty
-                    ? [
-                        BoxShadow(
-                          color: AppColors.pink.withAlpha(60),
-                          blurRadius: 20,
-                          offset: const Offset(0, 6),
-                        ),
-                      ]
-                    : null,
+                boxShadow:
+                    _photoPath.isNotEmpty
+                        ? [
+                          BoxShadow(
+                            color: AppColors.pink.withAlpha(60),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6),
+                          ),
+                        ]
+                        : null,
               ),
-              child: _photoPath.isNotEmpty
-                  ? ClipOval(
-                      child: Image.file(File(_photoPath), fit: BoxFit.cover),
-                    )
-                  : Center(
-                      child: SvgPicture.asset(
-                        'assets/icons/ic_profile.svg',
-                        width: 42,
-                        height: 42,
-                        colorFilter: ColorFilter.mode(
-                          AppColors.textSecondary,
-                          BlendMode.srcIn,
+              child:
+                  _photoPath.isNotEmpty
+                      ? ClipOval(
+                        child: Image.file(File(_photoPath), fit: BoxFit.cover),
+                      )
+                      : Center(
+                        child: SvgPicture.asset(
+                          'assets/icons/ic_profile.svg',
+                          width: 42,
+                          height: 42,
+                          colorFilter: ColorFilter.mode(
+                            AppColors.textSecondary,
+                            BlendMode.srcIn,
+                          ),
                         ),
                       ),
-                    ),
             ),
             Positioned(
               bottom: 0,
@@ -774,8 +801,10 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             hintStyle: TextStyle(color: AppColors.gray),
             filled: true,
             fillColor: AppColors.cardBg,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
               borderSide: BorderSide(color: AppColors.border),
@@ -786,7 +815,10 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.secondary,
+                width: 1.5,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
@@ -821,64 +853,65 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
         ),
         const SizedBox(height: 8),
         Row(
-          children: options.map((opt) {
-            final isSelected = opt == selected;
-            return Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  onSelect(opt);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  margin: EdgeInsets.only(
-                    right: opt == options.last ? 0 : 8,
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.secondary : AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.secondary
-                          : AppColors.border,
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: AppColors.pink.withAlpha(50),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Center(
-                    child: Text(
-                      opt,
-                      style: TextStyle(
-                        color: isSelected
-                            ? Colors.white
-                            : AppColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+          children:
+              options.map((opt) {
+                final isSelected = opt == selected;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      onSelect(opt);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      margin: EdgeInsets.only(
+                        right: opt == options.last ? 0 : 8,
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected ? AppColors.secondary : AppColors.cardBg,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color:
+                              isSelected
+                                  ? AppColors.secondary
+                                  : AppColors.border,
+                        ),
+                        boxShadow:
+                            isSelected
+                                ? [
+                                  BoxShadow(
+                                    color: AppColors.pink.withAlpha(50),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ]
+                                : null,
+                      ),
+                      child: Center(
+                        child: Text(
+                          opt,
+                          style: TextStyle(
+                            color:
+                                isSelected
+                                    ? Colors.white
+                                    : AppColors.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            );
-          }).toList(),
+                );
+              }).toList(),
         ),
       ],
     );
   }
 
-  Widget _toggleRow(
-    String label,
-    bool value,
-    void Function(bool) onChanged,
-  ) {
+  Widget _toggleRow(String label, bool value, void Function(bool) onChanged) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -920,18 +953,19 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
           final selected = _selectedTraits.contains(trait);
           final disabled = !selected && _selectedTraits.length >= 6;
           return GestureDetector(
-            onTap: disabled
-                ? null
-                : () {
-                    HapticFeedback.selectionClick();
-                    setState(() {
-                      if (selected) {
-                        _selectedTraits.remove(trait);
-                      } else {
-                        _selectedTraits.add(trait);
-                      }
-                    });
-                  },
+            onTap:
+                disabled
+                    ? null
+                    : () {
+                      HapticFeedback.selectionClick();
+                      setState(() {
+                        if (selected) {
+                          _selectedTraits.remove(trait);
+                        } else {
+                          _selectedTraits.add(trait);
+                        }
+                      });
+                    },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -939,28 +973,31 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                 color: selected ? AppColors.secondary : AppColors.cardBg,
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
-                  color: selected
-                      ? AppColors.secondary
-                      : disabled
+                  color:
+                      selected
+                          ? AppColors.secondary
+                          : disabled
                           ? AppColors.border.withAlpha(100)
                           : AppColors.border,
                 ),
-                boxShadow: selected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.pink.withAlpha(50),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
+                boxShadow:
+                    selected
+                        ? [
+                          BoxShadow(
+                            color: AppColors.pink.withAlpha(50),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                        : null,
               ),
               child: Text(
                 trait,
                 style: TextStyle(
-                  color: selected
-                      ? Colors.white
-                      : disabled
+                  color:
+                      selected
+                          ? Colors.white
+                          : disabled
                           ? AppColors.gray
                           : AppColors.textSecondary,
                   fontSize: 13,
@@ -973,46 +1010,50 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
         // Custom traits added by user (not in presets)
         ..._selectedTraits
             .where((t) => !_presetTraits.contains(t))
-            .map((trait) => GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() => _selectedTraits.remove(trait));
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.pink.withAlpha(50),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          trait,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(
-                          Icons.close_rounded,
-                          color: Colors.white,
-                          size: 13,
-                        ),
-                      ],
-                    ),
+            .map(
+              (trait) => GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() => _selectedTraits.remove(trait));
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
                   ),
-                )),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.pink.withAlpha(50),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        trait,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                        size: 13,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
       ],
     );
   }

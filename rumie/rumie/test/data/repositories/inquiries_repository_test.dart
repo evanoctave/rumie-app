@@ -9,9 +9,10 @@ import '../../fakes/fake_http_adapter.dart';
 
 ({Dio dio, FakeHttpAdapter adapter}) _build() {
   final adapter = FakeHttpAdapter();
-  final dio = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
-    ..httpClientAdapter = adapter
-    ..interceptors.add(ErrorInterceptor());
+  final dio =
+      Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
+        ..httpClientAdapter = adapter
+        ..interceptors.add(ErrorInterceptor());
   return (dio: dio, adapter: adapter);
 }
 
@@ -19,15 +20,21 @@ void main() {
   group('InquiriesRepositoryImpl', () {
     test('list without filter parses InquiryOut[]', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('GET', '/inquiries',
-          const FakeResponse(statusCode: 200, body: [
+      adapter.route(
+        'GET',
+        '/inquiries',
+        const FakeResponse(
+          statusCode: 200,
+          body: [
             {
               'id': 'inq1',
               'group_id': 'g1',
               'listing_id': 'l1',
               'status': 'pending',
             },
-          ]));
+          ],
+        ),
+      );
       final repo = InquiriesRepositoryImpl(dio);
 
       final list = await repo.list();
@@ -37,8 +44,11 @@ void main() {
 
     test('accept returns open map', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('POST', '/inquiries/inq1/accept',
-          const FakeResponse(statusCode: 201, body: {'conversation_id': 'c1'}));
+      adapter.route(
+        'POST',
+        '/inquiries/inq1/accept',
+        const FakeResponse(statusCode: 201, body: {'conversation_id': 'c1'}),
+      );
       final repo = InquiriesRepositoryImpl(dio);
 
       final out = await repo.accept('inq1');
@@ -47,8 +57,11 @@ void main() {
 
     test('reject returns void on 204', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('POST', '/inquiries/inq1/reject',
-          const FakeResponse(statusCode: 204));
+      adapter.route(
+        'POST',
+        '/inquiries/inq1/reject',
+        const FakeResponse(statusCode: 204),
+      );
       final repo = InquiriesRepositoryImpl(dio);
 
       await repo.reject('inq1');
@@ -64,7 +77,11 @@ void main() {
           statusCode: 422,
           body: {
             'detail': [
-              {'loc': ['query', 'status_filter'], 'msg': 'bad', 'type': 't'},
+              {
+                'loc': ['query', 'status_filter'],
+                'msg': 'bad',
+                'type': 't',
+              },
             ],
           },
         ),

@@ -98,10 +98,14 @@ void main() {
 
   group('ConversationType (V7 enum @JsonValue mapping)', () {
     test('snake_case JSON ↔ camelCase Dart enum', () {
-      expect($enumDecode(_ctMap(), 'internal_group'),
-          ConversationType.internalGroup);
-      expect($enumDecode(_ctMap(), 'landlord_inquiry'),
-          ConversationType.landlordInquiry);
+      expect(
+        $enumDecode(_ctMap(), 'internal_group'),
+        ConversationType.internalGroup,
+      );
+      expect(
+        $enumDecode(_ctMap(), 'landlord_inquiry'),
+        ConversationType.landlordInquiry,
+      );
     });
   });
 
@@ -125,16 +129,13 @@ void main() {
 
 // Smoke check that the generator emitted `_$ConversationTypeEnumMap` shape.
 Map<ConversationType, dynamic> _ctMap() => {
-      ConversationType.internalGroup: 'internal_group',
-      ConversationType.landlordInquiry: 'landlord_inquiry',
-    };
+  ConversationType.internalGroup: 'internal_group',
+  ConversationType.landlordInquiry: 'landlord_inquiry',
+};
 
 // Re-implementation of json_annotation's $enumDecode for use without
 // importing internals. Mirrors generated `_$enumDecode` logic.
-T $enumDecode<T extends Object, K>(
-  Map<T, K> enumValues,
-  Object? source,
-) {
+T $enumDecode<T extends Object, K>(Map<T, K> enumValues, Object? source) {
   for (final entry in enumValues.entries) {
     if (entry.value == source) return entry.key;
   }

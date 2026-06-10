@@ -10,9 +10,6 @@ class AnimatedBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: AppColors.background,
-      child: child,
-    );
+    return ColoredBox(color: AppColors.background, child: child);
   }
 }

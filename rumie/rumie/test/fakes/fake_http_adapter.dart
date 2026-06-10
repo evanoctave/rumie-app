@@ -36,8 +36,9 @@ class FakeHttpAdapter implements HttpClientAdapter {
     Future<dynamic>? cancelFuture,
   ) async {
     // Match against the path Dio computes — covers both relative `/me` and
-    // absolute path under a baseUrl.
-    final key = _key(options.method, options.path);
+    // absolute path under a baseUrl. Query strings (e.g. presigned-URL
+    // signatures) are ignored so routes can be keyed by bare path.
+    final key = _key(options.method, options.path.split('?').first);
     _hits[key] = (_hits[key] ?? 0) + 1;
 
     if (responseDelay > Duration.zero) {
@@ -55,9 +56,12 @@ class FakeHttpAdapter implements HttpClientAdapter {
       );
     }
     final entry = queue.length == 1 ? queue.first : queue.removeAt(0);
-    final body = entry.body == null
-        ? ''
-        : (entry.body is String ? entry.body as String : jsonEncode(entry.body));
+    final body =
+        entry.body == null
+            ? ''
+            : (entry.body is String
+                ? entry.body as String
+                : jsonEncode(entry.body));
     return ResponseBody.fromString(
       body,
       entry.statusCode,

@@ -5,41 +5,38 @@ import 'package:roomie/data/api/token_store.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const channel =
-      MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
+  const channel = MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
   final Map<String, String?> backing = {};
 
   setUp(() {
     backing.clear();
-    TestDefaultBinaryMessengerBinding
-        .instance.defaultBinaryMessenger
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
-      final args = (call.arguments as Map?) ?? const {};
-      final key = args['key'] as String?;
-      switch (call.method) {
-        case 'write':
-          backing[key!] = args['value'] as String?;
+          final args = (call.arguments as Map?) ?? const {};
+          final key = args['key'] as String?;
+          switch (call.method) {
+            case 'write':
+              backing[key!] = args['value'] as String?;
+              return null;
+            case 'read':
+              return backing[key];
+            case 'delete':
+              backing.remove(key);
+              return null;
+            case 'containsKey':
+              return backing.containsKey(key);
+            case 'readAll':
+              return Map<String, String?>.from(backing);
+            case 'deleteAll':
+              backing.clear();
+              return null;
+          }
           return null;
-        case 'read':
-          return backing[key];
-        case 'delete':
-          backing.remove(key);
-          return null;
-        case 'containsKey':
-          return backing.containsKey(key);
-        case 'readAll':
-          return Map<String, String?>.from(backing);
-        case 'deleteAll':
-          backing.clear();
-          return null;
-      }
-      return null;
-    });
+        });
   });
 
   tearDown(() {
-    TestDefaultBinaryMessengerBinding
-        .instance.defaultBinaryMessenger
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, null);
   });
 

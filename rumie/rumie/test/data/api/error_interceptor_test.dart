@@ -71,13 +71,14 @@ void main() {
       return DioException(
         requestOptions: opts,
         type: type,
-        response: statusCode == null
-            ? null
-            : Response<dynamic>(
-                requestOptions: opts,
-                statusCode: statusCode,
-                data: body,
-              ),
+        response:
+            statusCode == null
+                ? null
+                : Response<dynamic>(
+                  requestOptions: opts,
+                  statusCode: statusCode,
+                  data: body,
+                ),
         message: 'msg',
       );
     }
@@ -97,99 +98,118 @@ void main() {
     });
 
     test('422 badResponse → ValidationException with parsed fields', () {
-      final mapped = ErrorInterceptor.mapException(req(
-        DioExceptionType.badResponse,
-        statusCode: 422,
-        body: {
-          'detail': [
-            {
-              'loc': ['body', 'email'],
-              'msg': 'bad',
-              'type': 't',
-            },
-          ],
-        },
-      ));
-      expect(mapped, isA<ValidationException>());
-      expect(
-        (mapped as ValidationException).fieldErrors,
-        {
-          'email': ['bad'],
-        },
+      final mapped = ErrorInterceptor.mapException(
+        req(
+          DioExceptionType.badResponse,
+          statusCode: 422,
+          body: {
+            'detail': [
+              {
+                'loc': ['body', 'email'],
+                'msg': 'bad',
+                'type': 't',
+              },
+            ],
+          },
+        ),
       );
+      expect(mapped, isA<ValidationException>());
+      expect((mapped as ValidationException).fieldErrors, {
+        'email': ['bad'],
+      });
     });
 
     test('500 badResponse → ServerException with statusCode', () {
       final mapped = ErrorInterceptor.mapException(
-          req(DioExceptionType.badResponse, statusCode: 500));
+        req(DioExceptionType.badResponse, statusCode: 500),
+      );
       expect(mapped, isA<ServerException>());
       expect((mapped as ServerException).statusCode, 500);
     });
 
     test('401 badResponse → UnauthorizedException', () {
       final mapped = ErrorInterceptor.mapException(
-          req(DioExceptionType.badResponse, statusCode: 401));
+        req(DioExceptionType.badResponse, statusCode: 401),
+      );
       expect(mapped, isA<UnauthorizedException>());
     });
   });
 
   group('ErrorInterceptor integration', () {
-    test('attaches ValidationException as DioException.error for 422', () async {
-      final adapter = FakeHttpAdapter()
-        ..route(
-          'GET',
-          '/x',
-          const FakeResponse(
-            statusCode: 422,
-            body: {
-              'detail': [
-                {
-                  'loc': ['body', 'email'],
-                  'msg': 'bad',
-                  'type': 't',
+    test(
+      'attaches ValidationException as DioException.error for 422',
+      () async {
+        final adapter =
+            FakeHttpAdapter()..route(
+              'GET',
+              '/x',
+              const FakeResponse(
+                statusCode: 422,
+                body: {
+                  'detail': [
+                    {
+                      'loc': ['body', 'email'],
+                      'msg': 'bad',
+                      'type': 't',
+                    },
+                  ],
                 },
-              ],
-            },
-          ),
-        );
-      final dio = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
-        ..httpClientAdapter = adapter
-        ..interceptors.add(ErrorInterceptor());
+              ),
+            );
+        final dio =
+            Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
+              ..httpClientAdapter = adapter
+              ..interceptors.add(ErrorInterceptor());
 
-      try {
-        await dio.get<dynamic>('/x');
-        fail('expected throw');
-      } on DioException catch (e) {
-        expect(e.error, isA<ValidationException>());
-        expect((e.error as ValidationException).fieldErrors,
-            {'email': ['bad']});
-      }
-    });
+        try {
+          await dio.get<dynamic>('/x');
+          fail('expected throw');
+        } on DioException catch (e) {
+          expect(e.error, isA<ValidationException>());
+          expect((e.error as ValidationException).fieldErrors, {
+            'email': ['bad'],
+          });
+        }
+      },
+    );
 
-    test('passes through DioException whose error is already ApiException',
-        () async {
-      // Compose ErrorInterceptor after a stub that produces ApiException.
-      final adapter = FakeHttpAdapter()
-        ..route('GET', '/x', const FakeResponse(statusCode: 500));
-      final dio = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
-        ..httpClientAdapter = adapter
-        ..interceptors.add(InterceptorsWrapper(onError: (e, h) {
-          h.next(DioException(
-            requestOptions: e.requestOptions,
-            response: e.response,
-            type: e.type,
-            error: const ServerException('pre-mapped', statusCode: 500),
-          ));
-        }))
-        ..interceptors.add(ErrorInterceptor());
+    test(
+      'passes through DioException whose error is already ApiException',
+      () async {
+        // Compose ErrorInterceptor after a stub that produces ApiException.
+        final adapter =
+            FakeHttpAdapter()
+              ..route('GET', '/x', const FakeResponse(statusCode: 500));
+        final dio =
+            Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
+              ..httpClientAdapter = adapter
+              ..interceptors.add(
+                InterceptorsWrapper(
+                  onError: (e, h) {
+                    h.next(
+                      DioException(
+                        requestOptions: e.requestOptions,
+                        response: e.response,
+                        type: e.type,
+                        error: const ServerException(
+                          'pre-mapped',
+                          statusCode: 500,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+              ..interceptors.add(ErrorInterceptor());
 
-      try {
-        await dio.get<dynamic>('/x');
-        fail('expected throw');
-      } on DioException catch (e) {
-        expect(e.error, isA<ServerException>());
-        expect((e.error as ServerException).message, 'pre-mapped');
-      }
-    });
+        try {
+          await dio.get<dynamic>('/x');
+          fail('expected throw');
+        } on DioException catch (e) {
+          expect(e.error, isA<ServerException>());
+          expect((e.error as ServerException).message, 'pre-mapped');
+        }
+      },
+    );
   });
 }

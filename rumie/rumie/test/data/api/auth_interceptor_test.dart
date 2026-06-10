@@ -14,14 +14,17 @@ import '../../fakes/in_memory_token_store.dart';
   late Dio main;
   final refresh = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
     ..httpClientAdapter = adapter;
-  main = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
-    ..httpClientAdapter = adapter
-    ..interceptors.add(AuthInterceptor(
-      tokenStore: tokenStore,
-      refreshDio: refresh,
-      mainDio: () => main,
-      onLogout: onLogout,
-    ));
+  main =
+      Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
+        ..httpClientAdapter = adapter
+        ..interceptors.add(
+          AuthInterceptor(
+            tokenStore: tokenStore,
+            refreshDio: refresh,
+            mainDio: () => main,
+            onLogout: onLogout,
+          ),
+        );
   return (main: main, refresh: refresh, adapter: adapter);
 }
 
@@ -33,8 +36,11 @@ void main() {
 
       stack.adapter
         ..route('GET', '/me', const FakeResponse(statusCode: 401))
-        ..route('GET', '/me',
-            const FakeResponse(statusCode: 200, body: {'id': 'u1'}))
+        ..route(
+          'GET',
+          '/me',
+          const FakeResponse(statusCode: 200, body: {'id': 'u1'}),
+        )
         ..route(
           'POST',
           '/auth/refresh',
@@ -70,31 +76,36 @@ void main() {
   });
 
   group('AuthInterceptor (V2 fail path)', () {
-    test('refresh fails → clears tokens, fires onLogout, raises UnauthorizedException',
-        () async {
-      final store = InMemoryTokenStore(access: 'old', refresh: 'r1');
-      var logoutCalls = 0;
-      final stack = _buildStack(
-        tokenStore: store,
-        onLogout: () => logoutCalls++,
-      );
+    test(
+      'refresh fails → clears tokens, fires onLogout, raises UnauthorizedException',
+      () async {
+        final store = InMemoryTokenStore(access: 'old', refresh: 'r1');
+        var logoutCalls = 0;
+        final stack = _buildStack(
+          tokenStore: store,
+          onLogout: () => logoutCalls++,
+        );
 
-      stack.adapter
-        ..route('GET', '/me', const FakeResponse(statusCode: 401))
-        ..route('POST', '/auth/refresh',
-            const FakeResponse(statusCode: 401, body: {'detail': 'bad'}));
+        stack.adapter
+          ..route('GET', '/me', const FakeResponse(statusCode: 401))
+          ..route(
+            'POST',
+            '/auth/refresh',
+            const FakeResponse(statusCode: 401, body: {'detail': 'bad'}),
+          );
 
-      try {
-        await stack.main.get<dynamic>('/me');
-        fail('expected throw');
-      } on DioException catch (e) {
-        expect(e.error, isA<UnauthorizedException>());
-      }
+        try {
+          await stack.main.get<dynamic>('/me');
+          fail('expected throw');
+        } on DioException catch (e) {
+          expect(e.error, isA<UnauthorizedException>());
+        }
 
-      expect(await store.readAccess(), isNull);
-      expect(await store.readRefresh(), isNull);
-      expect(logoutCalls, 1);
-    });
+        expect(await store.readAccess(), isNull);
+        expect(await store.readRefresh(), isNull);
+        expect(logoutCalls, 1);
+      },
+    );
 
     test('no refresh token in store → fails fast, fires onLogout', () async {
       final store = InMemoryTokenStore(access: 'old'); // no refresh
@@ -162,14 +173,21 @@ void main() {
     test('attaches Bearer when token present', () async {
       final store = InMemoryTokenStore(access: 'tok-x', refresh: 'r');
       final stack = _buildStack(tokenStore: store);
-      stack.adapter.route('GET', '/me',
-          const FakeResponse(statusCode: 200, body: {}));
+      stack.adapter.route(
+        'GET',
+        '/me',
+        const FakeResponse(statusCode: 200, body: {}),
+      );
 
       Map<String, dynamic>? seenHeaders;
-      stack.main.interceptors.add(InterceptorsWrapper(onRequest: (opts, h) {
-        seenHeaders = Map.from(opts.headers);
-        h.next(opts);
-      }));
+      stack.main.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (opts, h) {
+            seenHeaders = Map.from(opts.headers);
+            h.next(opts);
+          },
+        ),
+      );
 
       await stack.main.get<dynamic>('/me');
       expect(seenHeaders?['Authorization'], 'Bearer tok-x');
@@ -178,14 +196,21 @@ void main() {
     test('skips Authorization on login path', () async {
       final store = InMemoryTokenStore(access: 'tok-x', refresh: 'r');
       final stack = _buildStack(tokenStore: store);
-      stack.adapter.route('POST', '/auth/login',
-          const FakeResponse(statusCode: 200, body: {}));
+      stack.adapter.route(
+        'POST',
+        '/auth/login',
+        const FakeResponse(statusCode: 200, body: {}),
+      );
 
       Map<String, dynamic>? seenHeaders;
-      stack.main.interceptors.add(InterceptorsWrapper(onRequest: (opts, h) {
-        seenHeaders = Map.from(opts.headers);
-        h.next(opts);
-      }));
+      stack.main.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (opts, h) {
+            seenHeaders = Map.from(opts.headers);
+            h.next(opts);
+          },
+        ),
+      );
 
       await stack.main.post<dynamic>('/auth/login', data: {});
       expect(seenHeaders?.containsKey('Authorization'), isFalse);

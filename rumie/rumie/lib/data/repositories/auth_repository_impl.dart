@@ -17,34 +17,28 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<TokensOut> login(LoginIn body) => callApi(() async {
-        final r = await _dio.post<dynamic>(
-          '/auth/login',
-          data: body.toJson(),
-        );
-        final tokens = TokensOut.fromJson(r.data as Map<String, dynamic>);
-        await _tokenStore.write(access: tokens.access, refresh: tokens.refresh);
-        return tokens;
-      });
+    final r = await _dio.post<dynamic>('/auth/login', data: body.toJson());
+    final tokens = TokensOut.fromJson(r.data as Map<String, dynamic>);
+    await _tokenStore.write(access: tokens.access, refresh: tokens.refresh);
+    return tokens;
+  });
 
   @override
   Future<RegisterOut> register(RegisterIn body) => callApi(() async {
-        final r = await _dio.post<dynamic>(
-          '/auth/register',
-          data: body.toJson(),
-        );
-        final out = RegisterOut.fromJson(r.data as Map<String, dynamic>);
-        await _tokenStore.write(
-          access: out.tokens.access,
-          refresh: out.tokens.refresh,
-        );
-        return out;
-      });
+    final r = await _dio.post<dynamic>('/auth/register', data: body.toJson());
+    final out = RegisterOut.fromJson(r.data as Map<String, dynamic>);
+    await _tokenStore.write(
+      access: out.tokens.access,
+      refresh: out.tokens.refresh,
+    );
+    return out;
+  });
 
   @override
   Future<UserOut> me() => callApi(() async {
-        final r = await _dio.get<dynamic>('/auth/me');
-        return UserOut.fromJson(r.data as Map<String, dynamic>);
-      });
+    final r = await _dio.get<dynamic>('/auth/me');
+    return UserOut.fromJson(r.data as Map<String, dynamic>);
+  });
 
   @override
   Future<void> logout() async {

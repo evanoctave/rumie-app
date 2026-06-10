@@ -13,9 +13,10 @@ import '../../fakes/in_memory_token_store.dart';
 
 ({Dio dio, FakeHttpAdapter adapter}) _build() {
   final adapter = FakeHttpAdapter();
-  final dio = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
-    ..httpClientAdapter = adapter
-    ..interceptors.add(ErrorInterceptor());
+  final dio =
+      Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
+        ..httpClientAdapter = adapter
+        ..interceptors.add(ErrorInterceptor());
   return (dio: dio, adapter: adapter);
 }
 
@@ -24,8 +25,14 @@ void main() {
     test('happy path returns tokens and persists them', () async {
       final (:dio, :adapter) = _build();
       final store = InMemoryTokenStore();
-      adapter.route('POST', '/auth/login',
-          const FakeResponse(statusCode: 200, body: {'access': 'A', 'refresh': 'R'}));
+      adapter.route(
+        'POST',
+        '/auth/login',
+        const FakeResponse(
+          statusCode: 200,
+          body: {'access': 'A', 'refresh': 'R'},
+        ),
+      );
       final repo = AuthRepositoryImpl(dio, store);
 
       final tokens = await repo.login(
@@ -48,7 +55,11 @@ void main() {
           statusCode: 422,
           body: {
             'detail': [
-              {'loc': ['body', 'email'], 'msg': 'bad email', 'type': 'value_error'},
+              {
+                'loc': ['body', 'email'],
+                'msg': 'bad email',
+                'type': 'value_error',
+              },
             ],
           },
         ),
@@ -59,7 +70,9 @@ void main() {
         await repo.login(const LoginIn(email: 'x', password: 'y'));
         fail('expected throw');
       } on ValidationException catch (e) {
-        expect(e.fieldErrors, {'email': ['bad email']});
+        expect(e.fieldErrors, {
+          'email': ['bad email'],
+        });
       }
       expect(await store.readAccess(), isNull);
     });
@@ -69,8 +82,12 @@ void main() {
     test('persists tokens from RegisterOut.tokens', () async {
       final (:dio, :adapter) = _build();
       final store = InMemoryTokenStore();
-      adapter.route('POST', '/auth/register',
-          const FakeResponse(statusCode: 201, body: {
+      adapter.route(
+        'POST',
+        '/auth/register',
+        const FakeResponse(
+          statusCode: 201,
+          body: {
             'user': {
               'id': 'u1',
               'email': 'a@b.com',
@@ -81,16 +98,20 @@ void main() {
               'profile_photo_url': null,
             },
             'tokens': {'access': 'A2', 'refresh': 'R2'},
-          }));
+          },
+        ),
+      );
       final repo = AuthRepositoryImpl(dio, store);
 
-      final out = await repo.register(const RegisterIn(
-        email: 'a@b.com',
-        password: 'pw12345678',
-        role: Role.rumie,
-        age: 24,
-        gender: Gender.female,
-      ));
+      final out = await repo.register(
+        const RegisterIn(
+          email: 'a@b.com',
+          password: 'pw12345678',
+          role: Role.rumie,
+          age: 24,
+          gender: Gender.female,
+        ),
+      );
 
       expect(out.user.id, 'u1');
       expect(await store.readAccess(), 'A2');
@@ -116,8 +137,12 @@ void main() {
   group('AuthRepositoryImpl.me', () {
     test('parses UserOut from /auth/me', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('GET', '/auth/me',
-          const FakeResponse(statusCode: 200, body: {
+      adapter.route(
+        'GET',
+        '/auth/me',
+        const FakeResponse(
+          statusCode: 200,
+          body: {
             'id': 'u1',
             'email': 'a@b.com',
             'phone': '+1',
@@ -125,7 +150,9 @@ void main() {
             'age': 30,
             'gender': 'male',
             'profile_photo_url': 'http://x/p.jpg',
-          }));
+          },
+        ),
+      );
       final repo = AuthRepositoryImpl(dio, InMemoryTokenStore());
 
       final me = await repo.me();

@@ -8,9 +8,10 @@ import '../../fakes/fake_http_adapter.dart';
 
 ({Dio dio, FakeHttpAdapter adapter}) _build() {
   final adapter = FakeHttpAdapter();
-  final dio = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
-    ..httpClientAdapter = adapter
-    ..interceptors.add(ErrorInterceptor());
+  final dio =
+      Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
+        ..httpClientAdapter = adapter
+        ..interceptors.add(ErrorInterceptor());
   return (dio: dio, adapter: adapter);
 }
 
@@ -18,8 +19,12 @@ void main() {
   group('ConversationsRepositoryImpl', () {
     test('listConversations parses ConversationOut[]', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('GET', '/conversations',
-          const FakeResponse(statusCode: 200, body: [
+      adapter.route(
+        'GET',
+        '/conversations',
+        const FakeResponse(
+          statusCode: 200,
+          body: [
             {
               'id': 'c1',
               'type': 'internal_group',
@@ -27,7 +32,9 @@ void main() {
               'group_id': 'g1',
               'listing_id': null,
             },
-          ]));
+          ],
+        ),
+      );
       final repo = ConversationsRepositoryImpl(dio);
 
       final list = await repo.listConversations();
@@ -37,8 +44,12 @@ void main() {
 
     test('listMessages with before parses MessageOut[]', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('GET', '/conversations/c1/messages',
-          const FakeResponse(statusCode: 200, body: [
+      adapter.route(
+        'GET',
+        '/conversations/c1/messages',
+        const FakeResponse(
+          statusCode: 200,
+          body: [
             {
               'id': 'm1',
               'conversation_id': 'c1',
@@ -46,7 +57,9 @@ void main() {
               'body': 'hi',
               'ts': '2026-05-01T00:00:00.000Z',
             },
-          ]));
+          ],
+        ),
+      );
       final repo = ConversationsRepositoryImpl(dio);
 
       final list = await repo.listMessages(
@@ -60,14 +73,20 @@ void main() {
 
     test('sendMessage returns MessageOut', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('POST', '/conversations/c1/messages',
-          const FakeResponse(statusCode: 201, body: {
+      adapter.route(
+        'POST',
+        '/conversations/c1/messages',
+        const FakeResponse(
+          statusCode: 201,
+          body: {
             'id': 'm2',
             'conversation_id': 'c1',
             'sender_id': 'u1',
             'body': 'sent',
             'ts': '2026-05-16T12:00:00.000Z',
-          }));
+          },
+        ),
+      );
       final repo = ConversationsRepositoryImpl(dio);
 
       final m = await repo.sendMessage('c1', 'sent');
@@ -83,7 +102,11 @@ void main() {
           statusCode: 422,
           body: {
             'detail': [
-              {'loc': ['body', 'body'], 'msg': 'too long', 'type': 't'},
+              {
+                'loc': ['body', 'body'],
+                'msg': 'too long',
+                'type': 't',
+              },
             ],
           },
         ),

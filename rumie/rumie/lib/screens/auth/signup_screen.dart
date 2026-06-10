@@ -72,28 +72,43 @@ class _SignupScreenState extends State<SignupScreen> {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.cardBg,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        title: Text(
-          'Enable Face ID?',
-          style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w700),
-        ),
-        content: Text(
-          'Sign in instantly with Face ID every time you open Rumie.',
-          style: TextStyle(color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Not now', style: TextStyle(color: AppColors.textSecondary)),
+      builder:
+          (_) => AlertDialog(
+            backgroundColor: AppColors.cardBg,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            title: Text(
+              'Enable Face ID?',
+              style: TextStyle(
+                color: AppColors.text,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            content: Text(
+              'Sign in instantly with Face ID every time you open Rumie.',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(
+                  'Not now',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  'Enable',
+                  style: TextStyle(
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Enable', style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
     );
 
     if (confirmed == true && mounted) {
@@ -117,7 +132,11 @@ class _SignupScreenState extends State<SignupScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.text, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.text,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -145,14 +164,22 @@ class _SignupScreenState extends State<SignupScreen> {
                   children: [
                     Text(
                       'Signing up as ',
-                      style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.secondary.withAlpha(20),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.secondary.withAlpha(60)),
+                        border: Border.all(
+                          color: AppColors.secondary.withAlpha(60),
+                        ),
                       ),
                       child: Text(
                         roleLabel,
@@ -184,7 +211,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   obscure: _obscure,
                   suffix: IconButton(
                     icon: Icon(
-                      _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      _obscure
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
                       color: AppColors.gray,
                       size: 20,
                     ),
@@ -244,32 +273,42 @@ class _SignupScreenState extends State<SignupScreen> {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: options.map((opt) {
-        final selected = _gender == opt.$1;
-        return GestureDetector(
-          onTap: () => setState(() => _gender = opt.$1),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: selected ? AppColors.secondary.withAlpha(20) : AppColors.cardBg,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: selected ? AppColors.secondary : AppColors.border,
-                width: selected ? 1.5 : 1,
+      children:
+          options.map((opt) {
+            final selected = _gender == opt.$1;
+            return GestureDetector(
+              onTap: () => setState(() => _gender = opt.$1),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color:
+                      selected
+                          ? AppColors.secondary.withAlpha(20)
+                          : AppColors.cardBg,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: selected ? AppColors.secondary : AppColors.border,
+                    width: selected ? 1.5 : 1,
+                  ),
+                ),
+                child: Text(
+                  opt.$2,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                    color:
+                        selected
+                            ? AppColors.secondary
+                            : AppColors.textSecondary,
+                  ),
+                ),
               ),
-            ),
-            child: Text(
-              opt.$2,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                color: selected ? AppColors.secondary : AppColors.textSecondary,
-              ),
-            ),
-          ),
-        );
-      }).toList(),
+            );
+          }).toList(),
     );
   }
 
@@ -298,7 +337,10 @@ class _SignupScreenState extends State<SignupScreen> {
         filled: true,
         fillColor: AppColors.surface,
         counterText: '',
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
           borderSide: BorderSide(color: AppColors.border),
@@ -330,7 +372,11 @@ class _SubmitButton extends StatefulWidget {
   final bool loading;
   final VoidCallback onTap;
 
-  const _SubmitButton({required this.label, required this.loading, required this.onTap});
+  const _SubmitButton({
+    required this.label,
+    required this.loading,
+    required this.onTap,
+  });
 
   @override
   State<_SubmitButton> createState() => _SubmitButtonState();
@@ -359,23 +405,24 @@ class _SubmitButtonState extends State<_SubmitButton> {
             borderRadius: BorderRadius.circular(20),
           ),
           alignment: Alignment.center,
-          child: widget.loading
-              ? const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation(Colors.white),
+          child:
+              widget.loading
+                  ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                    ),
+                  )
+                  : Text(
+                    widget.label,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
-                )
-              : Text(
-                  widget.label,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
         ),
       ),
     );

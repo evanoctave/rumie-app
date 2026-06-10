@@ -10,14 +10,16 @@ class ErrorInterceptor extends Interceptor {
       return handler.next(err);
     }
     final mapped = mapException(err);
-    handler.next(DioException(
-      requestOptions: err.requestOptions,
-      response: err.response,
-      type: err.type,
-      error: mapped,
-      message: mapped.message,
-      stackTrace: err.stackTrace,
-    ));
+    handler.next(
+      DioException(
+        requestOptions: err.requestOptions,
+        response: err.response,
+        type: err.type,
+        error: mapped,
+        message: mapped.message,
+        stackTrace: err.stackTrace,
+      ),
+    );
   }
 
   @visibleForTesting
@@ -37,15 +39,9 @@ class ErrorInterceptor extends Interceptor {
           return const UnauthorizedException();
         }
         if (status >= 500) {
-          return ServerException(
-            'Server error ($status)',
-            statusCode: status,
-          );
+          return ServerException('Server error ($status)', statusCode: status);
         }
-        return ServerException(
-          'Request failed ($status)',
-          statusCode: status,
-        );
+        return ServerException('Request failed ($status)', statusCode: status);
       case DioExceptionType.cancel:
       case DioExceptionType.badCertificate:
       case DioExceptionType.unknown:
@@ -74,7 +70,9 @@ class ErrorInterceptor extends Interceptor {
 
   static String _fieldFrom(dynamic loc) {
     if (loc is! List || loc.isEmpty) return '_';
-    final filtered = loc.where((e) => e != 'body' && e != 'query' && e != 'path');
+    final filtered = loc.where(
+      (e) => e != 'body' && e != 'query' && e != 'path',
+    );
     final last = filtered.isEmpty ? loc.last : filtered.last;
     return last.toString();
   }

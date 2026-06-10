@@ -11,9 +11,10 @@ import '../../fakes/fake_http_adapter.dart';
 
 ({Dio dio, FakeHttpAdapter adapter}) _build() {
   final adapter = FakeHttpAdapter();
-  final dio = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
-    ..httpClientAdapter = adapter
-    ..interceptors.add(ErrorInterceptor());
+  final dio =
+      Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
+        ..httpClientAdapter = adapter
+        ..interceptors.add(ErrorInterceptor());
   return (dio: dio, adapter: adapter);
 }
 
@@ -29,8 +30,11 @@ void main() {
   group('GroupsRepositoryImpl', () {
     test('getMyGroup happy', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('GET', '/groups/me',
-          const FakeResponse(statusCode: 200, body: _groupJson));
+      adapter.route(
+        'GET',
+        '/groups/me',
+        const FakeResponse(statusCode: 200, body: _groupJson),
+      );
       final repo = GroupsRepositoryImpl(dio);
 
       final g = await repo.getMyGroup();
@@ -40,8 +44,11 @@ void main() {
 
     test('patchMyGroup sends only set fields (PATCH null-strip)', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('PATCH', '/groups/me',
-          const FakeResponse(statusCode: 200, body: _groupJson));
+      adapter.route(
+        'PATCH',
+        '/groups/me',
+        const FakeResponse(statusCode: 200, body: _groupJson),
+      );
       final repo = GroupsRepositoryImpl(dio);
 
       await repo.patchMyGroup(const GroupPatch(capacity: 5));
@@ -59,7 +66,11 @@ void main() {
           statusCode: 422,
           body: {
             'detail': [
-              {'loc': ['body', 'invitee_email'], 'msg': 'required', 'type': 't'},
+              {
+                'loc': ['body', 'invitee_email'],
+                'msg': 'required',
+                'type': 't',
+              },
             ],
           },
         ),
@@ -70,19 +81,27 @@ void main() {
         await repo.createInvite(const InviteCreate());
         fail('expected throw');
       } on ValidationException catch (e) {
-        expect(e.fieldErrors, {'invitee_email': ['required']});
+        expect(e.fieldErrors, {
+          'invitee_email': ['required'],
+        });
       }
     });
 
     test('acceptInvite parses InviteOut', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('POST', '/invites/inv1/accept',
-          const FakeResponse(statusCode: 200, body: {
+      adapter.route(
+        'POST',
+        '/invites/inv1/accept',
+        const FakeResponse(
+          statusCode: 200,
+          body: {
             'id': 'inv1',
             'group_id': 'g1',
             'invitee_id': 'u9',
             'status': 'accepted',
-          }));
+          },
+        ),
+      );
       final repo = GroupsRepositoryImpl(dio);
 
       final inv = await repo.acceptInvite('inv1');
@@ -92,7 +111,10 @@ void main() {
     test('leaveGroup returns void on 204', () async {
       final (:dio, :adapter) = _build();
       adapter.route(
-          'POST', '/groups/me/leave', const FakeResponse(statusCode: 204));
+        'POST',
+        '/groups/me/leave',
+        const FakeResponse(statusCode: 204),
+      );
       final repo = GroupsRepositoryImpl(dio);
 
       await repo.leaveGroup();

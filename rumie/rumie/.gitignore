@@ -38,3 +38,6 @@ app.*.map.json
 
 # Obfuscation related
 app.*.symbols
+
+# Build output (symlink to ~/Library/Caches/rumie-build — see README)
+/build

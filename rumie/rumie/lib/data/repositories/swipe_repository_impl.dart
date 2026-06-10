@@ -12,7 +12,7 @@ class SwipeRepositoryImpl implements SwipeRepository {
 
   @override
   Future<SwipeOut> swipe(SwipeIn body) => callApi(() async {
-        final r = await _dio.post<dynamic>('/swipes', data: body.toJson());
-        return SwipeOut.fromJson(r.data as Map<String, dynamic>);
-      });
+    final r = await _dio.post<dynamic>('/swipes', data: body.toJson());
+    return SwipeOut.fromJson(r.data as Map<String, dynamic>);
+  });
 }

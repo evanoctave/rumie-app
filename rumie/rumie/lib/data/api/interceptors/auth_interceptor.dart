@@ -32,7 +32,9 @@ class AuthInterceptor extends Interceptor {
 
   @override
   Future<void> onRequest(
-      RequestOptions options, RequestInterceptorHandler handler) async {
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     if (_isSkipped(options)) return handler.next(options);
     final token = await tokenStore.readAccess();
     if (token != null) {
@@ -43,7 +45,9 @@ class AuthInterceptor extends Interceptor {
 
   @override
   Future<void> onError(
-      DioException err, ErrorInterceptorHandler handler) async {
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     if (err.response?.statusCode != 401 || _isSkipped(err.requestOptions)) {
       return handler.next(err);
     }
@@ -52,13 +56,15 @@ class AuthInterceptor extends Interceptor {
     if (!refreshed) {
       await tokenStore.clear();
       onLogout?.call();
-      return handler.reject(DioException(
-        requestOptions: err.requestOptions,
-        response: err.response,
-        type: DioExceptionType.badResponse,
-        error: const UnauthorizedException('Session expired'),
-        message: 'Session expired',
-      ));
+      return handler.reject(
+        DioException(
+          requestOptions: err.requestOptions,
+          response: err.response,
+          type: DioExceptionType.badResponse,
+          error: const UnauthorizedException('Session expired'),
+          message: 'Session expired',
+        ),
+      );
     }
 
     final newToken = await tokenStore.readAccess();

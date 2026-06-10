@@ -11,17 +11,16 @@ class DiscoveryRepositoryImpl implements DiscoveryRepository {
   DiscoveryRepositoryImpl(this._dio);
 
   @override
-  Future<List<GroupOut>> discoverGroups({int limit = 20}) =>
-      callApi(() async {
-        final r = await _dio.get<dynamic>(
-          '/discovery/groups',
-          queryParameters: {'limit': limit},
-        );
-        final list = r.data as List<dynamic>;
-        return list
-            .map((e) => GroupOut.fromJson(e as Map<String, dynamic>))
-            .toList();
-      });
+  Future<List<GroupOut>> discoverGroups({int limit = 20}) => callApi(() async {
+    final r = await _dio.get<dynamic>(
+      '/discovery/groups',
+      queryParameters: {'limit': limit},
+    );
+    final list = r.data as List<dynamic>;
+    return list
+        .map((e) => GroupOut.fromJson(e as Map<String, dynamic>))
+        .toList();
+  });
 
   @override
   Future<List<ListingOut>> discoverListings({int limit = 20}) =>

@@ -36,9 +36,10 @@ class _NavItemState extends State<NavItem> with SingleTickerProviderStateMixin {
       duration: const Duration(milliseconds: 200),
       value: widget.selected ? 1.0 : 0.0,
     );
-    _scaleAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
+    _scaleAnim = Tween<double>(
+      begin: 0.85,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
   }
 
   @override
@@ -69,20 +70,23 @@ class _NavItemState extends State<NavItem> with SingleTickerProviderStateMixin {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: widget.selected ? widget.color.withAlpha(30) : Colors.transparent,
+          color:
+              widget.selected ? widget.color.withAlpha(30) : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
-          border: widget.selected
-              ? Border.all(color: widget.color.withAlpha(80), width: 1.5)
-              : Border.all(color: Colors.transparent, width: 1.5),
-          boxShadow: widget.selected
-              ? [
-                  BoxShadow(
-                    color: widget.color.withAlpha(40),
-                    blurRadius: 16,
-                    spreadRadius: 2,
-                  ),
-                ]
-              : null,
+          border:
+              widget.selected
+                  ? Border.all(color: widget.color.withAlpha(80), width: 1.5)
+                  : Border.all(color: Colors.transparent, width: 1.5),
+          boxShadow:
+              widget.selected
+                  ? [
+                    BoxShadow(
+                      color: widget.color.withAlpha(40),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                  : null,
         ),
         child: ScaleTransition(
           scale: _scaleAnim,

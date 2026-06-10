@@ -9,7 +9,12 @@ import 'screens/auth/landing_screen.dart';
 import 'screens/auth/lock_screen.dart';
 import 'screens/home_screen.dart';
 import 'state/auth_provider.dart';
+import 'state/discovery_provider.dart';
+import 'state/group_provider.dart';
+import 'state/housing_provider.dart';
+import 'state/matches_provider.dart';
 import 'state/profile_provider.dart';
+import 'state/saved_provider.dart';
 import 'state/theme_provider.dart';
 import 'theme/app_colors.dart';
 
@@ -35,6 +40,11 @@ void main() {
         ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => DiscoveryProvider()),
+        ChangeNotifierProvider(create: (_) => HousingProvider()),
+        ChangeNotifierProvider(create: (_) => MatchesProvider()),
+        ChangeNotifierProvider(create: (_) => SavedProvider()),
+        ChangeNotifierProvider(create: (_) => GroupProvider()),
       ],
       child: const Rumie(),
     ),
@@ -113,10 +123,14 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? Colors.white : AppColors.gray,
+          (s) =>
+              s.contains(WidgetState.selected) ? Colors.white : AppColors.gray,
         ),
         trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? AppColors.secondary : AppColors.border,
+          (s) =>
+              s.contains(WidgetState.selected)
+                  ? AppColors.secondary
+                  : AppColors.border,
         ),
       ),
       sliderTheme: const SliderThemeData(
@@ -161,7 +175,8 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
         systemNavigationBarColor: AppColors.background,
-        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
       ),
     );
 
@@ -200,20 +215,21 @@ class _AuthGate extends StatelessWidget {
 
     final Widget screen = switch (status) {
       AuthStatus.unknown => Scaffold(
-          backgroundColor: AppColors.background,
-          body: const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation(AppColors.secondary),
-            ),
+        backgroundColor: AppColors.background,
+        body: const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation(AppColors.secondary),
           ),
         ),
-      AuthStatus.authenticated    => const HomeScreen(),
-      AuthStatus.unauthenticated  => const LandingScreen(),
+      ),
+      AuthStatus.authenticated => const HomeScreen(),
+      AuthStatus.unauthenticated => const LandingScreen(),
     };
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 400),
-      transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
+      transitionBuilder:
+          (child, anim) => FadeTransition(opacity: anim, child: child),
       child: KeyedSubtree(key: ValueKey(status), child: screen),
     );
   }

@@ -10,9 +10,10 @@ import '../../fakes/fake_http_adapter.dart';
 
 ({Dio dio, FakeHttpAdapter adapter}) _build() {
   final adapter = FakeHttpAdapter();
-  final dio = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
-    ..httpClientAdapter = adapter
-    ..interceptors.add(ErrorInterceptor());
+  final dio =
+      Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
+        ..httpClientAdapter = adapter
+        ..interceptors.add(ErrorInterceptor());
   return (dio: dio, adapter: adapter);
 }
 
@@ -30,22 +31,26 @@ void main() {
   group('ListingsRepositoryImpl', () {
     test('create happy', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('POST', '/listings',
-          const FakeResponse(statusCode: 201, body: _listingJson));
+      adapter.route(
+        'POST',
+        '/listings',
+        const FakeResponse(statusCode: 201, body: _listingJson),
+      );
       final repo = ListingsRepositoryImpl(dio);
 
-      final l = await repo.create(const ListingCreate(
-        title: 'Sunny 2BR',
-        rent: 1500,
-        location: 'SoMa',
-      ));
+      final l = await repo.create(
+        const ListingCreate(title: 'Sunny 2BR', rent: 1500, location: 'SoMa'),
+      );
       expect(l.id, 'l1');
     });
 
     test('get builds /listings/<id>', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('GET', '/listings/l1',
-          const FakeResponse(statusCode: 200, body: _listingJson));
+      adapter.route(
+        'GET',
+        '/listings/l1',
+        const FakeResponse(statusCode: 200, body: _listingJson),
+      );
       final repo = ListingsRepositoryImpl(dio);
 
       final l = await repo.get('l1');
@@ -55,8 +60,11 @@ void main() {
 
     test('patch sends partial body', () async {
       final (:dio, :adapter) = _build();
-      adapter.route('PATCH', '/listings/l1',
-          const FakeResponse(statusCode: 200, body: _listingJson));
+      adapter.route(
+        'PATCH',
+        '/listings/l1',
+        const FakeResponse(statusCode: 200, body: _listingJson),
+      );
       final repo = ListingsRepositoryImpl(dio);
 
       await repo.patch('l1', const ListingPatch(rent: 2000));
@@ -66,7 +74,10 @@ void main() {
     test('delete returns void on 204', () async {
       final (:dio, :adapter) = _build();
       adapter.route(
-          'DELETE', '/listings/l1', const FakeResponse(statusCode: 204));
+        'DELETE',
+        '/listings/l1',
+        const FakeResponse(statusCode: 204),
+      );
       final repo = ListingsRepositoryImpl(dio);
 
       await repo.delete('l1');
@@ -82,7 +93,11 @@ void main() {
           statusCode: 422,
           body: {
             'detail': [
-              {'loc': ['body', 'rent'], 'msg': 'must be ≥0', 'type': 't'},
+              {
+                'loc': ['body', 'rent'],
+                'msg': 'must be ≥0',
+                'type': 't',
+              },
             ],
           },
         ),
@@ -90,11 +105,9 @@ void main() {
       final repo = ListingsRepositoryImpl(dio);
 
       try {
-        await repo.create(const ListingCreate(
-          title: 't',
-          rent: -1,
-          location: 'x',
-        ));
+        await repo.create(
+          const ListingCreate(title: 't', rent: -1, location: 'x'),
+        );
         fail('expected throw');
       } on ValidationException catch (e) {
         expect(e.fieldErrors.containsKey('rent'), isTrue);

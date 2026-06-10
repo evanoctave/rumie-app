@@ -57,7 +57,9 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      await locator<AuthRepository>().login(LoginIn(email: email, password: password));
+      await locator<AuthRepository>().login(
+        LoginIn(email: email, password: password),
+      );
       _user = await locator<AuthRepository>().me();
       _status = AuthStatus.authenticated;
       _isLocked = false; // just logged in, no need to re-lock immediately
@@ -125,7 +127,7 @@ class AuthProvider extends ChangeNotifier {
         localizedReason: 'Unlock Rumie',
         options: const AuthenticationOptions(
           biometricOnly: false, // allow device passcode as fallback
-          stickyAuth: true,     // keep prompt alive if user briefly switches apps
+          stickyAuth: true, // keep prompt alive if user briefly switches apps
         ),
       );
       if (ok) _unlock();
@@ -153,13 +155,17 @@ class AuthProvider extends ChangeNotifier {
 
   String _friendlyError(Object e) {
     final msg = e.toString().toLowerCase();
-    if (msg.contains('401') || msg.contains('unauthorized') || msg.contains('incorrect')) {
+    if (msg.contains('401') ||
+        msg.contains('unauthorized') ||
+        msg.contains('incorrect')) {
       return 'Incorrect email or password.';
     }
     if (msg.contains('409') || msg.contains('already')) {
       return 'An account with that email already exists.';
     }
-    if (msg.contains('network') || msg.contains('socket') || msg.contains('connection')) {
+    if (msg.contains('network') ||
+        msg.contains('socket') ||
+        msg.contains('connection')) {
       return 'No internet connection. Please try again.';
     }
     return 'Something went wrong. Please try again.';

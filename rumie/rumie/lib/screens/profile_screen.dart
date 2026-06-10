@@ -9,9 +9,11 @@ import 'package:provider/provider.dart';
 
 import '../models/user_profile.dart';
 import '../state/auth_provider.dart';
-import '../state/theme_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/profile_completion_meter.dart';
 import 'profile_create_screen.dart';
+import 'safety_center_screen.dart';
+import 'settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final UserProfile profile;
@@ -32,13 +34,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ProfileCreateScreen(
-          existing: widget.profile,
-          onSave: (updated) {
-            widget.onProfileUpdated(updated);
-            Navigator.pop(context);
-          },
-        ),
+        builder:
+            (_) => ProfileCreateScreen(
+              existing: widget.profile,
+              onSave: (updated) {
+                widget.onProfileUpdated(updated);
+                Navigator.pop(context);
+              },
+            ),
       ),
     );
   }
@@ -67,7 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 height: 96,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.softPurple, Color(0xFFE0D9FF)],
+                    colors: [AppColors.softPurple, const Color(0xFFE0D9FF)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -79,7 +82,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     'assets/icons/ic_profile.svg',
                     width: 40,
                     height: 40,
-                    colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.primary,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ).animate().scale(duration: 450.ms, curve: Curves.easeOutBack),
@@ -125,6 +131,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
+              _buildCompletionCard(p),
+              const SizedBox(height: 14),
               _buildBioCard(p),
               const SizedBox(height: 14),
               _buildStatsRow(p),
@@ -155,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         background: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.softPurple, Color(0xFFF5F0FF)],
+              colors: [AppColors.softPurple, const Color(0xFFF5F0FF)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -175,7 +183,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         decoration: BoxDecoration(
                           color: AppColors.surface,
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.primary, width: 3),
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 3,
+                          ),
                           boxShadow: AppColors.floatingShadow,
                         ),
                         child: ClipOval(child: _buildAvatar(p)),
@@ -189,10 +200,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           decoration: BoxDecoration(
                             gradient: AppColors.primaryGradient,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.surface, width: 2),
+                            border: Border.all(
+                              color: AppColors.surface,
+                              width: 2,
+                            ),
                             boxShadow: AppColors.buttonShadow,
                           ),
-                          child: const Icon(Icons.edit_rounded, color: Colors.white, size: 14),
+                          child: const Icon(
+                            Icons.edit_rounded,
+                            color: Colors.white,
+                            size: 14,
+                          ),
                         ),
                       ),
                     ],
@@ -212,7 +230,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary),
+                    const Icon(
+                      Icons.location_on_rounded,
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
                     const SizedBox(width: 3),
                     Text(
                       p.location,
@@ -246,6 +268,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  double _completion(UserProfile p) {
+    final checks = [
+      p.name.isNotEmpty,
+      p.age > 0,
+      p.bio.isNotEmpty,
+      p.location.isNotEmpty,
+      p.photoPath.isNotEmpty,
+      p.traits.isNotEmpty,
+      p.moveIn != 'Flexible',
+      p.schedule != 'Flexible',
+    ];
+    return checks.where((c) => c).length / checks.length;
+  }
+
+  Widget _buildCompletionCard(UserProfile p) {
+    return _Card(
+      accentColor: AppColors.green,
+      child: ProfileCompletionMeter(completion: _completion(p)),
+    );
+  }
+
   Widget _buildBioCard(UserProfile p) {
     return _Card(
       accentColor: AppColors.primary,
@@ -256,7 +299,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 10),
           Text(
             p.bio,
-            style: GoogleFonts.dmSans(fontSize: 15, color: AppColors.text, height: 1.55),
+            style: GoogleFonts.dmSans(
+              fontSize: 15,
+              color: AppColors.text,
+              height: 1.55,
+            ),
           ),
         ],
       ),
@@ -266,7 +313,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildStatsRow(UserProfile p) {
     return Row(
       children: [
-        _StatTile(label: 'Budget', value: '\$${p.budgetMin}–${p.budgetMax}', color: AppColors.green),
+        _StatTile(
+          label: 'Budget',
+          value: '\$${p.budgetMin}–${p.budgetMax}',
+          color: AppColors.green,
+        ),
         const SizedBox(width: 10),
         _StatTile(label: 'Move-in', value: p.moveIn, color: AppColors.orange),
         const SizedBox(width: 10),
@@ -297,7 +348,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Text(
             label,
-            style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 14),
+            style: GoogleFonts.dmSans(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+            ),
           ),
           const Spacer(),
           Container(
@@ -331,11 +385,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: p.traits
-                .asMap()
-                .entries
-                .map((e) => _TraitPill(e.value, _traitColor(e.key)))
-                .toList(),
+            children:
+                p.traits
+                    .asMap()
+                    .entries
+                    .map((e) => _TraitPill(e.value, _traitColor(e.key)))
+                    .toList(),
           ),
         ],
       ),
@@ -344,8 +399,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Color _traitColor(int i) {
     const colors = [
-      AppColors.primary, AppColors.green, AppColors.pink,
-      AppColors.orange, AppColors.blue, AppColors.teal,
+      AppColors.primary,
+      AppColors.green,
+      AppColors.pink,
+      AppColors.orange,
+      AppColors.blue,
+      AppColors.teal,
     ];
     return colors[i % colors.length];
   }
@@ -355,103 +414,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         _PrimaryButton(label: 'Edit Profile', onTap: _openEdit),
         const SizedBox(height: 10),
-        _SecondaryButton(label: 'Settings', onTap: () => _openSettings()),
+        _SecondaryButton(label: 'Settings', onTap: _openSettings),
+        const SizedBox(height: 10),
+        _SecondaryButton(label: 'Safety Center', onTap: _openSafetyCenter),
         const SizedBox(height: 10),
         _DangerButton(label: 'Log Out', onTap: () => _confirmLogout()),
       ],
     ).animate().fadeIn(delay: 200.ms, duration: 300.ms);
   }
 
+  void _openSafetyCenter() {
+    HapticFeedback.selectionClick();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SafetyCenterScreen()),
+    );
+  }
+
   void _openSettings() {
     HapticFeedback.selectionClick();
-    final themeProvider = context.read<ThemeProvider>();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (_, setSheet) => Padding(
-          padding: EdgeInsets.fromLTRB(24, 12, 24, MediaQuery.of(ctx).padding.bottom + 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Text(
-                'Settings',
-                style: GoogleFonts.dmSans(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.text,
-                  letterSpacing: -0.4,
-                ),
-              ),
-              const SizedBox(height: 18),
-              // Dark mode toggle
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColors.softPurple,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        themeProvider.isDark
-                            ? Icons.dark_mode_rounded
-                            : Icons.light_mode_rounded,
-                        size: 18,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(
-                        'Dark Mode',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.text,
-                        ),
-                      ),
-                    ),
-                    Switch(
-                      value: themeProvider.isDark,
-                      onChanged: (v) {
-                        themeProvider.setDark(v);
-                        setSheet(() {});
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Divider(color: AppColors.border, height: 1),
-              const _SettingsTile(icon: Icons.notifications_outlined, label: 'Notifications', badge: 'Soon'),
-              Divider(color: AppColors.border, height: 1),
-              const _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Privacy & Security', badge: 'Soon'),
-              Divider(color: AppColors.border, height: 1),
-              const _SettingsTile(icon: Icons.help_outline_rounded, label: 'Help & Support', badge: 'Soon'),
-              Divider(color: AppColors.border, height: 1),
-              const _SettingsTile(icon: Icons.info_outline_rounded, label: 'About Rumie v0.1.0'),
-            ],
-          ),
-        ),
-      ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SettingsScreen()),
     );
   }
 
@@ -459,40 +443,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
     HapticFeedback.mediumImpact();
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-        ),
-        title: Text(
-          'Log out?',
-          style: GoogleFonts.dmSans(
-            fontWeight: FontWeight.w800,
-            color: AppColors.text,
-            fontSize: 18,
-          ),
-        ),
-        content: Text(
-          'You can sign back in anytime.',
-          style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+      builder:
+          (_) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20)),
             ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              'Log Out',
-              style: GoogleFonts.dmSans(color: AppColors.red, fontWeight: FontWeight.w700),
+            title: Text(
+              'Log out?',
+              style: GoogleFonts.dmSans(
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
+                fontSize: 18,
+              ),
             ),
+            content: Text(
+              'You can sign back in anytime.',
+              style: GoogleFonts.dmSans(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.dmSans(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(
+                  'Log Out',
+                  style: GoogleFonts.dmSans(
+                    color: AppColors.red,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
     if (confirmed == true && mounted) {
       await context.read<AuthProvider>().logout();
@@ -549,7 +543,11 @@ class _StatTile extends StatelessWidget {
   final String value;
   final Color color;
 
-  const _StatTile({required this.label, required this.value, required this.color});
+  const _StatTile({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -575,7 +573,10 @@ class _StatTile extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               label,
-              style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.textSecondary),
+              style: GoogleFonts.dmSans(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+              ),
             ),
           ],
         ),
@@ -627,8 +628,14 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) { HapticFeedback.selectionClick(); setState(() => _pressed = true); },
-      onTapUp: (_) { setState(() => _pressed = false); widget.onTap(); },
+      onTapDown: (_) {
+        HapticFeedback.selectionClick();
+        setState(() => _pressed = true);
+      },
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedScale(
         scale: _pressed ? 0.96 : 1.0,
@@ -720,63 +727,6 @@ class _DangerButton extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String? badge;
-
-  const _SettingsTile({required this.icon, required this.label, this.badge});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.softPurple,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, size: 18, color: AppColors.primary),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              label,
-              style: GoogleFonts.dmSans(
-                fontSize: 15,
-                color: AppColors.text,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          if (badge != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: AppColors.softYellow,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                badge!,
-                style: GoogleFonts.dmSans(
-                  color: AppColors.yellow,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            )
-          else
-            Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.gray),
-        ],
       ),
     );
   }

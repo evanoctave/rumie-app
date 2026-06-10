@@ -5,8 +5,8 @@ class InMemoryTokenStore implements TokenStore {
   String? _refresh;
 
   InMemoryTokenStore({String? access, String? refresh})
-      : _access = access,
-        _refresh = refresh;
+    : _access = access,
+      _refresh = refresh;
 
   @override
   Future<String?> readAccess() async => _access;

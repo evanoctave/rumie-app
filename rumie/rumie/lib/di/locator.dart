@@ -10,15 +10,22 @@ import '../data/repositories/discovery_repository_impl.dart';
 import '../data/repositories/groups_repository_impl.dart';
 import '../data/repositories/inquiries_repository_impl.dart';
 import '../data/repositories/listings_repository_impl.dart';
+import '../data/mock/mock_housing_repository.dart';
+import '../data/mock/mock_roommate_feed_repository.dart';
+import '../data/mock/mock_roommate_group_repository.dart';
 import '../data/repositories/swipe_repository_impl.dart';
 import '../domain/repositories/asset_repository.dart';
 import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/conversations_repository.dart';
 import '../domain/repositories/discovery_repository.dart';
 import '../domain/repositories/groups_repository.dart';
+import '../domain/repositories/housing_repository.dart';
 import '../domain/repositories/inquiries_repository.dart';
 import '../domain/repositories/listings_repository.dart';
+import '../domain/repositories/roommate_feed_repository.dart';
+import '../domain/repositories/roommate_group_repository.dart';
 import '../domain/repositories/swipe_repository.dart';
+import '../domain/services/compatibility_service.dart';
 
 final GetIt locator = GetIt.instance;
 
@@ -76,5 +83,18 @@ void setupLocator({void Function()? onLogout}) {
         locator<Dio>(),
         locator<Dio>(instanceName: _uploadPutDioName),
       ),
+    )
+    // Product-layer services + mock-backed repositories. These keep the UI
+    // decoupled from the live API until the matching/housing endpoints ship;
+    // swap the registrations here to go live (see README).
+    ..registerLazySingleton<CompatibilityService>(
+      () => const CompatibilityService(),
+    )
+    ..registerLazySingleton<RoommateFeedRepository>(
+      MockRoommateFeedRepository.new,
+    )
+    ..registerLazySingleton<HousingRepository>(MockHousingRepository.new)
+    ..registerLazySingleton<RoommateGroupRepository>(
+      MockRoommateGroupRepository.new,
     );
 }

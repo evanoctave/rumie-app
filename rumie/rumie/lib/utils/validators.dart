@@ -17,8 +17,7 @@ final RegExp _ctrl = RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]');
 String? validateEmail(String? value) {
   if (value == null || value.trim().isEmpty) return 'Email is required.';
   if (value.trim().length > 254) return 'Email is too long.';
-  const pattern =
-      r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$';
+  const pattern = r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$';
   if (!RegExp(pattern).hasMatch(value.trim())) {
     return 'Enter a valid email address.';
   }

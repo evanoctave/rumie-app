@@ -12,8 +12,10 @@ class UnauthorizedException extends ApiException {
 
 class ValidationException extends ApiException {
   final Map<String, List<String>> fieldErrors;
-  const ValidationException(this.fieldErrors,
-      [super.message = 'Validation failed']);
+  const ValidationException(
+    this.fieldErrors, [
+    super.message = 'Validation failed',
+  ]);
 }
 
 class ServerException extends ApiException {

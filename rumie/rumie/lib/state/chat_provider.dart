@@ -12,7 +12,9 @@ class ChatProvider extends ChangeNotifier {
     loading = true;
     notifyListeners();
     try {
-      messages = await locator<ConversationsRepository>().listMessages(conversationId);
+      messages = await locator<ConversationsRepository>().listMessages(
+        conversationId,
+      );
     } finally {
       loading = false;
       notifyListeners();
@@ -23,7 +25,10 @@ class ChatProvider extends ChangeNotifier {
     required String conversationId,
     required String body,
   }) async {
-    final msg = await locator<ConversationsRepository>().sendMessage(conversationId, body);
+    final msg = await locator<ConversationsRepository>().sendMessage(
+      conversationId,
+      body,
+    );
     messages.add(msg);
     notifyListeners();
   }

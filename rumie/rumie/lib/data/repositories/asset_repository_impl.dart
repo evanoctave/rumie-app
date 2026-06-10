@@ -24,12 +24,11 @@ class AssetRepositoryImpl implements AssetRepository {
   Future<PresignOut> presign({
     required AssetKind kind,
     required String contentType,
-  }) =>
-      callApi(() async {
-        final body = PresignIn(kind: kind, contentType: contentType).toJson();
-        final r = await _dio.post<dynamic>('/uploads/presign', data: body);
-        return PresignOut.fromJson(r.data as Map<String, dynamic>);
-      });
+  }) => callApi(() async {
+    final body = PresignIn(kind: kind, contentType: contentType).toJson();
+    final r = await _dio.post<dynamic>('/uploads/presign', data: body);
+    return PresignOut.fromJson(r.data as Map<String, dynamic>);
+  });
 
   @override
   Future<String> upload({

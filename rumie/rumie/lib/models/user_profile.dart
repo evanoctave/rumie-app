@@ -6,10 +6,10 @@ class Pet {
   const Pet({required this.name, required this.type, this.age = 0});
 
   Pet copyWith({String? name, String? type, int? age}) => Pet(
-        name: name ?? this.name,
-        type: type ?? this.type,
-        age: age ?? this.age,
-      );
+    name: name ?? this.name,
+    type: type ?? this.type,
+    age: age ?? this.age,
+  );
 }
 
 class UserProfile {

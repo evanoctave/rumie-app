@@ -5,14 +5,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
+import '../core/utils/profile_styles.dart';
+import '../domain/entities/match.dart';
+import '../domain/entities/roommate_profile.dart';
 import '../models/message.dart';
-import '../models/roommate.dart';
+import '../state/matches_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/safety_notice.dart';
+import 'safety_center_screen.dart';
 
 class ChatScreen extends StatefulWidget {
-  final Roommate roommate;
-  const ChatScreen({super.key, required this.roommate});
+  final RoommateMatch match;
+  const ChatScreen({super.key, required this.match});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -39,6 +45,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   final _random = Random();
 
+  RoommateProfile get _profile => widget.match.profile;
+  List<Color> get _gradient => ProfileStyles.gradientFor(_profile.id);
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +55,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..repeat();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<MatchesProvider>().markRead(widget.match.id);
+    });
 
     Future.delayed(700.ms, () {
       if (mounted) _addTheirMessage("Hey! Looks like we matched 👋");
@@ -63,13 +76,18 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   void _addTheirMessage(String text) {
     setState(() {
       _isTyping = false;
-      _messages.add(Message(
-        id: '${DateTime.now().millisecondsSinceEpoch}',
-        text: text,
-        isMe: false,
-        timestamp: DateTime.now(),
-      ));
+      _messages.add(
+        Message(
+          id: '${DateTime.now().millisecondsSinceEpoch}',
+          text: text,
+          isMe: false,
+          timestamp: DateTime.now(),
+        ),
+      );
     });
+    context.read<MatchesProvider>()
+      ..setPreview(widget.match.id, text)
+      ..markRead(widget.match.id);
     _scrollToBottom();
   }
 
@@ -78,20 +96,25 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     if (text.isEmpty) return;
     HapticFeedback.lightImpact();
     setState(() {
-      _messages.add(Message(
-        id: '${DateTime.now().millisecondsSinceEpoch}',
-        text: text,
-        isMe: true,
-        timestamp: DateTime.now(),
-      ));
+      _messages.add(
+        Message(
+          id: '${DateTime.now().millisecondsSinceEpoch}',
+          text: text,
+          isMe: true,
+          timestamp: DateTime.now(),
+        ),
+      );
       _isTyping = true;
     });
+    context.read<MatchesProvider>().setPreview(widget.match.id, 'You: $text');
     _textCtrl.clear();
     _scrollToBottom();
 
     final delay = 1200 + _random.nextInt(1000);
     Future.delayed(Duration(milliseconds: delay), () {
-      if (mounted) _addTheirMessage(_responses[_random.nextInt(_responses.length)]);
+      if (mounted) {
+        _addTheirMessage(_responses[_random.nextInt(_responses.length)]);
+      }
     });
   }
 
@@ -114,6 +137,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       appBar: _buildAppBar(),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+            child: SafetyNotice(
+              message:
+                  'Keep conversations respectful. Don\'t share sensitive personal information too early.',
+              onTap:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SafetyCenterScreen(),
+                    ),
+                  ),
+            ),
+          ),
           Expanded(child: _buildMessages()),
           if (_isTyping) _buildTypingIndicator(),
           _buildInputBar(),
@@ -128,7 +165,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.text),
+        icon: Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 20,
+          color: AppColors.text,
+        ),
         onPressed: () => Navigator.pop(context),
       ),
       title: Row(
@@ -139,15 +180,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  widget.roommate.gradient.first.withAlpha(80),
-                  widget.roommate.gradient.last.withAlpha(40),
+                  _gradient.first.withAlpha(80),
+                  _gradient.last.withAlpha(40),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: widget.roommate.gradient.first.withAlpha(80),
+                color: _gradient.first.withAlpha(80),
                 width: 1.5,
               ),
             ),
@@ -155,7 +196,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               borderRadius: BorderRadius.circular(11),
               child: Padding(
                 padding: const EdgeInsets.all(4),
-                child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.contain),
+                child: SvgPicture.asset(
+                  _profile.avatarAsset,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),
@@ -165,7 +209,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                widget.roommate.name,
+                _profile.name,
                 style: GoogleFonts.dmSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -175,13 +219,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               Row(
                 children: [
                   Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: AppColors.green,
-                      shape: BoxShape.circle,
-                    ),
-                  )
+                        width: 7,
+                        height: 7,
+                        decoration: const BoxDecoration(
+                          color: AppColors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      )
                       .animate(onPlay: (c) => c.repeat())
                       .scaleXY(begin: 0.6, end: 1.4, duration: 1000.ms)
                       .then()
@@ -203,7 +247,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.more_horiz_rounded, color: AppColors.textSecondary, size: 24),
+          icon: Icon(
+            Icons.more_horiz_rounded,
+            color: AppColors.textSecondary,
+            size: 24,
+          ),
           onPressed: () {},
         ),
       ],
@@ -226,15 +274,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    widget.roommate.gradient.first.withAlpha(70),
-                    widget.roommate.gradient.last.withAlpha(40),
+                    _gradient.first.withAlpha(70),
+                    _gradient.last.withAlpha(40),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: widget.roommate.gradient.first.withAlpha(80),
+                  color: _gradient.first.withAlpha(80),
                   width: 2,
                 ),
                 boxShadow: AppColors.cardShadow,
@@ -243,13 +291,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(22),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.contain),
+                  child: SvgPicture.asset(
+                    _profile.avatarAsset,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ).animate().scale(duration: 450.ms, curve: Curves.easeOutBack),
             const SizedBox(height: 16),
             Text(
-              'Matched with ${widget.roommate.name}',
+              'Matched with ${_profile.name}',
               style: GoogleFonts.dmSans(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
@@ -277,10 +328,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         final msg = _messages[index];
         final prevIsMe = index > 0 && _messages[index - 1].isMe == msg.isMe;
         return _Bubble(
-          message: msg,
-          roommate: widget.roommate,
-          showAvatar: !msg.isMe && !prevIsMe,
-        )
+              message: msg,
+              profile: _profile,
+              gradient: _gradient,
+              showAvatar: !msg.isMe && !prevIsMe,
+            )
             .animate()
             .fadeIn(duration: 200.ms)
             .slideY(begin: 0.12, duration: 220.ms, curve: Curves.easeOutCubic);
@@ -299,8 +351,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  widget.roommate.gradient.first.withAlpha(80),
-                  widget.roommate.gradient.last.withAlpha(40),
+                  _gradient.first.withAlpha(80),
+                  _gradient.last.withAlpha(40),
                 ],
               ),
               borderRadius: BorderRadius.circular(10),
@@ -309,7 +361,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               borderRadius: BorderRadius.circular(9),
               child: Padding(
                 padding: const EdgeInsets.all(3),
-                child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.contain),
+                child: SvgPicture.asset(
+                  _profile.avatarAsset,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),
@@ -334,7 +389,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   child: AnimatedBuilder(
                     animation: _typingCtrl,
                     builder: (ctx, _) {
-                      final off = sin((_typingCtrl.value * 2 * pi) - (i * pi / 3));
+                      final off = sin(
+                        (_typingCtrl.value * 2 * pi) - (i * pi / 3),
+                      );
                       return Transform.translate(
                         offset: Offset(0, -4 * (off + 1) / 2),
                         child: Container(
@@ -385,14 +442,23 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   ),
                   child: TextField(
                     controller: _textCtrl,
-                    style: GoogleFonts.dmSans(color: AppColors.text, fontSize: 15),
+                    style: GoogleFonts.dmSans(
+                      color: AppColors.text,
+                      fontSize: 15,
+                    ),
                     maxLines: 4,
                     minLines: 1,
                     textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
                       hintText: 'Message...',
-                      hintStyle: GoogleFonts.dmSans(color: AppColors.gray, fontSize: 15),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+                      hintStyle: GoogleFonts.dmSans(
+                        color: AppColors.gray,
+                        fontSize: 15,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 11,
+                      ),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -421,7 +487,8 @@ class _SendButton extends StatefulWidget {
   State<_SendButton> createState() => _SendButtonState();
 }
 
-class _SendButtonState extends State<_SendButton> with SingleTickerProviderStateMixin {
+class _SendButtonState extends State<_SendButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
 
   @override
@@ -437,13 +504,19 @@ class _SendButtonState extends State<_SendButton> with SingleTickerProviderState
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) => _ctrl.reverse(),
-      onTapUp: (_) { _ctrl.forward(); widget.onTap(); },
+      onTapUp: (_) {
+        _ctrl.forward();
+        widget.onTap();
+      },
       onTapCancel: () => _ctrl.forward(),
       child: ScaleTransition(
         scale: _ctrl,
@@ -460,7 +533,10 @@ class _SendButtonState extends State<_SendButton> with SingleTickerProviderState
               'assets/icons/ic_send.svg',
               width: 20,
               height: 20,
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
             ),
           ),
         ),
@@ -473,44 +549,55 @@ class _SendButtonState extends State<_SendButton> with SingleTickerProviderState
 
 class _Bubble extends StatelessWidget {
   final Message message;
-  final Roommate roommate;
+  final RoommateProfile profile;
+  final List<Color> gradient;
   final bool showAvatar;
 
-  const _Bubble({required this.message, required this.roommate, required this.showAvatar});
+  const _Bubble({
+    required this.message,
+    required this.profile,
+    required this.gradient,
+    required this.showAvatar,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
-        mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!message.isMe) ...[
             SizedBox(
               width: 30,
-              child: showAvatar
-                  ? Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            roommate.gradient.first.withAlpha(80),
-                            roommate.gradient.last.withAlpha(40),
-                          ],
+              child:
+                  showAvatar
+                      ? Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              gradient.first.withAlpha(80),
+                              gradient.last.withAlpha(40),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(9),
-                        child: Padding(
-                          padding: const EdgeInsets.all(3),
-                          child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.contain),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(9),
+                          child: Padding(
+                            padding: const EdgeInsets.all(3),
+                            child: SvgPicture.asset(
+                              profile.avatarAsset,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                         ),
-                      ),
-                    )
-                  : null,
+                      )
+                      : null,
             ),
             const SizedBox(width: 8),
           ],
@@ -529,9 +616,16 @@ class _Bubble extends StatelessWidget {
                   bottomLeft: Radius.circular(message.isMe ? 18 : 4),
                   bottomRight: Radius.circular(message.isMe ? 4 : 18),
                 ),
-                boxShadow: message.isMe
-                    ? [BoxShadow(color: AppColors.primary.withAlpha(40), blurRadius: 12, offset: const Offset(0, 4))]
-                    : AppColors.cardShadow,
+                boxShadow:
+                    message.isMe
+                        ? [
+                          BoxShadow(
+                            color: AppColors.primary.withAlpha(40),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                        : AppColors.cardShadow,
               ),
               child: Text(
                 message.text,

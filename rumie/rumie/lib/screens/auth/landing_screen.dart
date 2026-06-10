@@ -14,12 +14,16 @@ class LandingScreen extends StatelessWidget {
   static PageRoute<T> slideRoute<T>(Widget screen) {
     return PageRouteBuilder(
       pageBuilder: (ctx, anim, sec) => screen,
-      transitionsBuilder: (ctx, anim, sec, child) => SlideTransition(
-        position: Tween(begin: const Offset(1, 0), end: Offset.zero).animate(
-          CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
-        ),
-        child: child,
-      ),
+      transitionsBuilder:
+          (ctx, anim, sec, child) => SlideTransition(
+            position: Tween(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
+            ),
+            child: child,
+          ),
       transitionDuration: const Duration(milliseconds: 320),
     );
   }
@@ -47,35 +51,66 @@ class LandingScreen extends StatelessWidget {
             right: -60,
             child: _Blob(size: 280, color: AppColors.softPurple, opacity: 1.0)
                 .animate()
-                .scale(begin: const Offset(0.6, 0.6), end: const Offset(1, 1),
-                    duration: 900.ms, curve: Curves.easeOutCubic)
+                .scale(
+                  begin: const Offset(0.6, 0.6),
+                  end: const Offset(1, 1),
+                  duration: 900.ms,
+                  curve: Curves.easeOutCubic,
+                )
                 .fadeIn(duration: 600.ms),
           ),
           Positioned(
             top: 120,
             left: -50,
-            child: const _Blob(size: 160, color: AppColors.softPink, opacity: 0.85)
+            child: const _Blob(
+                  size: 160,
+                  color: AppColors.softPink,
+                  opacity: 0.85,
+                )
                 .animate()
-                .scale(begin: const Offset(0.4, 0.4), end: const Offset(1, 1),
-                    delay: 120.ms, duration: 800.ms, curve: Curves.easeOutCubic)
+                .scale(
+                  begin: const Offset(0.4, 0.4),
+                  end: const Offset(1, 1),
+                  delay: 120.ms,
+                  duration: 800.ms,
+                  curve: Curves.easeOutCubic,
+                )
                 .fadeIn(delay: 120.ms, duration: 600.ms),
           ),
           Positioned(
             bottom: size.height * 0.32,
             right: -30,
-            child: const _Blob(size: 130, color: AppColors.softGreen, opacity: 0.9)
+            child: const _Blob(
+                  size: 130,
+                  color: AppColors.softGreen,
+                  opacity: 0.9,
+                )
                 .animate()
-                .scale(begin: const Offset(0.4, 0.4), end: const Offset(1, 1),
-                    delay: 200.ms, duration: 800.ms, curve: Curves.easeOutCubic)
+                .scale(
+                  begin: const Offset(0.4, 0.4),
+                  end: const Offset(1, 1),
+                  delay: 200.ms,
+                  duration: 800.ms,
+                  curve: Curves.easeOutCubic,
+                )
                 .fadeIn(delay: 200.ms, duration: 600.ms),
           ),
           Positioned(
             bottom: size.height * 0.18,
             left: -40,
-            child: const _Blob(size: 110, color: AppColors.softYellow, opacity: 0.8)
+            child: const _Blob(
+                  size: 110,
+                  color: AppColors.softYellow,
+                  opacity: 0.8,
+                )
                 .animate()
-                .scale(begin: const Offset(0.4, 0.4), end: const Offset(1, 1),
-                    delay: 300.ms, duration: 800.ms, curve: Curves.easeOutCubic)
+                .scale(
+                  begin: const Offset(0.4, 0.4),
+                  end: const Offset(1, 1),
+                  delay: 300.ms,
+                  duration: 800.ms,
+                  curve: Curves.easeOutCubic,
+                )
                 .fadeIn(delay: 300.ms, duration: 600.ms),
           ),
 
@@ -85,9 +120,10 @@ class LandingScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 28),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: size.height
-                      - MediaQuery.of(context).padding.top
-                      - MediaQuery.of(context).padding.bottom,
+                  minHeight:
+                      size.height -
+                      MediaQuery.of(context).padding.top -
+                      MediaQuery.of(context).padding.bottom,
                 ),
                 child: IntrinsicHeight(
                   child: Column(
@@ -115,33 +151,33 @@ class LandingScreen extends StatelessWidget {
       children: [
         // Logo
         ShaderMask(
-          shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
-          child: Text(
-            'rumie',
-            style: GoogleFonts.dmSans(
-              fontSize: 60,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -3,
-              height: 1.0,
-            ),
-          ),
-        )
+              shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
+              child: Text(
+                'rumie',
+                style: GoogleFonts.dmSans(
+                  fontSize: 60,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -3,
+                  height: 1.0,
+                ),
+              ),
+            )
             .animate()
             .fadeIn(duration: 500.ms)
             .slideY(begin: -0.2, end: 0, curve: Curves.easeOutCubic),
         const SizedBox(height: 20),
         // Headline
         Text(
-          'Find your\npeople.',
-          style: GoogleFonts.dmSans(
-            fontSize: 44,
-            fontWeight: FontWeight.w800,
-            color: AppColors.text,
-            letterSpacing: -1.8,
-            height: 1.1,
-          ),
-        )
+              'Find your\npeople.',
+              style: GoogleFonts.dmSans(
+                fontSize: 44,
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
+                letterSpacing: -1.8,
+                height: 1.1,
+              ),
+            )
             .animate()
             .fadeIn(delay: 80.ms, duration: 500.ms)
             .slideY(begin: 0.15, end: 0, curve: Curves.easeOutCubic),
@@ -154,9 +190,7 @@ class LandingScreen extends StatelessWidget {
             color: AppColors.textSecondary,
             height: 1.55,
           ),
-        )
-            .animate()
-            .fadeIn(delay: 160.ms, duration: 500.ms),
+        ).animate().fadeIn(delay: 160.ms, duration: 500.ms),
       ],
     );
   }
@@ -166,16 +200,26 @@ class LandingScreen extends StatelessWidget {
       children: [
         // Social logins
         _SocialButton(
-          label: 'Continue with Google',
-          iconWidget: const _GoogleG(),
-          onTap: () => _socialSnack(context, 'Google'),
-        ).animate().fadeIn(delay: 250.ms, duration: 400.ms).slideY(begin: 0.12, end: 0, curve: Curves.easeOutCubic),
+              label: 'Continue with Google',
+              iconWidget: const _GoogleG(),
+              onTap: () => _socialSnack(context, 'Google'),
+            )
+            .animate()
+            .fadeIn(delay: 250.ms, duration: 400.ms)
+            .slideY(begin: 0.12, end: 0, curve: Curves.easeOutCubic),
         const SizedBox(height: 10),
         _SocialButton(
-          label: 'Continue with Apple',
-          iconWidget: Icon(Icons.apple_rounded, color: AppColors.text, size: 22),
-          onTap: () => _socialSnack(context, 'Apple'),
-        ).animate().fadeIn(delay: 300.ms, duration: 400.ms).slideY(begin: 0.12, end: 0, curve: Curves.easeOutCubic),
+              label: 'Continue with Apple',
+              iconWidget: Icon(
+                Icons.apple_rounded,
+                color: AppColors.text,
+                size: 22,
+              ),
+              onTap: () => _socialSnack(context, 'Apple'),
+            )
+            .animate()
+            .fadeIn(delay: 300.ms, duration: 400.ms)
+            .slideY(begin: 0.12, end: 0, curve: Curves.easeOutCubic),
         const SizedBox(height: 20),
 
         // Divider
@@ -200,56 +244,64 @@ class LandingScreen extends StatelessWidget {
 
         // Primary CTA — Create Account
         _TapButton(
-          onTap: () => _showRoleSheet(context),
-          child: Container(
-            height: 56,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: AppColors.buttonShadow,
-            ),
-            child: Text(
-              'Create an Account',
-              style: GoogleFonts.dmSans(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                letterSpacing: 0.2,
+              onTap: () => _showRoleSheet(context),
+              child: Container(
+                height: 56,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: AppColors.buttonShadow,
+                ),
+                child: Text(
+                  'Create an Account',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                ),
               ),
-            ),
-          ),
-        ).animate().fadeIn(delay: 390.ms, duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutBack),
+            )
+            .animate()
+            .fadeIn(delay: 390.ms, duration: 400.ms)
+            .slideY(begin: 0.1, end: 0, curve: Curves.easeOutBack),
         const SizedBox(height: 14),
 
         // Secondary CTA — Sign In
         _TapButton(
-          onTap: () => Navigator.push(context, slideRoute(const LoginScreen())),
-          child: Container(
-            height: 56,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border, width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(5),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+              onTap:
+                  () =>
+                      Navigator.push(context, slideRoute(const LoginScreen())),
+              child: Container(
+                height: 56,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(5),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Text(
-              'Sign in with Email',
-              style: GoogleFonts.dmSans(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.text,
+                child: Text(
+                  'Sign in with Email',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.text,
+                  ),
+                ),
               ),
-            ),
-          ),
-        ).animate().fadeIn(delay: 440.ms, duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
+            )
+            .animate()
+            .fadeIn(delay: 440.ms, duration: 400.ms)
+            .slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
 
         const SizedBox(height: 20),
         Text(
@@ -273,12 +325,13 @@ class LandingScreen extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (_) => _RoleSheet(
-        onSelect: (role) {
-          Navigator.pop(context);
-          Navigator.push(context, slideRoute(SignupScreen(role: role)));
-        },
-      ),
+      builder:
+          (_) => _RoleSheet(
+            onSelect: (role) {
+              Navigator.pop(context);
+              Navigator.push(context, slideRoute(SignupScreen(role: role)));
+            },
+          ),
     );
   }
 }
@@ -299,10 +352,7 @@ class _Blob extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-        ),
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
     );
   }
@@ -432,7 +482,10 @@ class _RoleSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        24, 12, 24, MediaQuery.of(context).padding.bottom + 28,
+        24,
+        12,
+        24,
+        MediaQuery.of(context).padding.bottom + 28,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -517,8 +570,14 @@ class _RoleTileState extends State<_RoleTile> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) { HapticFeedback.selectionClick(); setState(() => _pressed = true); },
-      onTapUp: (_) { setState(() => _pressed = false); widget.onTap(); },
+      onTapDown: (_) {
+        HapticFeedback.selectionClick();
+        setState(() => _pressed = true);
+      },
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedScale(
         scale: _pressed ? 0.97 : 1.0,
@@ -542,7 +601,10 @@ class _RoleTileState extends State<_RoleTile> {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Center(
-                  child: Text(widget.emoji, style: const TextStyle(fontSize: 24)),
+                  child: Text(
+                    widget.emoji,
+                    style: const TextStyle(fontSize: 24),
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -569,7 +631,11 @@ class _RoleTileState extends State<_RoleTile> {
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios_rounded, color: widget.accentColor, size: 16),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: widget.accentColor,
+                size: 16,
+              ),
             ],
           ),
         ),

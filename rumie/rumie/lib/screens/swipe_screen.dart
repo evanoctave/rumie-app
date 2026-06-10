@@ -3,33 +3,43 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
-import '../data/sample_data.dart';
-import '../models/roommate.dart';
+import '../core/utils/profile_styles.dart';
+import '../domain/entities/roommate_candidate.dart';
+import '../domain/entities/roommate_profile.dart';
+import '../state/discovery_provider.dart';
+import '../state/matches_provider.dart';
+import '../state/saved_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/tokens.dart';
 import '../widgets/action_button.dart';
+import '../widgets/match_score_pill.dart';
+import '../widgets/rumie_chip.dart';
+import '../widgets/save_button.dart';
 import '../widgets/stamp.dart';
-import '../widgets/trait_chip.dart';
+import 'chat_screen.dart';
+import 'roommate_detail_screen.dart';
 
+/// Discover tab: swipe through compatible roommates.
 class SwipeScreen extends StatefulWidget {
-  final void Function(Roommate) onMatch;
-  final int matchCount;
   final VoidCallback onOpenMatches;
 
-  const SwipeScreen({
-    super.key,
-    required this.onMatch,
-    required this.matchCount,
-    required this.onOpenMatches,
-  });
+  const SwipeScreen({super.key, required this.onOpenMatches});
 
   @override
   State<SwipeScreen> createState() => _SwipeScreenState();
 }
 
 class _SwipeScreenState extends State<SwipeScreen> {
-  int _index = 0;
   double _dragRatio = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    final discovery = context.read<DiscoveryProvider>();
+    if (discovery.loading) discovery.load();
+  }
 
   void _onDragRatio(double ratio) {
     setState(() => _dragRatio = ratio.clamp(-1.0, 1.0));
@@ -46,18 +56,36 @@ class _SwipeScreenState extends State<SwipeScreen> {
   }
 
   void _handleSwipe(bool liked) {
-    if (liked && _index < sampleRoommates.length) {
+    final discovery = context.read<DiscoveryProvider>();
+    final candidate = discovery.current;
+    if (candidate == null) return;
+
+    setState(() => _dragRatio = 0.0);
+
+    if (liked) {
       HapticFeedback.heavyImpact();
-      widget.onMatch(sampleRoommates[_index]);
-      _showMatchDialog(sampleRoommates[_index]);
+      discovery.like(candidate);
+      final isNew = context.read<MatchesProvider>().addFromCandidate(candidate);
+      if (isNew) _showMatchDialog(candidate);
+    } else {
+      discovery.pass(candidate);
     }
-    setState(() {
-      _dragRatio = 0.0;
-      _index = _index < sampleRoommates.length - 1 ? _index + 1 : sampleRoommates.length;
-    });
   }
 
-  void _showMatchDialog(Roommate roommate) {
+  void _openDetail(RoommateCandidate candidate) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => RoommateDetailScreen(
+              candidate: candidate,
+              onLike: () => _handleSwipe(true),
+            ),
+      ),
+    );
+  }
+
+  void _showMatchDialog(RoommateCandidate candidate) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -74,22 +102,31 @@ class _SwipeScreenState extends State<SwipeScreen> {
           ),
         );
       },
-      pageBuilder: (context, anim, secAnim) => Material(
-        type: MaterialType.transparency,
-        child: _MatchDialog(
-          roommate: roommate,
-          onChat: () {
-            Navigator.pop(context);
-            widget.onOpenMatches();
-          },
-        ),
-      ),
+      pageBuilder:
+          (dialogContext, anim, secAnim) => Material(
+            type: MaterialType.transparency,
+            child: _MatchDialog(
+              profile: candidate.profile,
+              onChat: () {
+                Navigator.pop(dialogContext);
+                final match = context
+                    .read<MatchesProvider>()
+                    .matches
+                    .firstWhere((m) => m.profile.id == candidate.profile.id);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ChatScreen(match: match)),
+                );
+              },
+            ),
+          ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasMore = _index < sampleRoommates.length;
+    final discovery = context.watch<DiscoveryProvider>();
+    final current = discovery.current;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 60),
@@ -97,31 +134,46 @@ class _SwipeScreenState extends State<SwipeScreen> {
       child: Column(
         children: [
           _buildHeader(),
-          if (hasMore) ...[
+          _buildFilters(discovery),
+          if (discovery.loading)
+            const Expanded(
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                ),
+              ),
+            )
+          else if (current != null) ...[
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.gutter),
                 child: Column(
                   children: [
-                    const SizedBox(height: 12),
-                    Center(child: _buildPhotoStack()),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: Spacing.sm),
+                    Center(child: _buildPhotoStack(discovery)),
+                    const SizedBox(height: Spacing.lg),
                     Expanded(
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 300),
                         switchInCurve: Curves.easeOutCubic,
                         switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, anim) => FadeTransition(
-                          opacity: anim,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, 0.08),
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-                            child: child,
-                          ),
-                        ),
-                        child: _buildProfileInfo(sampleRoommates[_index]),
+                        transitionBuilder:
+                            (child, anim) => FadeTransition(
+                              opacity: anim,
+                              child: SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(0, 0.08),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: anim,
+                                    curve: Curves.easeOutCubic,
+                                  ),
+                                ),
+                                child: child,
+                              ),
+                            ),
+                        child: _buildProfileInfo(current),
                       ),
                     ),
                   ],
@@ -131,88 +183,112 @@ class _SwipeScreenState extends State<SwipeScreen> {
             _buildActions(),
             const SizedBox(height: 110), // space for floating nav
           ] else
-            Expanded(child: _buildEmpty()),
+            Expanded(child: _buildEmpty(discovery)),
         ],
       ),
     );
   }
 
   Widget _buildHeader() {
+    final matchCount = context.watch<MatchesProvider>().count;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Discover',
-                style: GoogleFonts.dmSans(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.text,
-                  letterSpacing: -0.8,
-                ),
-              ),
-              Text(
-                'Find your perfect roommate',
-                style: GoogleFonts.dmSans(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+          padding: const EdgeInsets.fromLTRB(
+            Spacing.gutter,
+            Spacing.xl,
+            Spacing.gutter,
+            Spacing.sm,
           ),
-          const Spacer(),
-          if (widget.matchCount > 0)
-            GestureDetector(
-              onTap: widget.onOpenMatches,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withAlpha(50),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+          child: Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Find your people',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.text,
+                      letterSpacing: -0.8,
                     ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
+                  ),
+                  Text(
+                    'Roommates who actually fit your lifestyle',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${widget.matchCount} match${widget.matchCount == 1 ? '' : 'es'}',
+                  ),
+                ],
+              ),
+              const Spacer(),
+              if (matchCount > 0)
+                GestureDetector(
+                  onTap: widget.onOpenMatches,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(Radii.sm),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withAlpha(50),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      '$matchCount match${matchCount == 1 ? '' : 'es'}',
                       style: GoogleFonts.dmSans(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-        ],
-      ),
-    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.2, end: 0, curve: Curves.easeOutCubic);
+            ],
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 400.ms)
+        .slideY(begin: -0.2, end: 0, curve: Curves.easeOutCubic);
   }
 
-  Widget _buildPhotoStack() {
-    const size = 200.0;
+  Widget _buildFilters(DiscoveryProvider discovery) {
+    return SizedBox(
+      height: 44,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+        scrollDirection: Axis.horizontal,
+        itemCount: DiscoverFilter.values.length,
+        separatorBuilder: (ctx, i) => const SizedBox(width: Spacing.sm),
+        itemBuilder: (context, index) {
+          final filter = DiscoverFilter.values[index];
+          return Center(
+            child: RumieChip(
+              label: filter.label,
+              selected: discovery.filters.contains(filter),
+              onTap: () => discovery.toggleFilter(filter),
+            ),
+          );
+        },
+      ),
+    ).animate().fadeIn(delay: 80.ms, duration: 300.ms);
+  }
+
+  Widget _buildPhotoStack(DiscoveryProvider discovery) {
+    const size = 190.0;
     const stackHeight = size + 24.0;
+    final current = discovery.current!;
+    final next = discovery.next;
+    final afterNext = discovery.afterNext;
 
     return SizedBox(
       width: size,
@@ -220,41 +296,36 @@ class _SwipeScreenState extends State<SwipeScreen> {
       child: Stack(
         alignment: Alignment.topCenter,
         children: [
-          if (_index + 2 < sampleRoommates.length)
+          if (afterNext != null)
             Positioned(
               top: 24,
               child: Opacity(
                 opacity: 0.20,
                 child: Transform.scale(
                   scale: 0.84,
-                  child: _AvatarCircle(
-                    roommate: sampleRoommates[_index + 2],
-                    size: size,
-                  ),
+                  child: _AvatarCircle(profile: afterNext.profile, size: size),
                 ),
               ),
             ),
-          if (_index + 1 < sampleRoommates.length)
+          if (next != null)
             Positioned(
               top: 12,
               child: Opacity(
                 opacity: 0.55,
                 child: Transform.scale(
                   scale: 0.92,
-                  child: _AvatarCircle(
-                    roommate: sampleRoommates[_index + 1],
-                    size: size,
-                  ),
+                  child: _AvatarCircle(profile: next.profile, size: size),
                 ),
               ),
             ),
           Positioned(
             top: 0,
             child: _DragCard(
-              key: ValueKey(_index),
-              roommate: sampleRoommates[_index],
+              key: ValueKey(current.profile.id),
+              profile: current.profile,
               onSwipe: _handleSwipe,
               onDragRatio: _onDragRatio,
+              onTap: () => _openDetail(current),
               size: size,
             ),
           ),
@@ -263,9 +334,12 @@ class _SwipeScreenState extends State<SwipeScreen> {
     );
   }
 
-  Widget _buildProfileInfo(Roommate r) {
+  Widget _buildProfileInfo(RoommateCandidate candidate) {
+    final p = candidate.profile;
+    final saved = context.watch<SavedProvider>().isRoommateSaved(p.id);
+
     return SizedBox(
-      key: ValueKey(r.name),
+      key: ValueKey(p.id),
       width: double.infinity,
       child: SingleChildScrollView(
         child: Column(
@@ -276,70 +350,142 @@ class _SwipeScreenState extends State<SwipeScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    '${r.name}, ${r.age}',
+                    '${p.name}, ${p.age}',
                     style: GoogleFonts.dmSans(
-                      fontSize: 30,
+                      fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: AppColors.text,
                       letterSpacing: -0.8,
                     ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: AppColors.softGreen,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.green.withAlpha(60)),
-                  ),
+                MatchScorePill(
+                  score: candidate.compatibilityScore,
+                  large: true,
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(
+                  Icons.school_rounded,
+                  size: 14,
+                  color: AppColors.primary.withAlpha(180),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
                   child: Text(
-                    '\$${r.budget}/mo',
+                    '${p.major} · ${p.school}',
                     style: GoogleFonts.dmSans(
-                      color: AppColors.greenDark,
-                      fontWeight: FontWeight.w700,
                       fontSize: 13,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
+                SaveButton(
+                  saved: saved,
+                  heart: true,
+                  size: 34,
+                  onToggle:
+                      () => context.read<SavedProvider>().toggleRoommate(p.id),
+                ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.md),
             Row(
               children: [
-                Icon(Icons.location_on_rounded, size: 14, color: AppColors.primary.withAlpha(180)),
-                const SizedBox(width: 4),
-                Text(
-                  r.location,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
+                _infoPill(
+                  Icons.payments_rounded,
+                  p.budgetLabel,
+                  AppColors.greenDark,
+                  AppColors.softGreen,
+                ),
+                const SizedBox(width: Spacing.sm),
+                _infoPill(
+                  Icons.calendar_today_rounded,
+                  p.moveInLabel,
+                  AppColors.darkMauve,
+                  AppColors.softPurple,
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: AppColors.cardShadow,
-              ),
-              child: Text(
-                r.bio,
-                style: GoogleFonts.dmSans(
-                  fontSize: 14.5,
-                  height: 1.6,
-                  color: AppColors.text,
+            if (candidate.compatibilityReasons.isNotEmpty) ...[
+              const SizedBox(height: Spacing.md),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(Spacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(Radii.md),
+                  border: Border.all(color: AppColors.borderBright, width: 1),
+                  boxShadow: AppColors.cardShadow,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final reason in candidate.compatibilityReasons.take(3))
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.favorite_rounded,
+                              color: AppColors.pink,
+                              size: 13,
+                            ),
+                            const SizedBox(width: Spacing.sm),
+                            Expanded(
+                              child: Text(
+                                reason,
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.text,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    GestureDetector(
+                      onTap: () => _openDetail(candidate),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'See full profile →',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ],
+            const SizedBox(height: Spacing.md),
+            Text(
+              p.bio,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.dmSans(
+                fontSize: 13.5,
+                height: 1.5,
+                color: AppColors.textSecondary,
+              ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: Spacing.md),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: r.traits.map((t) => TraitChip(trait: t)).toList(),
+              spacing: Spacing.sm,
+              runSpacing: Spacing.sm,
+              children: [
+                for (final tag in p.lifestyleTags)
+                  RumieChip(label: tag, color: ProfileStyles.tagColor(tag)),
+              ],
             ),
           ],
         ),
@@ -347,40 +493,67 @@ class _SwipeScreenState extends State<SwipeScreen> {
     );
   }
 
-  Widget _buildActions() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 10),
+  Widget _infoPill(IconData icon, String label, Color fg, Color bg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(Radii.sm),
+        border: Border.all(color: fg.withAlpha(50)),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          ActionButton(
-            label: 'Pass',
-            svgAsset: 'assets/icons/ic_pass.svg',
-            color: AppColors.red,
-            onTap: () => _handleSwipe(false),
-          ),
-          ActionButton(
-            label: 'Super',
-            svgAsset: 'assets/icons/ic_super.svg',
-            color: AppColors.yellow,
-            onTap: () => _handleSwipe(true),
-            large: true,
-          ),
-          ActionButton(
-            label: 'Like',
-            svgAsset: 'assets/icons/ic_like.svg',
-            color: AppColors.green,
-            onTap: () => _handleSwipe(true),
+          Icon(icon, size: 13, color: fg),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: GoogleFonts.dmSans(
+              color: fg,
+              fontWeight: FontWeight.w700,
+              fontSize: 12.5,
+            ),
           ),
         ],
       ),
-    )
+    );
+  }
+
+  Widget _buildActions() {
+    return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ActionButton(
+                label: 'Pass',
+                svgAsset: 'assets/icons/ic_pass.svg',
+                color: AppColors.red,
+                onTap: () => _handleSwipe(false),
+              ),
+              ActionButton(
+                label: 'Super',
+                svgAsset: 'assets/icons/ic_super.svg',
+                color: AppColors.yellow,
+                onTap: () => _handleSwipe(true),
+                large: true,
+              ),
+              ActionButton(
+                label: 'Like',
+                svgAsset: 'assets/icons/ic_like.svg',
+                color: AppColors.green,
+                onTap: () => _handleSwipe(true),
+              ),
+            ],
+          ),
+        )
         .animate()
         .fadeIn(delay: 200.ms, duration: 400.ms)
         .slideY(begin: 0.3, end: 0, delay: 200.ms, curve: Curves.easeOutBack);
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(DiscoveryProvider discovery) {
+    final filtered = discovery.filters.isNotEmpty;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -388,29 +561,35 @@ class _SwipeScreenState extends State<SwipeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.softPurple, Color(0xFFE0D9FF)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: AppColors.cardShadow,
-              ),
-              child: Center(
-                child: SvgPicture.asset(
-                  'assets/icons/ic_discover.svg',
-                  width: 44,
-                  height: 44,
-                  colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
-                ),
-              ),
-            ).animate().scale(duration: 500.ms, curve: Curves.easeOutBack).fadeIn(),
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.softPurple, const Color(0xFFE0D9FF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: AppColors.cardShadow,
+                  ),
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'assets/icons/ic_discover.svg',
+                      width: 44,
+                      height: 44,
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.primary,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ),
+                )
+                .animate()
+                .scale(duration: 500.ms, curve: Curves.easeOutBack)
+                .fadeIn(),
             const SizedBox(height: 28),
             Text(
-              "You've seen everyone",
+              filtered ? 'No one fits those filters' : "You've seen everyone",
               style: GoogleFonts.dmSans(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
@@ -420,7 +599,9 @@ class _SwipeScreenState extends State<SwipeScreen> {
             ).animate().fadeIn(delay: 120.ms),
             const SizedBox(height: 10),
             Text(
-              'Check back soon for new profiles.',
+              filtered
+                  ? 'Try removing a filter to see more people.'
+                  : 'Check back soon for new profiles.',
               textAlign: TextAlign.center,
               style: GoogleFonts.dmSans(
                 fontSize: 15,
@@ -438,28 +619,26 @@ class _SwipeScreenState extends State<SwipeScreen> {
 // ─── Avatar circle ─────────────────────────────────────────────────────────────
 
 class _AvatarCircle extends StatelessWidget {
-  final Roommate roommate;
+  final RoommateProfile profile;
   final double size;
 
-  const _AvatarCircle({required this.roommate, required this.size});
+  const _AvatarCircle({required this.profile, required this.size});
 
   @override
   Widget build(BuildContext context) {
+    final gradient = ProfileStyles.gradientFor(profile.id);
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          colors: [
-            roommate.gradient.first.withAlpha(80),
-            roommate.gradient.last.withAlpha(40),
-          ],
+          colors: [gradient.first.withAlpha(80), gradient.last.withAlpha(40)],
         ),
-        border: Border.all(color: roommate.gradient.first.withAlpha(120), width: 3),
+        border: Border.all(color: gradient.first.withAlpha(120), width: 3),
         boxShadow: [
           BoxShadow(
-            color: roommate.gradient.first.withAlpha(60),
+            color: gradient.first.withAlpha(60),
             blurRadius: 28,
             offset: const Offset(0, 10),
             spreadRadius: -4,
@@ -474,7 +653,7 @@ class _AvatarCircle extends StatelessWidget {
       child: ClipOval(
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.contain),
+          child: SvgPicture.asset(profile.avatarAsset, fit: BoxFit.contain),
         ),
       ),
     );
@@ -484,16 +663,18 @@ class _AvatarCircle extends StatelessWidget {
 // ─── Draggable photo ───────────────────────────────────────────────────────────
 
 class _DragCard extends StatefulWidget {
-  final Roommate roommate;
+  final RoommateProfile profile;
   final void Function(bool) onSwipe;
   final void Function(double) onDragRatio;
+  final VoidCallback onTap;
   final double size;
 
   const _DragCard({
     super.key,
-    required this.roommate,
+    required this.profile,
     required this.onSwipe,
     required this.onDragRatio,
+    required this.onTap,
     required this.size,
   });
 
@@ -564,9 +745,10 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
       liked ? sw * 2.0 : -sw * 2.0,
       (_offset.dy + velPps.dy * 0.07).clamp(-sh * 0.4, sh * 0.4),
     );
-    _flyAnim = Tween<Offset>(begin: _offset, end: target).animate(
-      CurvedAnimation(parent: _flyController, curve: Curves.easeIn),
-    );
+    _flyAnim = Tween<Offset>(
+      begin: _offset,
+      end: target,
+    ).animate(CurvedAnimation(parent: _flyController, curve: Curves.easeIn));
     _flyAnim.addListener(() {
       setState(() => _offset = _flyAnim.value);
       widget.onDragRatio((_flyAnim.value.dx / (sw * 0.42)).clamp(-1.0, 1.0));
@@ -593,6 +775,7 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
     final nopeOpacity = (-_offset.dx / 75).clamp(0.0, 1.0);
 
     return GestureDetector(
+      onTap: widget.onTap,
       onPanStart: _onPanStart,
       onPanUpdate: _onPanUpdate,
       onPanEnd: _onPanEnd,
@@ -603,7 +786,7 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              _AvatarCircle(roommate: widget.roommate, size: widget.size),
+              _AvatarCircle(profile: widget.profile, size: widget.size),
               if (likeOpacity > 0.04)
                 Positioned(
                   top: 12,
@@ -633,13 +816,14 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
 // ─── Match dialog ──────────────────────────────────────────────────────────────
 
 class _MatchDialog extends StatelessWidget {
-  final Roommate roommate;
+  final RoommateProfile profile;
   final VoidCallback onChat;
 
-  const _MatchDialog({required this.roommate, required this.onChat});
+  const _MatchDialog({required this.profile, required this.onChat});
 
   @override
   Widget build(BuildContext context) {
+    final gradient = ProfileStyles.gradientFor(profile.id);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -655,51 +839,67 @@ class _MatchDialog extends StatelessWidget {
             children: [
               // Confetti-like colored dots row
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _dot(AppColors.pink),
-                  const SizedBox(width: 4),
-                  _dot(AppColors.yellow),
-                  const SizedBox(width: 4),
-                  _dot(AppColors.green),
-                  const SizedBox(width: 4),
-                  _dot(AppColors.primary),
-                  const SizedBox(width: 4),
-                  _dot(AppColors.orange),
-                ],
-              ).animate(onPlay: (c) => c.repeat(reverse: true))
-                  .shimmer(duration: 1200.ms, color: Colors.white.withAlpha(60)),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _dot(AppColors.pink),
+                      const SizedBox(width: 4),
+                      _dot(AppColors.yellow),
+                      const SizedBox(width: 4),
+                      _dot(AppColors.green),
+                      const SizedBox(width: 4),
+                      _dot(AppColors.primary),
+                      const SizedBox(width: 4),
+                      _dot(AppColors.orange),
+                    ],
+                  )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .shimmer(
+                    duration: 1200.ms,
+                    color: Colors.white.withAlpha(60),
+                  ),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _AvatarBox(svgAsset: 'assets/icons/av_you.svg', gradient: roommate.gradient),
+                  _AvatarBox(
+                    svgAsset: 'assets/icons/av_you.svg',
+                    gradient: gradient,
+                  ),
                   Container(
-                    width: 44,
-                    height: 44,
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      shape: BoxShape.circle,
-                      boxShadow: AppColors.buttonShadow,
-                    ),
-                    child: Center(
-                      child: SvgPicture.asset(
-                        'assets/icons/ic_like.svg',
-                        width: 20,
-                        height: 20,
-                        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                      ),
-                    ),
-                  )
+                        width: 44,
+                        height: 44,
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          shape: BoxShape.circle,
+                          boxShadow: AppColors.buttonShadow,
+                        ),
+                        child: Center(
+                          child: SvgPicture.asset(
+                            'assets/icons/ic_like.svg',
+                            width: 20,
+                            height: 20,
+                            colorFilter: const ColorFilter.mode(
+                              Colors.white,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                        ),
+                      )
                       .animate(onPlay: (c) => c.repeat(reverse: true))
-                      .scaleXY(begin: 0.88, end: 1.14, duration: 800.ms, curve: Curves.easeInOut),
-                  _AvatarBox(svgAsset: roommate.avatarAsset, gradient: roommate.gradient),
+                      .scaleXY(
+                        begin: 0.88,
+                        end: 1.14,
+                        duration: 800.ms,
+                        curve: Curves.easeInOut,
+                      ),
+                  _AvatarBox(svgAsset: profile.avatarAsset, gradient: gradient),
                 ],
               ),
               const SizedBox(height: 24),
               ShaderMask(
-                shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
+                shaderCallback:
+                    (b) => AppColors.primaryGradient.createShader(b),
                 child: Text(
                   "It's a Match!",
                   style: GoogleFonts.dmSans(
@@ -712,7 +912,7 @@ class _MatchDialog extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'You and ${roommate.name} liked each other.',
+                'You and ${profile.name} liked each other.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
