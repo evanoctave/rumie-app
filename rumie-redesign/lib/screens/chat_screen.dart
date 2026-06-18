@@ -26,15 +26,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   late AnimationController _typingCtrl;
 
   static const _responses = [
-    "Hey! So excited we matched 🎉",
+    "Hey! So excited we matched",
     "What's your schedule like?",
     "I love that neighborhood too!",
     "We should definitely meet up and chat.",
     "What kind of music are you into?",
     "Do you cook a lot?",
-    "That sounds great honestly.",
+    "HELLOOOOOOOOOOOOOOOOOOOOOOO!.",
     "I'm flexible on move-in dates — what works for you?",
-    "Let me know when you're free to talk 😊",
+    "Let me know when you're free to talk",
   ];
 
   final _random = Random();
