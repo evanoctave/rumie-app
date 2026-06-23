@@ -1,0 +1,38 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg_alex" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#568259"/>
+      <stop offset="100%" stop-color="#2D4A30"/>
+    </radialGradient>
+    <radialGradient id="skin_alex" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#D4956A"/>
+      <stop offset="100%" stop-color="#B07040"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg_alex)"/>
+  <ellipse cx="100" cy="214" rx="80" ry="56" fill="#3A5A3E"/>
+  <rect x="88" y="132" width="24" height="24" rx="8" fill="url(#skin_alex)"/>
+  <ellipse cx="100" cy="106" rx="39" ry="44" fill="url(#skin_alex)"/>
+  <!-- Short dark hair -->
+  <path d="M62 95C62 68 78 53 100 53C122 53 138 68 138 95V85C133 63 116 58 100 58C84 58 67 63 62 85Z" fill="#2A1A0A"/>
+  <path d="M62 95V102C60 98 58 90 60 80Z" fill="#2A1A0A"/>
+  <path d="M138 95V102C140 98 142 90 140 80Z" fill="#2A1A0A"/>
+  <!-- Short hair on sides -->
+  <path d="M62 99C58 108 58 118 60 126L67 123C65 115 64 107 65 100Z" fill="#2A1A0A"/>
+  <!-- Eyes - slightly narrower masculine -->
+  <path d="M80 107C82 104 87 103 92 104C95 105 96 108 94 111C91 113 83 113 80 110Z" fill="white"/>
+  <path d="M108 107C110 104 115 103 120 104C123 105 120 108 120 111C117 113 109 113 108 110Z" fill="white"/>
+  <ellipse cx="87" cy="108" rx="3.5" ry="3.8" fill="#1A1005"/>
+  <ellipse cx="114" cy="108" rx="3.5" ry="3.8" fill="#1A1005"/>
+  <circle cx="88.5" cy="107" r="1.2" fill="white"/>
+  <circle cx="115.5" cy="107" r="1.2" fill="white"/>
+  <!-- Thicker eyebrows - masculine -->
+  <path d="M79 100C83 97 90 96 94 97" stroke="#1A1005" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M106 97C110 96 117 97 121 100" stroke="#1A1005" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- Nose -->
+  <path d="M96 115C96 118 100 121 104 119" stroke="#906040" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <!-- Confident smile -->
+  <path d="M87 129C91 134 109 134 113 129" stroke="#904030" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+  <!-- Jaw more angular -->
+  <path d="M68 115C66 128 72 145 100 152C128 145 134 128 132 115" fill="url(#skin_alex)" opacity="0.3"/>
+</svg>

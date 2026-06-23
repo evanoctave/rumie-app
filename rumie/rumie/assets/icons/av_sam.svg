@@ -1,0 +1,47 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg_sam" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#A8B4A5"/>
+      <stop offset="100%" stop-color="#2A3828"/>
+    </radialGradient>
+    <radialGradient id="skin_sam" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#E8C898"/>
+      <stop offset="100%" stop-color="#C8A068"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg_sam)"/>
+  <ellipse cx="100" cy="213" rx="78" ry="54" fill="#384834"/>
+  <path d="M84 150L100 167L116 150" fill="#A8B4A5" opacity="0.55"/>
+  <rect x="89" y="132" width="22" height="22" rx="8" fill="url(#skin_sam)"/>
+  <ellipse cx="100" cy="108" rx="37" ry="43" fill="url(#skin_sam)"/>
+  <!-- Short textured hair — dark brown -->
+  <path d="M63 98C63 73 79 56 100 56C121 56 137 73 137 98C134 78 118 66 100 66C82 66 66 78 63 98Z" fill="#2A1A0A"/>
+  <path d="M63 98C63 93 64 88 65 84L64 95Z" fill="#2A1A0A"/>
+  <path d="M137 98C137 93 136 88 135 84L136 95Z" fill="#2A1A0A"/>
+  <!-- Hair texture lines -->
+  <path d="M80 67C84 63 90 60 100 60" stroke="#3A2A10" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+  <path d="M120 67C116 63 110 60 100 60" stroke="#3A2A10" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+  <!-- Glasses -->
+  <rect x="79" y="100" width="17" height="15" rx="5" fill="none" stroke="#3A2A3A" stroke-width="2.2" opacity="0.7"/>
+  <rect x="104" y="100" width="17" height="15" rx="5" fill="none" stroke="#3A2A3A" stroke-width="2.2" opacity="0.7"/>
+  <path d="M96 107.5H104" stroke="#3A2A3A" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+  <path d="M79 105L75 103" stroke="#3A2A3A" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+  <path d="M121 105L125 103" stroke="#3A2A3A" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+  <!-- Eyes (behind glasses) -->
+  <ellipse cx="88" cy="108" rx="5" ry="5.5" fill="white"/>
+  <ellipse cx="112" cy="108" rx="5" ry="5.5" fill="white"/>
+  <ellipse cx="88" cy="108" rx="3" ry="3.5" fill="#2A1A30"/>
+  <ellipse cx="112" cy="108" rx="3" ry="3.5" fill="#2A1A30"/>
+  <circle cx="89.5" cy="106.5" r="1.3" fill="white"/>
+  <circle cx="113.5" cy="106.5" r="1.3" fill="white"/>
+  <!-- Eyebrows -->
+  <path d="M80 99C83 97 89 96 93 97" stroke="#2A1A0A" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M107 97C111 96 117 97 120 99" stroke="#2A1A0A" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Nose -->
+  <path d="M97 116C97 119 100 120 103 118" stroke="#B08860" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+  <!-- Smile -->
+  <path d="M89 128C93 133 96 135 100 135C104 135 107 133 111 128" stroke="#8A5038" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Dimples -->
+  <circle cx="83" cy="128" r="1.5" fill="#C09870" opacity="0.35"/>
+  <circle cx="117" cy="128" r="1.5" fill="#C09870" opacity="0.35"/>
+</svg>

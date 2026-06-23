@@ -1,6 +1,7 @@
-// lib/screens/matches_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../models/roommate.dart';
 import '../theme/app_colors.dart';
@@ -9,167 +10,145 @@ import '../widgets/match_tile.dart';
 class MatchesScreen extends StatelessWidget {
   final List<Roommate> matches;
 
-  const MatchesScreen({
-    super.key,
-    required this.matches,
-  });
+  const MatchesScreen({super.key, required this.matches});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned(
-              top: 100,
-              right: -30,
-              child: _blob(
-                AppColors.softPurple,
-                110,
-              ),
-            ),
-            Positioned(
-              bottom: 120,
-              left: -40,
-              child: _blob(
-                AppColors.softGreen,
-                130,
-              ),
-            ),
-            Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: matches.isEmpty ? _buildEmpty() : _buildMatches(),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-      child: Row(
+    return ColoredBox(
+      color: AppColors.background,
+      child: Column(
         children: [
-          const Text(
-            'Matches',
-            style: TextStyle(
-              fontFamily: 'serif',
-              fontSize: 34,
-              fontWeight: FontWeight.w900,
-              color: AppColors.darkText,
-            ),
-          ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 10,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.blue,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.darkText,
-                width: 3,
-              ),
-            ),
-            child: Text(
-              '${matches.length}',
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                color: AppColors.darkText,
-              ),
-            ),
-          ),
+          _buildHeader(),
+          Expanded(child: matches.isEmpty ? _buildEmpty() : _buildList()),
         ],
       ),
     );
   }
 
-  Widget _buildMatches() {
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 18),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 1.5)),
+      ),
+      child: Row(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Matches',
+                style: GoogleFonts.dmSans(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.text,
+                  letterSpacing: -0.8,
+                ),
+              ),
+              Text(
+                'People who liked you back',
+                style: GoogleFonts.dmSans(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          if (matches.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withAlpha(50),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Text(
+                '${matches.length}',
+                style: GoogleFonts.dmSans(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 300.ms);
+  }
+
+  Widget _buildList() {
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(22, 12, 22, 120),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       itemCount: matches.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 18),
-      itemBuilder: (context, index) {
-        return MatchTile(
-          roommate: matches[index],
-        );
-      },
+      separatorBuilder: (ctx, i) => const SizedBox(height: 12),
+      itemBuilder:
+          (context, index) =>
+              MatchTile(roommate: matches[index], animationIndex: index),
     );
   }
 
   Widget _buildEmpty() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 36),
+        padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 170,
-              height: 170,
+              width: 88,
+              height: 88,
               decoration: BoxDecoration(
-                color: AppColors.softPink,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.darkText,
-                  width: 4,
+                gradient: LinearGradient(
+                  colors: [AppColors.softPurple, const Color(0xFFE0D9FF)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: AppColors.cardShadow,
               ),
-              child: const Center(
-                child: Text(
-                  'CHAT\nPLACEHOLDER',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.darkText,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1,
+              child: Center(
+                child: SvgPicture.asset(
+                  'assets/icons/ic_matches.svg',
+                  width: 40,
+                  height: 40,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.primary,
+                    BlendMode.srcIn,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 28),
-            const Text(
+            ).animate().scale(duration: 500.ms, curve: Curves.easeOutBack),
+            const SizedBox(height: 24),
+            Text(
               'No matches yet',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'serif',
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                color: AppColors.darkText,
+              style: GoogleFonts.dmSans(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
+                letterSpacing: -0.4,
               ),
-            ),
+            ).animate().fadeIn(delay: 100.ms),
             const SizedBox(height: 10),
-            const Text(
-              'Start swiping to connect with potential roommates and begin chatting.',
+            Text(
+              'Swipe right on someone you like\nand wait for them to match back.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                height: 1.5,
-                fontWeight: FontWeight.w600,
-                color: AppColors.gray,
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                height: 1.55,
               ),
-            ),
+            ).animate().fadeIn(delay: 200.ms),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _blob(Color color, double size) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
       ),
     );
   }

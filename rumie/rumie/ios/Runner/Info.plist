@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Roomie</string>
+	<string>Rumie</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>roomie</string>
+	<string>Rumie</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -26,6 +26,14 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Rumie needs access to your camera to take a profile photo.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Rumie uses Face ID to sign you in quickly and securely.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Rumie needs permission to save photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Rumie needs access to your photos to set your profile picture.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
