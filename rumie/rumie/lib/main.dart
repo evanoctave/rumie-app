@@ -70,70 +70,50 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
 
   ThemeData _buildTheme(bool dark) {
     AppColors.isDark = dark;
+    final base = dark ? Brightness.dark : Brightness.light;
     return ThemeData(
       scaffoldBackgroundColor: AppColors.background,
-      brightness: dark ? Brightness.dark : Brightness.light,
+      brightness: base,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.secondary,
-        brightness: dark ? Brightness.dark : Brightness.light,
+        seedColor: AppColors.accent,
+        brightness: base,
         surface: AppColors.surface,
-      ).copyWith(
-        surface: AppColors.surface,
-        primary: AppColors.secondary,
-        secondary: AppColors.darkGreen,
-      ),
-      textTheme: GoogleFonts.dmSansTextTheme().copyWith(
-        bodyLarge: GoogleFonts.dmSans(
-          fontSize: 16,
-          color: AppColors.text,
-          decoration: TextDecoration.none,
-        ),
-        bodyMedium: GoogleFonts.dmSans(
-          fontSize: 14,
-          color: AppColors.text,
-          decoration: TextDecoration.none,
-        ),
+      ).copyWith(surface: AppColors.surface, primary: AppColors.accent),
+      textTheme: GoogleFonts.interTextTheme().copyWith(
+        bodyLarge:  GoogleFonts.inter(fontSize: 16, color: AppColors.text),
+        bodyMedium: GoogleFonts.inter(fontSize: 14, color: AppColors.text),
       ),
       inputDecorationTheme: InputDecorationTheme(
-        hintStyle: TextStyle(color: AppColors.textSecondary.withAlpha(140)),
+        hintStyle: TextStyle(color: AppColors.textSecondary),
         filled: true,
         fillColor: AppColors.surface,
         border: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(color: AppColors.border),
+          borderRadius: const BorderRadius.all(Radius.circular(5)),
+          borderSide: BorderSide(color: AppColors.borderSoft, width: 1.5),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(color: AppColors.border),
+          borderRadius: const BorderRadius.all(Radius.circular(5)),
+          borderSide: BorderSide(color: AppColors.borderSoft, width: 1.5),
         ),
-        focusedBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(color: AppColors.secondary, width: 1.5),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(5)),
+          borderSide: BorderSide(color: AppColors.accent, width: 1.5),
         ),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? Colors.white : AppColors.gray,
+          (s) => s.contains(WidgetState.selected) ? AppColors.background : AppColors.textSecondary,
         ),
         trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? AppColors.secondary : AppColors.border,
+          (s) => s.contains(WidgetState.selected) ? AppColors.accent : AppColors.borderSoft,
         ),
       ),
-      sliderTheme: const SliderThemeData(
-        activeTrackColor: AppColors.secondary,
-        inactiveTrackColor: AppColors.primary,
-        thumbColor: AppColors.secondary,
-        overlayColor: Color(0x2096E6B3),
-      ),
-      dropdownMenuTheme: DropdownMenuThemeData(
-        textStyle: TextStyle(color: AppColors.text),
-      ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.cardBg,
-        contentTextStyle: TextStyle(color: AppColors.text),
+        backgroundColor: AppColors.surface,
+        contentTextStyle: GoogleFonts.inter(color: AppColors.text),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.background,
         foregroundColor: AppColors.text,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -201,9 +181,9 @@ class _AuthGate extends StatelessWidget {
     final Widget screen = switch (status) {
       AuthStatus.unknown => Scaffold(
           backgroundColor: AppColors.background,
-          body: const Center(
+          body: Center(
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation(AppColors.secondary),
+              valueColor: AlwaysStoppedAnimation(AppColors.accent),
             ),
           ),
         ),
