@@ -53,7 +53,7 @@ class _LockScreenState extends State<LockScreen> {
               const Text(
                 'rumie',
                 style: TextStyle(
-                  fontSize: 44,
+                  fontSize: 52,
                   fontWeight: FontWeight.w900,
                   color: AppColors.text,
                   letterSpacing: -2,
