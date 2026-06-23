@@ -1,39 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../models/trait.dart';
+import '../theme/app_colors.dart';
 
 class TraitChip extends StatelessWidget {
   final Trait trait;
-  const TraitChip({super.key, required this.trait});
+  final bool accent;
+
+  const TraitChip({super.key, required this.trait, this.accent = false});
 
   @override
   Widget build(BuildContext context) {
+    final bg   = accent ? AppColors.accent : AppColors.chipBg;
+    final fg   = accent ? const Color(0xFFF2F0EB) : AppColors.chipText;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: trait.color.withAlpha(16),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: trait.color.withAlpha(60), width: 1.5),
+        color: bg,
+        borderRadius: BorderRadius.circular(4),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(color: trait.color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 7),
-          Text(
-            trait.title,
-            style: GoogleFonts.dmSans(
-              color: trait.color,
-              fontWeight: FontWeight.w700,
-              fontSize: 12.5,
-            ),
-          ),
-        ],
+      child: Text(
+        trait.title.toUpperCase(),
+        style: GoogleFonts.inter(
+          color: fg,
+          fontWeight: FontWeight.w700,
+          fontSize: 9,
+          letterSpacing: 0.8,
+        ),
       ),
     );
   }
