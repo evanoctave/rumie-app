@@ -141,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ).animate().fadeIn(duration: 300.ms),
                 const SizedBox(height: 32),
-                _BrutalLabel('EMAIL'),
+                const _BrutalLabel('EMAIL'),
                 const SizedBox(height: 8),
                 _BrutalField(
                   controller: _emailCtrl,
@@ -151,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator: validateEmail,
                 ),
                 const SizedBox(height: 14),
-                _BrutalLabel('PASSWORD'),
+                const _BrutalLabel('PASSWORD'),
                 const SizedBox(height: 8),
                 _BrutalField(
                   controller: _passCtrl,

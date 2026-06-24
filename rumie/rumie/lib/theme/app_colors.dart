@@ -36,8 +36,9 @@ class AppColors {
   static Color get scoreLowBg  => isDark ? const Color(0x1FEF4444) : const Color(0xFFFEE2E2);
 
   // ── Semantic ──────────────────────────────────────────────────────────────
-  static const Color red   = Color(0xFFEF4444);
-  static const Color green = Color(0xFF10B981);
+  static const Color red    = Color(0xFFEF4444);
+  static const Color green  = Color(0xFF10B981);
+  static Color get softRed  => scoreLowBg;
 
   // ── Legacy aliases ────────────────────────────────────────────────────────
   static Color get primary      => accent;

@@ -96,12 +96,12 @@ class LandingScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     Divider(color: AppColors.border, thickness: 1.5, height: 1),
                     const SizedBox(height: 12),
-                    Row(
+                    const Row(
                       children: [
                         _Pill('Discover'),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         _Pill('Connect'),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         _Pill('Move in', accent: true),
                       ],
                     ),

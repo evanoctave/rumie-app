@@ -174,7 +174,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 28),
 
-                _BrutalLabel('EMAIL'),
+                const _BrutalLabel('EMAIL'),
                 const SizedBox(height: 8),
                 _BrutalField(
                   controller: _emailCtrl,
@@ -185,7 +185,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                _BrutalLabel('PASSWORD'),
+                const _BrutalLabel('PASSWORD'),
                 const SizedBox(height: 8),
                 _BrutalField(
                   controller: _passwordCtrl,
@@ -204,7 +204,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                _BrutalLabel('AGE'),
+                const _BrutalLabel('AGE'),
                 const SizedBox(height: 8),
                 _BrutalField(
                   controller: _ageCtrl,
@@ -215,7 +215,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                _BrutalLabel('GENDER'),
+                const _BrutalLabel('GENDER'),
                 const SizedBox(height: 8),
                 _GenderRow(
                   selected: _gender,

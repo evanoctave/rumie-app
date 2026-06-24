@@ -13,19 +13,19 @@ void main() {
     });
 
     test('great deal tier at 75+', () {
-      final s = ValueScore(overall: 80, priceScore: 80, sqftScore: 80, transitScore: 80);
+      const s = ValueScore(overall: 80, priceScore: 80, sqftScore: 80, transitScore: 80);
       expect(s.tier, 'Great deal');
       expect(s.isHigh, true);
     });
 
     test('fair deal tier at 50–74', () {
-      final s = ValueScore(overall: 62, priceScore: 62, sqftScore: 62, transitScore: 62);
+      const s = ValueScore(overall: 62, priceScore: 62, sqftScore: 62, transitScore: 62);
       expect(s.tier, 'Fair deal');
       expect(s.isMid, true);
     });
 
     test('below avg tier under 50', () {
-      final s = ValueScore(overall: 30, priceScore: 30, sqftScore: 30, transitScore: 30);
+      const s = ValueScore(overall: 30, priceScore: 30, sqftScore: 30, transitScore: 30);
       expect(s.tier, 'Below avg');
       expect(s.isHigh, false);
       expect(s.isMid, false);

@@ -6,6 +6,7 @@ import '../data/sample_data.dart';
 import '../models/roommate.dart';
 import '../theme/app_colors.dart';
 import '../widgets/discover_card.dart';
+import 'profile_view_screen.dart';
 
 class SwipeScreen extends StatefulWidget {
   final void Function(Roommate) onMatch;
@@ -157,8 +158,6 @@ class _SwipeScreenState extends State<SwipeScreen> {
   }
 
   void _openProfile(Roommate r) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${r.name} — full profile coming in Task 13')),
-    );
+    Navigator.push(context, ProfileViewScreen.route(r));
   }
 }

@@ -155,7 +155,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(color: AppColors.green, shape: BoxShape.circle),
+            decoration: const BoxDecoration(color: AppColors.green, shape: BoxShape.circle),
           ),
           const SizedBox(width: 6),
           Text(

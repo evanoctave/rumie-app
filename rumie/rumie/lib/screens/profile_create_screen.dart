@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/user_profile.dart';
@@ -111,24 +110,18 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       context: context,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
       ),
       builder: (_) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 12),
             Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
-              ),
+              height: 1.5,
+              color: AppColors.border,
             ),
             const SizedBox(height: 20),
             _sheetOption(
-              icon: Icons.photo_library_rounded,
               label: 'Choose from library',
               onTap: () {
                 Navigator.pop(context);
@@ -136,7 +129,6 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               },
             ),
             _sheetOption(
-              icon: Icons.camera_alt_rounded,
               label: 'Take a photo',
               onTap: () {
                 Navigator.pop(context);
@@ -145,13 +137,12 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             ),
             if (_photoPath.isNotEmpty)
               _sheetOption(
-                icon: Icons.delete_outline_rounded,
                 label: 'Remove photo',
-                color: AppColors.red,
                 onTap: () {
                   setState(() => _photoPath = '');
                   Navigator.pop(context);
                 },
+                danger: true,
               ),
             const SizedBox(height: 12),
           ],
@@ -161,26 +152,22 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
   }
 
   Widget _sheetOption({
-    required IconData icon,
     required String label,
     required VoidCallback onTap,
-    Color? color,
+    bool danger = false,
   }) {
-    final c = color ?? AppColors.text;
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Row(
           children: [
-            Icon(icon, color: c, size: 22),
-            const SizedBox(width: 16),
             Text(
               label,
-              style: TextStyle(
-                color: c,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+              style: GoogleFonts.inter(
+                color: danger ? AppColors.scoreLow : AppColors.text,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -240,159 +227,241 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
     final isEdit = widget.existing != null;
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: Icon(Icons.close_rounded, color: AppColors.textSecondary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          isEdit ? 'Edit Profile' : 'Create Profile',
-          style: TextStyle(
-            color: AppColors.text,
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: _save,
-            child: ShaderMask(
-              shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
-              child: Text(
-                isEdit ? 'Save' : 'Done',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // flat header
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                border: Border(
+                    bottom: BorderSide(color: AppColors.border, width: 1.5)),
+              ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Text(
+                      '×',
+                      style: GoogleFonts.syne(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.text,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      isEdit ? 'EDIT PROFILE' : 'CREATE PROFILE',
+                      style: GoogleFonts.syne(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.text,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: _save,
+                    child: Text(
+                      isEdit ? 'SAVE' : 'DONE',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.accent,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 60),
+                  children: [
+                    _buildPhotoSection(),
+                    const SizedBox(height: 32),
+                    _sectionLabel('BASIC INFO'),
+                    const SizedBox(height: 12),
+                    _field(
+                      controller: _nameCtrl,
+                      label: 'FULL NAME',
+                      hint: 'Your name',
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    _field(
+                      controller: _ageCtrl,
+                      label: 'AGE',
+                      hint: '22',
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      validator: (v) {
+                        final n = int.tryParse(v ?? '');
+                        if (n == null || n < 18 || n > 99) {
+                          return 'Enter a valid age (18–99)';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _field(
+                      controller: _locationCtrl,
+                      label: 'LOCATION',
+                      hint: 'City, neighborhood',
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    _field(
+                      controller: _bioCtrl,
+                      label: 'ABOUT ME',
+                      hint: 'A short intro about yourself...',
+                      maxLines: 4,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 32),
+                    _sectionLabel('BUDGET'),
+                    const SizedBox(height: 4),
+                    Text(
+                      '\$${_budgetMin.toStringAsFixed(0)} – \$${_budgetMax.toStringAsFixed(0)}/mo',
+                      style: GoogleFonts.syne(
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    RangeSlider(
+                      values:
+                          RangeValues(_budgetMin.toDouble(), _budgetMax.toDouble()),
+                      min: 400,
+                      max: 5000,
+                      divisions: 92,
+                      activeColor: AppColors.accent,
+                      inactiveColor: AppColors.borderSoft,
+                      onChanged: (v) => setState(() {
+                        _budgetMin = v.start.round();
+                        _budgetMax = v.end.round();
+                      }),
+                    ),
+                    const SizedBox(height: 32),
+                    _sectionLabel('LIVING STYLE'),
+                    const SizedBox(height: 12),
+                    _segmentRow('SCHEDULE', _scheduleOptions, _schedule,
+                        (v) => setState(() => _schedule = v)),
+                    const SizedBox(height: 12),
+                    _segmentRow('TIDINESS', _tidinessOptions, _tidiness,
+                        (v) => setState(() => _tidiness = v)),
+                    const SizedBox(height: 12),
+                    _segmentRow('MOVE-IN', _moveInOptions, _moveIn,
+                        (v) => setState(() => _moveIn = v)),
+                    const SizedBox(height: 16),
+                    _toggleRow(
+                      'Has pets',
+                      _hasPets,
+                      (v) => setState(() {
+                        _hasPets = v;
+                        if (!v) _pets.clear();
+                      }),
+                    ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 280),
+                      curve: Curves.easeOutCubic,
+                      child:
+                          _hasPets ? _buildPetSection() : const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 32),
+                    _sectionLabel('TRAITS'),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Pick up to 6 — or add your own',
+                      style: GoogleFonts.inter(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTraitGrid(),
+                    const SizedBox(height: 12),
+                    _buildCustomTraitInput(),
+                    const SizedBox(height: 40),
+                    _SaveBtn(
+                      label: isEdit ? 'SAVE CHANGES' : 'CREATE PROFILE',
+                      onTap: _save,
+                    ),
+                  ],
                 ),
               ),
             ),
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: AppColors.border),
+          ],
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 28, 20, 60),
+    );
+  }
+
+  Widget _buildPhotoSection() {
+    return Center(
+      child: GestureDetector(
+        onTap: _showPhotoPicker,
+        child: Stack(
           children: [
-            _buildPhotoSection(),
-            const SizedBox(height: 32),
-            _sectionLabel('Basic Info'),
-            const SizedBox(height: 12),
-            _field(
-              controller: _nameCtrl,
-              label: 'Full name',
-              hint: 'Your name',
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 12),
-            _field(
-              controller: _ageCtrl,
-              label: 'Age',
-              hint: '22',
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (v) {
-                final n = int.tryParse(v ?? '');
-                if (n == null || n < 18 || n > 99) {
-                  return 'Enter a valid age (18–99)';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            _field(
-              controller: _locationCtrl,
-              label: 'Location',
-              hint: 'City, neighborhood',
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 12),
-            _field(
-              controller: _bioCtrl,
-              label: 'About me',
-              hint: 'A short intro about yourself...',
-              maxLines: 4,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 32),
-            _sectionLabel('Budget'),
-            const SizedBox(height: 4),
-            Text(
-              '\$${_budgetMin.toStringAsFixed(0)} – \$${_budgetMax.toStringAsFixed(0)}/mo',
-              style: const TextStyle(
-                color: AppColors.peach,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: _photoPath.isEmpty
+                      ? AppColors.border
+                      : AppColors.accent,
+                  width: 1.5,
+                ),
               ),
+              child: _photoPath.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child: Image.file(File(_photoPath), fit: BoxFit.cover),
+                    )
+                  : Center(
+                      child: Text(
+                        'PHOTO',
+                        style: GoogleFonts.inter(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                    ),
             ),
-            const SizedBox(height: 8),
-            RangeSlider(
-              values: RangeValues(_budgetMin.toDouble(), _budgetMax.toDouble()),
-              min: 400,
-              max: 5000,
-              divisions: 92,
-              activeColor: AppColors.secondary,
-              inactiveColor: AppColors.border,
-              onChanged: (v) => setState(() {
-                _budgetMin = v.start.round();
-                _budgetMax = v.end.round();
-              }),
-            ),
-            const SizedBox(height: 32),
-            _sectionLabel('Living Style'),
-            const SizedBox(height: 12),
-            _segmentRow('Schedule', _scheduleOptions, _schedule,
-                (v) => setState(() => _schedule = v)),
-            const SizedBox(height: 12),
-            _segmentRow('Tidiness', _tidinessOptions, _tidiness,
-                (v) => setState(() => _tidiness = v)),
-            const SizedBox(height: 12),
-            _segmentRow('Move-in', _moveInOptions, _moveIn,
-                (v) => setState(() => _moveIn = v)),
-            const SizedBox(height: 16),
-            _toggleRow(
-              'Has pets',
-              _hasPets,
-              (v) => setState(() {
-                _hasPets = v;
-                if (!v) _pets.clear();
-              }),
-            ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeOutCubic,
-              child: _hasPets ? _buildPetSection() : const SizedBox.shrink(),
-            ),
-            const SizedBox(height: 32),
-            _sectionLabel('Traits'),
-            const SizedBox(height: 4),
-            Text(
-              'Pick up to 6 — or add your own',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: AppColors.btnPrimary,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(4),
+                    bottomRight: Radius.circular(5),
+                  ),
+                ),
+                child: Icon(
+                  Icons.add_rounded,
+                  color: AppColors.btnPrimaryText,
+                  size: 18,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            _buildTraitGrid(),
-            const SizedBox(height: 12),
-            _buildCustomTraitInput(),
-            const SizedBox(height: 40),
-            _PrimaryButton(
-              label: isEdit ? 'Save Changes' : 'Create Profile',
-              onTap: _save,
             ),
           ],
         ),
@@ -409,37 +478,32 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
           children: [
             Text(
               'MY PETS',
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 color: AppColors.textSecondary,
-                fontSize: 11,
+                fontSize: 8,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
+                letterSpacing: 2,
               ),
             ),
             const Spacer(),
             GestureDetector(
               onTap: _addPet,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.softBlue,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.secondary.withAlpha(80)),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.border, width: 1.5),
                 ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.add_rounded, color: AppColors.secondary, size: 14),
-                    SizedBox(width: 4),
-                    Text(
-                      'Add pet',
-                      style: TextStyle(
-                        color: AppColors.secondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  '+ ADD PET',
+                  style: GoogleFonts.inter(
+                    color: AppColors.text,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1,
+                  ),
                 ),
               ),
             ),
@@ -451,16 +515,14 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 18),
             decoration: BoxDecoration(
-              color: AppColors.cardBg,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                  color: AppColors.border,
-                  style: BorderStyle.solid),
+              border: Border.all(color: AppColors.borderSoft),
             ),
             child: Center(
               child: Text(
                 'Tap "Add pet" to list your pets',
-                style: TextStyle(
+                style: GoogleFonts.inter(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                 ),
@@ -476,36 +538,40 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
   Widget _buildPetRow(int index) {
     Pet pet = _pets[index];
     final nameCtrl = TextEditingController(text: pet.name);
-    final ageCtrl = TextEditingController(
-        text: pet.age > 0 ? '${pet.age}' : '');
+    final ageCtrl =
+        TextEditingController(text: pet.age > 0 ? '${pet.age}' : '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.cardBg,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border, width: 1.5),
       ),
       child: Column(
         children: [
           Row(
             children: [
               Text(
-                'Pet ${index + 1}',
-                style: TextStyle(
+                'PET ${index + 1}',
+                style: GoogleFonts.inter(
                   color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
                 ),
               ),
               const Spacer(),
               GestureDetector(
                 onTap: () => _removePet(index),
-                child: const Icon(
-                  Icons.remove_circle_outline_rounded,
-                  color: AppColors.red,
-                  size: 18,
+                child: Text(
+                  '×',
+                  style: GoogleFonts.syne(
+                    color: AppColors.scoreLow,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],
@@ -521,8 +587,8 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                     _pets[index] = pet.copyWith(name: v);
                     pet = _pets[index];
                   },
-                  style: TextStyle(color: AppColors.text, fontSize: 14),
-                  decoration: _inputDeco('Name', 'e.g. Buddy'),
+                  style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
+                  decoration: _inputDeco('NAME', 'e.g. Buddy'),
                 ),
               ),
               const SizedBox(width: 10),
@@ -536,8 +602,8 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                     _pets[index] = pet.copyWith(age: int.tryParse(v) ?? 0);
                     pet = _pets[index];
                   },
-                  style: TextStyle(color: AppColors.text, fontSize: 14),
-                  decoration: _inputDeco('Age', '3'),
+                  style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
+                  decoration: _inputDeco('AGE', '3'),
                 ),
               ),
             ],
@@ -547,15 +613,15 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: AppColors.border),
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(color: AppColors.border, width: 1.5),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: _petTypes.contains(pet.type) ? pet.type : _petTypes[0],
                 isExpanded: true,
-                dropdownColor: AppColors.cardBg,
-                style: TextStyle(color: AppColors.text, fontSize: 14),
+                dropdownColor: AppColors.surface,
+                style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
                 icon: Icon(
                   Icons.expand_more_rounded,
                   color: AppColors.textSecondary,
@@ -579,23 +645,28 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
   InputDecoration _inputDeco(String label, String hint) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+      labelStyle: GoogleFonts.inter(
+          color: AppColors.textSecondary,
+          fontSize: 8,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.5),
       hintText: hint,
-      hintStyle: TextStyle(color: AppColors.gray),
+      hintStyle: GoogleFonts.inter(color: AppColors.textSecondary),
       filled: true,
       fillColor: AppColors.surface,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
-        borderSide: BorderSide(color: AppColors.border),
+        borderRadius: BorderRadius.circular(5),
+        borderSide: BorderSide(color: AppColors.border, width: 1.5),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
-        borderSide: BorderSide(color: AppColors.border),
+        borderRadius: BorderRadius.circular(5),
+        borderSide: BorderSide(color: AppColors.border, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
-        borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
+        borderRadius: BorderRadius.circular(5),
+        borderSide: BorderSide(color: AppColors.accent, width: 1.5),
       ),
     );
   }
@@ -607,25 +678,26 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
           child: TextField(
             controller: _customTraitCtrl,
             onSubmitted: (_) => _addCustomTrait(),
-            style: TextStyle(color: AppColors.text, fontSize: 14),
+            style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Add a custom trait...',
-              hintStyle: TextStyle(color: AppColors.gray, fontSize: 14),
+              hintStyle:
+                  GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 14),
               filled: true,
-              fillColor: AppColors.cardBg,
+              fillColor: AppColors.surface,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
-                borderSide: BorderSide(color: AppColors.border),
+                borderRadius: BorderRadius.circular(5),
+                borderSide: BorderSide(color: AppColors.border, width: 1.5),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
-                borderSide: BorderSide(color: AppColors.border),
+                borderRadius: BorderRadius.circular(5),
+                borderSide: BorderSide(color: AppColors.border, width: 1.5),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
+                borderRadius: BorderRadius.circular(5),
+                borderSide: BorderSide(color: AppColors.accent, width: 1.5),
               ),
             ),
           ),
@@ -637,106 +709,24 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(6),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.pink.withAlpha(60),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: AppColors.btnPrimary,
+              borderRadius: BorderRadius.circular(5),
             ),
-            child: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+            child: Icon(Icons.add_rounded, color: AppColors.btnPrimaryText, size: 20),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildPhotoSection() {
-    return Center(
-      child: GestureDetector(
-        onTap: _showPhotoPicker,
-        child: Stack(
-          children: [
-            Container(
-              width: 116,
-              height: 116,
-              decoration: BoxDecoration(
-                color: AppColors.cardBg,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _photoPath.isEmpty
-                      ? AppColors.border
-                      : AppColors.secondary,
-                  width: _photoPath.isEmpty ? 1.5 : 2.5,
-                ),
-                boxShadow: _photoPath.isNotEmpty
-                    ? [
-                        BoxShadow(
-                          color: AppColors.pink.withAlpha(60),
-                          blurRadius: 20,
-                          offset: const Offset(0, 6),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: _photoPath.isNotEmpty
-                  ? ClipOval(
-                      child: Image.file(File(_photoPath), fit: BoxFit.cover),
-                    )
-                  : Center(
-                      child: SvgPicture.asset(
-                        'assets/icons/ic_profile.svg',
-                        width: 42,
-                        height: 42,
-                        colorFilter: ColorFilter.mode(
-                          AppColors.textSecondary,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ),
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.background, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.pink.withAlpha(80),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.camera_alt_rounded,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ).animate().scale(duration: 500.ms, curve: Curves.easeOutBack),
-    );
-  }
-
   Widget _sectionLabel(String text) {
     return Text(
-      text.toUpperCase(),
-      style: TextStyle(
+      text,
+      style: GoogleFonts.inter(
         color: AppColors.textSecondary,
-        fontSize: 11,
+        fontSize: 8,
         fontWeight: FontWeight.w700,
-        letterSpacing: 1.2,
+        letterSpacing: 2,
       ),
     );
   }
@@ -755,10 +745,11 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.inter(
             color: AppColors.textSecondary,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
+            fontSize: 8,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2,
           ),
         ),
         const SizedBox(height: 6),
@@ -768,33 +759,33 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
           inputFormatters: inputFormatters,
           validator: validator,
           maxLines: maxLines,
-          style: TextStyle(color: AppColors.text, fontSize: 15),
+          style: GoogleFonts.inter(color: AppColors.text, fontSize: 15),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: AppColors.gray),
+            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary),
             filled: true,
-            fillColor: AppColors.cardBg,
+            fillColor: AppColors.surface,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: BorderSide(color: AppColors.border),
+              borderRadius: BorderRadius.circular(5),
+              borderSide: BorderSide(color: AppColors.border, width: 1.5),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: BorderSide(color: AppColors.border),
+              borderRadius: BorderRadius.circular(5),
+              borderSide: BorderSide(color: AppColors.border, width: 1.5),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
+              borderRadius: BorderRadius.circular(5),
+              borderSide: BorderSide(color: AppColors.accent, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: AppColors.red),
+              borderRadius: BorderRadius.circular(5),
+              borderSide: BorderSide(color: AppColors.scoreLow),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: AppColors.red, width: 1.5),
+              borderRadius: BorderRadius.circular(5),
+              borderSide: BorderSide(color: AppColors.scoreLow, width: 1.5),
             ),
           ),
         ),
@@ -813,10 +804,11 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.inter(
             color: AppColors.textSecondary,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
+            fontSize: 8,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2,
           ),
         ),
         const SizedBox(height: 8),
@@ -830,38 +822,28 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                   onSelect(opt);
                 },
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
+                  duration: const Duration(milliseconds: 150),
                   margin: EdgeInsets.only(
-                    right: opt == options.last ? 0 : 8,
+                    right: opt == options.last ? 0 : 6,
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.secondary : AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(6),
+                    color: isSelected ? AppColors.btnPrimary : AppColors.surface,
+                    borderRadius: BorderRadius.circular(4),
                     border: Border.all(
-                      color: isSelected
-                          ? AppColors.secondary
-                          : AppColors.border,
+                      color: isSelected ? AppColors.btnPrimary : AppColors.border,
+                      width: 1.5,
                     ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: AppColors.pink.withAlpha(50),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ]
-                        : null,
                   ),
                   child: Center(
                     child: Text(
                       opt,
-                      style: TextStyle(
+                      style: GoogleFonts.inter(
                         color: isSelected
-                            ? Colors.white
+                            ? AppColors.btnPrimaryText
                             : AppColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -882,18 +864,18 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.border),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: AppColors.border, width: 1.5),
       ),
       child: Row(
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: GoogleFonts.inter(
               color: AppColors.text,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const Spacer(),
@@ -903,8 +885,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               HapticFeedback.selectionClick();
               onChanged(v);
             },
-            activeThumbColor: Colors.white,
-            activeTrackColor: AppColors.secondary,
+            activeTrackColor: AppColors.accent,
           ),
         ],
       ),
@@ -913,8 +894,8 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
 
   Widget _buildTraitGrid() {
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 6,
+      runSpacing: 6,
       children: [
         ..._presetTraits.map((trait) {
           final selected = _selectedTraits.contains(trait);
@@ -933,44 +914,39 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                     });
                   },
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              duration: const Duration(milliseconds: 150),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
-                color: selected ? AppColors.secondary : AppColors.cardBg,
+                color: selected
+                    ? AppColors.chipBg
+                    : AppColors.surface,
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
                   color: selected
-                      ? AppColors.secondary
+                      ? AppColors.chipBg
                       : disabled
-                          ? AppColors.border.withAlpha(100)
+                          ? AppColors.borderSoft
                           : AppColors.border,
+                  width: 1.5,
                 ),
-                boxShadow: selected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.pink.withAlpha(50),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
               ),
               child: Text(
-                trait,
-                style: TextStyle(
+                trait.toUpperCase(),
+                style: GoogleFonts.inter(
                   color: selected
-                      ? Colors.white
+                      ? AppColors.chipText
                       : disabled
-                          ? AppColors.gray
-                          : AppColors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                          ? AppColors.textSecondary
+                          : AppColors.text,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1,
                 ),
               ),
             ),
           );
         }),
-        // Custom traits added by user (not in presets)
         ..._selectedTraits
             .where((t) => !_presetTraits.contains(t))
             .map((trait) => GestureDetector(
@@ -980,34 +956,30 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
+                        horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
+                      color: AppColors.chipBg,
                       borderRadius: BorderRadius.circular(4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.pink.withAlpha(50),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      border:
+                          Border.all(color: AppColors.chipBg, width: 1.5),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          trait,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                          trait.toUpperCase(),
+                          style: GoogleFonts.inter(
+                            color: AppColors.chipText,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1,
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Icon(
+                        Icon(
                           Icons.close_rounded,
-                          color: Colors.white,
-                          size: 13,
+                          color: AppColors.chipText,
+                          size: 12,
                         ),
                       ],
                     ),
@@ -1018,17 +990,17 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
   }
 }
 
-class _PrimaryButton extends StatefulWidget {
+class _SaveBtn extends StatefulWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _PrimaryButton({required this.label, required this.onTap});
+  const _SaveBtn({required this.label, required this.onTap});
 
   @override
-  State<_PrimaryButton> createState() => _PrimaryButtonState();
+  State<_SaveBtn> createState() => _SaveBtnState();
 }
 
-class _PrimaryButtonState extends State<_PrimaryButton>
+class _SaveBtnState extends State<_SaveBtn>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
 
@@ -1053,7 +1025,10 @@ class _PrimaryButtonState extends State<_PrimaryButton>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => _ctrl.reverse(),
+      onTapDown: (_) {
+        HapticFeedback.selectionClick();
+        _ctrl.reverse();
+      },
       onTapUp: (_) {
         _ctrl.forward();
         widget.onTap();
@@ -1063,27 +1038,19 @@ class _PrimaryButtonState extends State<_PrimaryButton>
         scale: _ctrl,
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 17),
+          height: 52,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
+            color: AppColors.btnPrimary,
             borderRadius: BorderRadius.circular(6),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.pink.withAlpha(80),
-                blurRadius: 18,
-                offset: const Offset(0, 7),
-              ),
-            ],
           ),
-          child: Center(
-            child: Text(
-              widget.label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-                letterSpacing: 0.2,
-              ),
+          child: Text(
+            widget.label,
+            style: GoogleFonts.inter(
+              color: AppColors.btnPrimaryText,
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+              letterSpacing: 2,
             ),
           ),
         ),
