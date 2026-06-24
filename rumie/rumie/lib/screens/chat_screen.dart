@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../models/message.dart';
@@ -26,7 +25,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   late AnimationController _typingCtrl;
 
   static const _responses = [
-    "Hey! So excited we matched 🎉",
+    "Hey! So excited we matched.",
     "What's your schedule like?",
     "I love that neighborhood too!",
     "We should definitely meet up and chat.",
@@ -34,7 +33,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     "Do you cook a lot?",
     "That sounds great honestly.",
     "I'm flexible on move-in dates — what works for you?",
-    "Let me know when you're free to talk 😊",
+    "Let me know when you're free to talk.",
   ];
 
   final _random = Random();
@@ -48,7 +47,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     )..repeat();
 
     Future.delayed(700.ms, () {
-      if (mounted) _addTheirMessage("Hey! Looks like we matched 👋");
+      if (mounted) _addTheirMessage('Hey! Looks like we matched.');
     });
   }
 
@@ -111,105 +110,64 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          Expanded(child: _buildMessages()),
-          if (_isTyping) _buildTypingIndicator(),
-          _buildInputBar(),
-        ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildTopBar(),
+            Expanded(child: _buildMessages()),
+            if (_isTyping) _buildTypingIndicator(),
+            _buildInputBar(),
+          ],
+        ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppColors.surface,
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.text),
-        onPressed: () => Navigator.pop(context),
+  Widget _buildTopBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 1.5)),
       ),
-      title: Row(
+      child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  widget.roommate.gradient.first.withAlpha(80),
-                  widget.roommate.gradient.last.withAlpha(40),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: widget.roommate.gradient.first.withAlpha(80),
-                width: 1.5,
-              ),
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Text(
+              '←',
+              style: GoogleFonts.syne(
+                  fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.text),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(11),
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.contain),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              widget.roommate.name.toUpperCase(),
+              style: GoogleFonts.syne(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.text,
+                letterSpacing: -0.5,
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.roommate.name,
-                style: GoogleFonts.dmSans(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text,
-                ),
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: AppColors.green,
-                      shape: BoxShape.circle,
-                    ),
-                  )
-                      .animate(onPlay: (c) => c.repeat())
-                      .scaleXY(begin: 0.6, end: 1.4, duration: 1000.ms)
-                      .then()
-                      .scaleXY(begin: 1.4, end: 0.6, duration: 1000.ms),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Active now',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 11,
-                      color: AppColors.green,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: AppColors.green, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'ACTIVE',
+            style: GoogleFonts.inter(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: AppColors.green,
+              letterSpacing: 1.5,
+            ),
           ),
         ],
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.more_horiz_rounded, color: AppColors.textSecondary, size: 24),
-          onPressed: () {},
-        ),
-      ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Container(height: 1, color: AppColors.border),
       ),
     );
   }
@@ -220,50 +178,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    widget.roommate.gradient.first.withAlpha(70),
-                    widget.roommate.gradient.last.withAlpha(40),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: widget.roommate.gradient.first.withAlpha(80),
-                  width: 2,
-                ),
-                boxShadow: AppColors.cardShadow,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(22),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.contain),
-                ),
-              ),
-            ).animate().scale(duration: 450.ms, curve: Curves.easeOutBack),
-            const SizedBox(height: 16),
             Text(
-              'Matched with ${widget.roommate.name}',
-              style: GoogleFonts.dmSans(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
+              widget.roommate.name.toUpperCase(),
+              style: GoogleFonts.syne(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
                 color: AppColors.text,
+                letterSpacing: -1.5,
               ),
-            ).animate().fadeIn(delay: 150.ms),
-            const SizedBox(height: 6),
+            ).animate().fadeIn(duration: 300.ms),
+            const SizedBox(height: 8),
             Text(
-              'Say hi 👋',
-              style: GoogleFonts.dmSans(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
-            ).animate().fadeIn(delay: 260.ms),
+              'Say hello.',
+              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+            ).animate().fadeIn(delay: 120.ms),
           ],
         ),
       );
@@ -275,15 +203,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       itemCount: _messages.length,
       itemBuilder: (context, index) {
         final msg = _messages[index];
-        final prevIsMe = index > 0 && _messages[index - 1].isMe == msg.isMe;
-        return _Bubble(
-          message: msg,
-          roommate: widget.roommate,
-          showAvatar: !msg.isMe && !prevIsMe,
-        )
+        return _Bubble(message: msg)
             .animate()
             .fadeIn(duration: 200.ms)
-            .slideY(begin: 0.12, duration: 220.ms, curve: Curves.easeOutCubic);
+            .slideY(begin: 0.08, duration: 200.ms, curve: Curves.easeOutCubic);
       },
     );
   }
@@ -294,43 +217,36 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       child: Row(
         children: [
           Container(
-            width: 30,
-            height: 30,
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  widget.roommate.gradient.first.withAlpha(80),
-                  widget.roommate.gradient.last.withAlpha(40),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.accentSoft,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: AppColors.border, width: 1.5),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(9),
-              child: Padding(
-                padding: const EdgeInsets.all(3),
-                child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.contain),
+            alignment: Alignment.center,
+            child: Text(
+              widget.roommate.name[0].toUpperCase(),
+              style: GoogleFonts.syne(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: AppColors.accent,
               ),
             ),
           ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(4),
-                topRight: Radius.circular(18),
-                bottomLeft: Radius.circular(18),
-                bottomRight: Radius.circular(18),
-              ),
-              boxShadow: AppColors.cardShadow,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppColors.borderSoft, width: 1),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: List.generate(3, (i) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
                   child: AnimatedBuilder(
                     animation: _typingCtrl,
                     builder: (ctx, _) {
@@ -338,10 +254,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       return Transform.translate(
                         offset: Offset(0, -4 * (off + 1) / 2),
                         child: Container(
-                          width: 7,
-                          height: 7,
+                          width: 5,
+                          height: 5,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withAlpha(160),
+                            color: AppColors.textSecondary,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -360,49 +276,59 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _buildInputBar() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.background,
         border: Border(top: BorderSide(color: AppColors.border, width: 1.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
           child: Row(
             children: [
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(24),
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(5),
                     border: Border.all(color: AppColors.border, width: 1.5),
                   ),
                   child: TextField(
                     controller: _textCtrl,
-                    style: GoogleFonts.dmSans(color: AppColors.text, fontSize: 15),
+                    style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
                     maxLines: 4,
                     minLines: 1,
                     textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
                       hintText: 'Message...',
-                      hintStyle: GoogleFonts.dmSans(color: AppColors.gray, fontSize: 15),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+                      hintStyle: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 14),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
                     ),
                     onSubmitted: (_) => _send(),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
-              _SendButton(onTap: _send),
+              GestureDetector(
+                onTap: _send,
+                child: Container(
+                  width: 42,
+                  height: 42,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.btnPrimary,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    '→',
+                    style: GoogleFonts.syne(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.btnPrimaryText,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -411,72 +337,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 }
 
-// ── Send button ────────────────────────────────────────────────────────────────
-
-class _SendButton extends StatefulWidget {
-  final VoidCallback onTap;
-  const _SendButton({required this.onTap});
-
-  @override
-  State<_SendButton> createState() => _SendButtonState();
-}
-
-class _SendButtonState extends State<_SendButton> with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-      lowerBound: 0.86,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-  }
-
-  @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _ctrl.reverse(),
-      onTapUp: (_) { _ctrl.forward(); widget.onTap(); },
-      onTapCancel: () => _ctrl.forward(),
-      child: ScaleTransition(
-        scale: _ctrl,
-        child: Container(
-          width: 46,
-          height: 46,
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: AppColors.buttonShadow,
-          ),
-          child: Center(
-            child: SvgPicture.asset(
-              'assets/icons/ic_send.svg',
-              width: 20,
-              height: 20,
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Chat bubble ────────────────────────────────────────────────────────────────
-
 class _Bubble extends StatelessWidget {
   final Message message;
-  final Roommate roommate;
-  final bool showAvatar;
-
-  const _Bubble({required this.message, required this.roommate, required this.showAvatar});
+  const _Bubble({required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -484,66 +347,30 @@ class _Bubble extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!message.isMe) ...[
-            SizedBox(
-              width: 30,
-              child: showAvatar
-                  ? Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            roommate.gradient.first.withAlpha(80),
-                            roommate.gradient.last.withAlpha(40),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(9),
-                        child: Padding(
-                          padding: const EdgeInsets.all(3),
-                          child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.contain),
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 8),
-          ],
           Flexible(
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.68,
+                maxWidth: MediaQuery.of(context).size.width * 0.70,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               decoration: BoxDecoration(
-                gradient: message.isMe ? AppColors.primaryGradient : null,
-                color: message.isMe ? null : AppColors.surface,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(message.isMe ? 18 : 4),
-                  bottomRight: Radius.circular(message.isMe ? 4 : 18),
-                ),
-                boxShadow: message.isMe
-                    ? [BoxShadow(color: AppColors.primary.withAlpha(40), blurRadius: 12, offset: const Offset(0, 4))]
-                    : AppColors.cardShadow,
+                color: message.isMe ? AppColors.btnPrimary : AppColors.surface,
+                borderRadius: BorderRadius.circular(6),
+                border: message.isMe
+                    ? null
+                    : Border.all(color: AppColors.borderSoft, width: 1),
               ),
               child: Text(
                 message.text,
-                style: GoogleFonts.dmSans(
-                  fontSize: 14.5,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
                   height: 1.45,
-                  color: message.isMe ? Colors.white : AppColors.text,
+                  color: message.isMe ? AppColors.btnPrimaryText : AppColors.text,
                 ),
               ),
             ),
           ),
-          if (message.isMe) const SizedBox(width: 4),
         ],
       ),
     );
