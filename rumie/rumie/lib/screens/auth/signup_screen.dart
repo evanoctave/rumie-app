@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
-
-import 'package:flutter/services.dart';
 
 import '../../data/models/gender.dart';
 import '../../data/models/register_in.dart';
@@ -50,10 +50,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!mounted) return;
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.error ?? 'Registration failed.'),
-          backgroundColor: AppColors.softRed,
-        ),
+        SnackBar(content: Text(auth.error ?? 'Registration failed.')),
       );
       return;
     }
@@ -65,32 +62,34 @@ class _SignupScreenState extends State<SignupScreen> {
     final auth = LocalAuthentication();
     final canCheck = await auth.canCheckBiometrics;
     if (!canCheck || !mounted) return;
-
     final available = await auth.getAvailableBiometrics();
-    final hasFaceId = available.contains(BiometricType.face);
-    if (!hasFaceId || !mounted) return;
+    if (!available.contains(BiometricType.face) || !mounted) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.cardBg,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        title: Text(
-          'Enable Face ID?',
-          style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w700),
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: AppColors.border, width: 1.5),
         ),
+        title: Text('Enable Face ID?',
+            style: GoogleFonts.syne(
+                fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.text)),
         content: Text(
           'Sign in instantly with Face ID every time you open Rumie.',
-          style: TextStyle(color: AppColors.textSecondary),
+          style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Not now', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Not now',
+                style: GoogleFonts.inter(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Enable', style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w700)),
+            child: Text('Enable',
+                style: GoogleFonts.inter(color: AppColors.accent, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -109,110 +108,122 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final loading = context.watch<AuthProvider>().loading;
-    final roleLabel = widget.role == Role.rumie ? 'Roommate' : 'Landlord';
+    final roleLabel = widget.role == Role.rumie ? 'ROOMMATE' : 'LANDLORD';
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.text, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
+          padding: const EdgeInsets.fromLTRB(28, 48, 28, 32),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 16),
-                Text(
-                  'Create your\naccount.',
-                  style: TextStyle(
-                    fontSize: 38,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.text,
-                    height: 1.1,
-                    letterSpacing: -1,
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Text(
+                    '←',
+                    style: GoogleFonts.syne(
+                        fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.text),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text(
-                      'Signing up as ',
-                      style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withAlpha(20),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.secondary.withAlpha(60)),
-                      ),
-                      child: Text(
-                        roleLabel,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.secondary,
+                const SizedBox(height: 32),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'CREATE\n',
+                        style: GoogleFonts.syne(
+                          fontSize: 38,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.text,
+                          letterSpacing: -2,
+                          height: 0.95,
                         ),
                       ),
-                    ),
-                  ],
+                      TextSpan(
+                        text: 'ACCOUNT',
+                        style: GoogleFonts.syne(
+                          fontSize: 38,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.accent,
+                          letterSpacing: -2,
+                          height: 0.95,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 40),
-                _buildLabel('Email'),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentSoft,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    roleLabel,
+                    style: GoogleFonts.inter(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.accent,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                _BrutalLabel('EMAIL'),
                 const SizedBox(height: 8),
-                _buildTextField(
+                _BrutalField(
                   controller: _emailCtrl,
                   hint: 'you@example.com',
                   keyboardType: TextInputType.emailAddress,
                   maxLength: 254,
                   validator: validateEmail,
                 ),
-                const SizedBox(height: 20),
-                _buildLabel('Password'),
+                const SizedBox(height: 14),
+
+                _BrutalLabel('PASSWORD'),
                 const SizedBox(height: 8),
-                _buildTextField(
+                _BrutalField(
                   controller: _passwordCtrl,
                   hint: '••••••••',
                   obscure: _obscure,
-                  suffix: IconButton(
-                    icon: Icon(
-                      _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: AppColors.gray,
-                      size: 20,
-                    ),
-                    onPressed: () => setState(() => _obscure = !_obscure),
-                  ),
                   maxLength: 128,
                   validator: validatePassword,
+                  suffix: GestureDetector(
+                    onTap: () => setState(() => _obscure = !_obscure),
+                    child: Icon(
+                      _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      color: AppColors.textSecondary,
+                      size: 18,
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 20),
-                _buildLabel('Age'),
+                const SizedBox(height: 14),
+
+                _BrutalLabel('AGE'),
                 const SizedBox(height: 8),
-                _buildTextField(
+                _BrutalField(
                   controller: _ageCtrl,
                   hint: '24',
                   keyboardType: TextInputType.number,
                   maxLength: 3,
                   validator: validateAge,
                 ),
-                const SizedBox(height: 20),
-                _buildLabel('Gender'),
+                const SizedBox(height: 14),
+
+                _BrutalLabel('GENDER'),
                 const SizedBox(height: 8),
-                _buildGenderRow(),
-                const SizedBox(height: 36),
-                _SubmitButton(
-                  label: 'Create Account',
-                  loading: loading,
-                  onTap: _submit,
+                _GenderRow(
+                  selected: _gender,
+                  onChanged: (g) => setState(() => _gender = g),
                 ),
+                const SizedBox(height: 28),
+
+                _SubmitBtn(label: 'CREATE ACCOUNT →', loading: loading, onTap: _submit),
                 const SizedBox(height: 40),
               ],
             ),
@@ -221,20 +232,15 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
     );
   }
+}
 
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textSecondary,
-        letterSpacing: 0.4,
-      ),
-    );
-  }
+class _GenderRow extends StatelessWidget {
+  final Gender selected;
+  final ValueChanged<Gender> onChanged;
+  const _GenderRow({required this.selected, required this.onChanged});
 
-  Widget _buildGenderRow() {
+  @override
+  Widget build(BuildContext context) {
     final options = [
       (Gender.male, 'Male'),
       (Gender.female, 'Female'),
@@ -245,26 +251,26 @@ class _SignupScreenState extends State<SignupScreen> {
       spacing: 8,
       runSpacing: 8,
       children: options.map((opt) {
-        final selected = _gender == opt.$1;
+        final isSelected = selected == opt.$1;
         return GestureDetector(
-          onTap: () => setState(() => _gender = opt.$1),
+          onTap: () => onChanged(opt.$1),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(
-              color: selected ? AppColors.secondary.withAlpha(20) : AppColors.cardBg,
-              borderRadius: BorderRadius.circular(6),
+              color: isSelected ? AppColors.accentSoft : AppColors.surface,
+              borderRadius: BorderRadius.circular(5),
               border: Border.all(
-                color: selected ? AppColors.secondary : AppColors.border,
-                width: selected ? 1.5 : 1,
+                color: isSelected ? AppColors.accent : AppColors.border,
+                width: 1.5,
               ),
             ),
             child: Text(
               opt.$2,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                color: selected ? AppColors.secondary : AppColors.textSecondary,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                color: isSelected ? AppColors.accent : AppColors.textSecondary,
               ),
             ),
           ),
@@ -272,16 +278,48 @@ class _SignupScreenState extends State<SignupScreen> {
       }).toList(),
     );
   }
+}
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    TextInputType? keyboardType,
-    bool obscure = false,
-    Widget? suffix,
-    int? maxLength,
-    String? Function(String?)? validator,
-  }) {
+class _BrutalLabel extends StatelessWidget {
+  final String text;
+  const _BrutalLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: GoogleFonts.inter(
+        fontSize: 9,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textSecondary,
+        letterSpacing: 1.5,
+      ),
+    );
+  }
+}
+
+class _BrutalField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hint;
+  final TextInputType? keyboardType;
+  final bool obscure;
+  final Widget? suffix;
+  final int? maxLength;
+  final String? Function(String?)? validator;
+
+  const _BrutalField({
+    required this.controller,
+    required this.hint,
+    this.keyboardType,
+    this.obscure = false,
+    this.suffix,
+    this.maxLength,
+    this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const radius = BorderRadius.all(Radius.circular(5));
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -289,60 +327,50 @@ class _SignupScreenState extends State<SignupScreen> {
       maxLength: maxLength,
       maxLengthEnforcement: MaxLengthEnforcement.enforced,
       inputFormatters: const [SanitizingFormatter()],
-      style: TextStyle(color: AppColors.text, fontSize: 15),
+      style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
       validator: validator,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: AppColors.gray),
-        suffixIcon: suffix,
+        hintStyle: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 14),
+        suffixIcon: suffix != null
+            ? Padding(padding: const EdgeInsets.only(right: 12), child: suffix)
+            : null,
+        suffixIconConstraints: const BoxConstraints(maxWidth: 40, maxHeight: 40),
         filled: true,
         fillColor: AppColors.surface,
         counterText: '',
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: AppColors.red),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: AppColors.red, width: 1.5),
-        ),
-        errorStyle: const TextStyle(color: AppColors.red),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        border: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: AppColors.border, width: 1.5)),
+        enabledBorder: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: AppColors.border, width: 1.5)),
+        focusedBorder: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: AppColors.accent, width: 1.5)),
+        errorBorder: const OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: AppColors.red, width: 1.5)),
+        focusedErrorBorder: const OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: AppColors.red, width: 1.5)),
+        errorStyle: GoogleFonts.inter(color: AppColors.red, fontSize: 11),
       ),
     );
   }
 }
 
-class _SubmitButton extends StatefulWidget {
+class _SubmitBtn extends StatefulWidget {
   final String label;
   final bool loading;
   final VoidCallback onTap;
-
-  const _SubmitButton({required this.label, required this.loading, required this.onTap});
+  const _SubmitBtn({required this.label, required this.loading, required this.onTap});
 
   @override
-  State<_SubmitButton> createState() => _SubmitButtonState();
+  State<_SubmitBtn> createState() => _SubmitBtnState();
 }
 
-class _SubmitButtonState extends State<_SubmitButton> {
+class _SubmitBtnState extends State<_SubmitBtn> {
   bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
+      onTapDown: (_) {
+        HapticFeedback.mediumImpact();
+        setState(() => _pressed = true);
+      },
       onTapUp: (_) {
         setState(() => _pressed = false);
         if (!widget.loading) widget.onTap();
@@ -353,27 +381,28 @@ class _SubmitButtonState extends State<_SubmitButton> {
         duration: const Duration(milliseconds: 100),
         child: Container(
           width: double.infinity,
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppColors.secondary,
-            borderRadius: BorderRadius.circular(20),
-          ),
+          height: 50,
           alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.btnPrimary,
+            borderRadius: BorderRadius.circular(6),
+          ),
           child: widget.loading
-              ? const SizedBox(
-                  width: 22,
-                  height: 22,
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                    valueColor: AlwaysStoppedAnimation(AppColors.btnPrimaryText),
                   ),
                 )
               : Text(
                   widget.label,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: AppColors.btnPrimaryText,
+                    letterSpacing: 2,
                   ),
                 ),
         ),

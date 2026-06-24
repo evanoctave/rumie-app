@@ -94,7 +94,7 @@ class _LockScreenState extends State<LockScreen> {
                   child: Center(
                     child:
                         _loading
-                            ? const SizedBox(
+                            ? SizedBox(
                               width: 28,
                               height: 28,
                               child: CircularProgressIndicator(
