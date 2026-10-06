@@ -47,12 +47,10 @@ roomie/
 │   ├── theme/
 │   │   └── app_colors.dart   ← all colors live here
 │   │
-│   ├── models/
-│   │   ├── roommate.dart
-│   │   └── trait.dart
-│   │
 │   ├── data/
-│   │   └── sample_data.dart  ← placeholder roommate list
+│   │   ├── api/              ← DioClient, interceptors, openapi.json snapshot
+│   │   ├── models/           ← DTOs + generated *.g.dart
+│   │   └── repositories/     ← *RepositoryImpl
 │   │
 │   ├── screens/
 │   │   ├── home_screen.dart      ← bottom-nav shell
@@ -89,14 +87,8 @@ roomie/
 - **Pill-shaped trait chips** — your "pill interactives"
 - **Listing detail sheet** — tap a row in the Listings tab to see the full profile in a draggable bottom sheet
 
-## What's still on the backend side (from the API column of the whiteboard)
+## Backend API
 
-These need a server to be real, not just the Flutter app:
-
-- Basic CRUD (creating/reading roommate profiles)
-- Health-status endpoint
-- Auth
-
-When you're ready, the data source is isolated in `lib/data/sample_data.dart`
-— swap that file for a real HTTP/Firebase fetch and the rest of the app
-doesn't need to change.
+Data comes from the Rumie API (default `https://rumie.xyz`; override it with
+`--dart-define=RUMIE_BASE_URL=...`). The repository README at the repo root
+explains how to configure the base URL and refresh the OpenAPI snapshot.
