@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../data/models/listing_out.dart';
+import '../domain/entities/entities.dart';
 
 class ListingsProvider extends ChangeNotifier {
   List<ListingOut> listings = [];

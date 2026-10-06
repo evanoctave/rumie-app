@@ -3,14 +3,76 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../models/roommate.dart';
+import '../di/locator.dart';
+import '../domain/entities/entities.dart';
+import '../domain/errors/error_messages.dart';
+import '../domain/repositories/conversations_repository.dart';
+import '../domain/repositories/listings_repository.dart';
 import '../theme/app_colors.dart';
 import '../widgets/match_tile.dart';
+import '../widgets/state_views.dart';
 
-class MatchesScreen extends StatelessWidget {
-  final List<Roommate> matches;
+class MatchesScreen extends StatefulWidget {
+  /// Reports the loaded match count so the nav badge stays in sync.
+  final void Function(int count)? onLoaded;
 
-  const MatchesScreen({super.key, required this.matches});
+  const MatchesScreen({super.key, this.onLoaded});
+
+  @override
+  State<MatchesScreen> createState() => _MatchesScreenState();
+}
+
+class _MatchesScreenState extends State<MatchesScreen> {
+  List<MatchSummary> matches = const [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load({bool showSpinner = true}) async {
+    // Already in the loading state on first run (called from initState).
+    if (showSpinner && !_loading) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
+    try {
+      final convs =
+          await locator<ConversationsRepository>().listConversations();
+      final summaries = await Future.wait(convs.map(_summarize));
+      if (!mounted) return;
+      setState(() {
+        matches = summaries;
+        _loading = false;
+        _error = null;
+      });
+      widget.onLoaded?.call(summaries.length);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = userMessage(e, fallback: "Couldn't load your matches.");
+        _loading = false;
+      });
+    }
+  }
+
+  /// Listing inquiries are titled by their listing; a failed lookup just
+  /// falls back to a generic title.
+  Future<MatchSummary> _summarize(ConversationOut c) async {
+    ListingOut? listing;
+    final id = c.listingId;
+    if (c.type == ConversationType.landlordInquiry && id != null) {
+      try {
+        listing = await locator<ListingsRepository>().get(id);
+      } catch (_) {}
+    }
+    return MatchSummary.fromConversation(c, listing: listing);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +81,15 @@ class MatchesScreen extends StatelessWidget {
       child: Column(
         children: [
           _buildHeader(),
-          Expanded(child: matches.isEmpty ? _buildEmpty() : _buildList()),
+          Expanded(
+            child: _loading
+                ? const LoadingView()
+                : _error != null
+                    ? ErrorView(message: _error!, onRetry: _load)
+                    : matches.isEmpty
+                        ? _buildEmpty()
+                        : _buildList(),
+          ),
         ],
       ),
     );
@@ -86,13 +156,17 @@ class MatchesScreen extends StatelessWidget {
   }
 
   Widget _buildList() {
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-      itemCount: matches.length,
-      separatorBuilder: (ctx, i) => const SizedBox(height: 12),
-      itemBuilder:
-          (context, index) =>
-              MatchTile(roommate: matches[index], animationIndex: index),
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () => _load(showSpinner: false),
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+        itemCount: matches.length,
+        separatorBuilder: (ctx, i) => const SizedBox(height: 12),
+        itemBuilder:
+            (context, index) =>
+                MatchTile(match: matches[index], animationIndex: index),
+      ),
     );
   }
 

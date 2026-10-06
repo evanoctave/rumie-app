@@ -4,15 +4,20 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../data/sample_data.dart';
-import '../models/roommate.dart';
+import '../di/locator.dart';
+import '../domain/entities/entities.dart';
+import '../domain/errors/error_messages.dart';
+import '../domain/repositories/discovery_repository.dart';
+import '../domain/repositories/swipe_repository.dart';
 import '../theme/app_colors.dart';
 import '../widgets/action_button.dart';
+import '../widgets/avatar_style.dart';
 import '../widgets/stamp.dart';
+import '../widgets/state_views.dart';
 import '../widgets/trait_chip.dart';
 
 class SwipeScreen extends StatefulWidget {
-  final void Function(Roommate) onMatch;
+  final void Function(RoommateCandidate) onMatch;
   final int matchCount;
   final VoidCallback onOpenMatches;
 
@@ -31,6 +36,41 @@ class _SwipeScreenState extends State<SwipeScreen> {
   int _index = 0;
   double _dragRatio = 0.0;
 
+  List<RoommateCandidate> _deck = const [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    // Already in the loading state on first run (called from initState).
+    if (!_loading) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
+    try {
+      final groups = await locator<DiscoveryRepository>().discoverGroups();
+      if (!mounted) return;
+      setState(() {
+        _deck = groups.map(RoommateCandidate.fromGroup).toList();
+        _index = 0;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = userMessage(e, fallback: "Couldn't load profiles.");
+        _loading = false;
+      });
+    }
+  }
+
   void _onDragRatio(double ratio) {
     setState(() => _dragRatio = ratio.clamp(-1.0, 1.0));
   }
@@ -46,21 +86,41 @@ class _SwipeScreenState extends State<SwipeScreen> {
   }
 
   void _handleSwipe(bool liked) {
-    if (liked && _index < sampleRoommates.length) {
-      HapticFeedback.heavyImpact();
-      widget.onMatch(sampleRoommates[_index]);
-      _showMatchDialog(sampleRoommates[_index]);
-    }
+    if (_index >= _deck.length) return;
+    final candidate = _deck[_index];
+    _recordSwipe(candidate, liked);
     setState(() {
       _dragRatio = 0.0;
-      _index =
-          _index < sampleRoommates.length - 1
-              ? _index + 1
-              : sampleRoommates.length;
+      _index = _index < _deck.length - 1 ? _index + 1 : _deck.length;
     });
   }
 
-  void _showMatchDialog(Roommate roommate) {
+  /// Sends the swipe; the match dialog only shows when the server reports a
+  /// mutual match (V16: `merge` proposal on the group path).
+  Future<void> _recordSwipe(RoommateCandidate c, bool liked) async {
+    try {
+      final out = await locator<SwipeRepository>().swipe(SwipeIn(
+        targetId: c.id,
+        targetType: c.targetType,
+        direction: liked ? SwipeDirection.right : SwipeDirection.left,
+      ));
+      if (!mounted || !out.matched) return;
+      HapticFeedback.heavyImpact();
+      widget.onMatch(c);
+      _showMatchDialog(c);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            userMessage(e, fallback: "Couldn't save that swipe."),
+          ),
+        ),
+      );
+    }
+  }
+
+  void _showMatchDialog(RoommateCandidate roommate) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -93,7 +153,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hasMore = _index < sampleRoommates.length;
+    final hasMore = _index < _deck.length;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 60),
@@ -101,7 +161,11 @@ class _SwipeScreenState extends State<SwipeScreen> {
       child: Column(
         children: [
           _buildHeader(),
-          if (hasMore) ...[
+          if (_loading)
+            const Expanded(child: LoadingView())
+          else if (_error != null)
+            Expanded(child: ErrorView(message: _error!, onRetry: _load))
+          else if (hasMore) ...[
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -131,7 +195,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
                                 child: child,
                               ),
                             ),
-                        child: _buildProfileInfo(sampleRoommates[_index]),
+                        child: _buildProfileInfo(_deck[_index]),
                       ),
                     ),
                   ],
@@ -236,7 +300,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
       child: Stack(
         alignment: Alignment.topCenter,
         children: [
-          if (_index + 2 < sampleRoommates.length)
+          if (_index + 2 < _deck.length)
             Positioned(
               top: 24,
               child: Opacity(
@@ -244,13 +308,13 @@ class _SwipeScreenState extends State<SwipeScreen> {
                 child: Transform.scale(
                   scale: 0.84,
                   child: _AvatarCircle(
-                    roommate: sampleRoommates[_index + 2],
+                    roommate: _deck[_index + 2],
                     size: size,
                   ),
                 ),
               ),
             ),
-          if (_index + 1 < sampleRoommates.length)
+          if (_index + 1 < _deck.length)
             Positioned(
               top: 12,
               child: Opacity(
@@ -258,7 +322,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
                 child: Transform.scale(
                   scale: 0.92,
                   child: _AvatarCircle(
-                    roommate: sampleRoommates[_index + 1],
+                    roommate: _deck[_index + 1],
                     size: size,
                   ),
                 ),
@@ -268,7 +332,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
             top: 0,
             child: _DragCard(
               key: ValueKey(_index),
-              roommate: sampleRoommates[_index],
+              roommate: _deck[_index],
               onSwipe: _handleSwipe,
               onDragRatio: _onDragRatio,
               size: size,
@@ -279,9 +343,9 @@ class _SwipeScreenState extends State<SwipeScreen> {
     );
   }
 
-  Widget _buildProfileInfo(Roommate r) {
+  Widget _buildProfileInfo(RoommateCandidate r) {
     return SizedBox(
-      key: ValueKey(r.name),
+      key: ValueKey(r.id),
       width: double.infinity,
       child: SingleChildScrollView(
         child: Column(
@@ -292,7 +356,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    '${r.name}, ${r.age}',
+                    r.headline,
                     style: GoogleFonts.dmSans(
                       fontSize: 30,
                       fontWeight: FontWeight.w800,
@@ -301,25 +365,26 @@ class _SwipeScreenState extends State<SwipeScreen> {
                     ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.softGreen,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.green.withAlpha(60)),
-                  ),
-                  child: Text(
-                    '\$${r.budget}/mo',
-                    style: GoogleFonts.dmSans(
-                      color: AppColors.greenDark,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
+                if (r.budget != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.softGreen,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.green.withAlpha(60)),
+                    ),
+                    child: Text(
+                      '\$${r.budget}/mo',
+                      style: GoogleFonts.dmSans(
+                        color: AppColors.greenDark,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -362,7 +427,7 @@ class _SwipeScreenState extends State<SwipeScreen> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: r.traits.map((t) => TraitChip(trait: t)).toList(),
+              children: r.tags.map((t) => TraitChip(label: t)).toList(),
             ),
           ],
         ),
@@ -467,13 +532,14 @@ class _SwipeScreenState extends State<SwipeScreen> {
 // ─── Avatar circle ─────────────────────────────────────────────────────────────
 
 class _AvatarCircle extends StatelessWidget {
-  final Roommate roommate;
+  final RoommateCandidate roommate;
   final double size;
 
   const _AvatarCircle({required this.roommate, required this.size});
 
   @override
   Widget build(BuildContext context) {
+    final style = AvatarStyle.forId(roommate.id);
     return Container(
       width: size,
       height: size,
@@ -481,17 +547,17 @@ class _AvatarCircle extends StatelessWidget {
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: [
-            roommate.gradient.first.withAlpha(80),
-            roommate.gradient.last.withAlpha(40),
+            style.gradient.first.withAlpha(80),
+            style.gradient.last.withAlpha(40),
           ],
         ),
         border: Border.all(
-          color: roommate.gradient.first.withAlpha(120),
+          color: style.gradient.first.withAlpha(120),
           width: 3,
         ),
         boxShadow: [
           BoxShadow(
-            color: roommate.gradient.first.withAlpha(60),
+            color: style.gradient.first.withAlpha(60),
             blurRadius: 28,
             offset: const Offset(0, 10),
             spreadRadius: -4,
@@ -506,7 +572,7 @@ class _AvatarCircle extends StatelessWidget {
       child: ClipOval(
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.contain),
+          child: SvgPicture.asset(style.asset, fit: BoxFit.contain),
         ),
       ),
     );
@@ -516,7 +582,7 @@ class _AvatarCircle extends StatelessWidget {
 // ─── Draggable photo ───────────────────────────────────────────────────────────
 
 class _DragCard extends StatefulWidget {
-  final Roommate roommate;
+  final RoommateCandidate roommate;
   final void Function(bool) onSwipe;
   final void Function(double) onDragRatio;
   final double size;
@@ -666,13 +732,14 @@ class _DragCardState extends State<_DragCard> with TickerProviderStateMixin {
 // ─── Match dialog ──────────────────────────────────────────────────────────────
 
 class _MatchDialog extends StatelessWidget {
-  final Roommate roommate;
+  final RoommateCandidate roommate;
   final VoidCallback onChat;
 
   const _MatchDialog({required this.roommate, required this.onChat});
 
   @override
   Widget build(BuildContext context) {
+    final style = AvatarStyle.forId(roommate.id);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -712,7 +779,7 @@ class _MatchDialog extends StatelessWidget {
                 children: [
                   _AvatarBox(
                     svgAsset: 'assets/icons/av_you.svg',
-                    gradient: roommate.gradient,
+                    gradient: style.gradient,
                   ),
                   Container(
                         width: 44,
@@ -743,8 +810,8 @@ class _MatchDialog extends StatelessWidget {
                         curve: Curves.easeInOut,
                       ),
                   _AvatarBox(
-                    svgAsset: roommate.avatarAsset,
-                    gradient: roommate.gradient,
+                    svgAsset: style.asset,
+                    gradient: style.gradient,
                   ),
                 ],
               ),
@@ -764,7 +831,7 @@ class _MatchDialog extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'You and ${roommate.name} liked each other.',
+                'You and ${roommate.matchLabel} liked each other.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.dmSans(
                   fontSize: 14,

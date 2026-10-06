@@ -6,8 +6,16 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../di/locator.dart';
+import '../domain/entities/entities.dart';
+import '../domain/errors/error_messages.dart';
+import '../domain/repositories/asset_repository.dart';
+import '../domain/repositories/discovery_repository.dart';
+import '../domain/repositories/listings_repository.dart';
 import '../theme/app_colors.dart';
+import '../utils/content_type.dart';
 import '../widgets/listing_card.dart';
+import '../widgets/state_views.dart';
 
 class ListingsScreen extends StatefulWidget {
   const ListingsScreen({super.key});
@@ -29,55 +37,46 @@ class _ListingsScreenState extends State<ListingsScreen> {
     'Studio',
   ];
 
-  static const _listings = [
-    {
-      'title': 'Bright private room near campus',
-      'type': 'Room',
-      'location': 'Westwood, Los Angeles',
-      'rent': 1250,
-      'bedsBaths': '1 bed / shared bath',
-      'availableDate': 'June 1',
-    },
-    {
-      'title': 'Spacious apartment with shared kitchen',
-      'type': 'Apartment',
-      'location': 'Koreatown, Los Angeles',
-      'rent': 1800,
-      'bedsBaths': '2 bed / 1 bath',
-      'availableDate': 'Now',
-    },
-    {
-      'title': 'Quiet condo with home office',
-      'type': 'Condo',
-      'location': 'Pasadena, CA',
-      'rent': 2100,
-      'bedsBaths': '2 bed / 2 bath',
-      'availableDate': 'July 10',
-    },
-    {
-      'title': 'Duplex room with private backyard',
-      'type': 'Duplex',
-      'location': 'El Sereno, Los Angeles',
-      'rent': 1450,
-      'bedsBaths': '1 bed / 1 bath',
-      'availableDate': 'August 1',
-    },
-    {
-      'title': 'Modern studio in downtown',
-      'type': 'Studio',
-      'location': 'DTLA, Los Angeles',
-      'rent': 1650,
-      'bedsBaths': 'Studio / 1 bath',
-      'availableDate': 'Now',
-    },
-  ];
+  List<ListingOut> _listings = const [];
+  bool _loading = true;
+  String? _error;
 
-  List<Map<String, dynamic>> get _visible =>
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load({bool showSpinner = true}) async {
+    // Already in the loading state on first run (called from initState).
+    if (showSpinner && !_loading) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
+    try {
+      final listings = await locator<DiscoveryRepository>().discoverListings();
+      if (!mounted) return;
+      setState(() {
+        _listings = listings;
+        _loading = false;
+        _error = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = userMessage(e, fallback: "Couldn't load listings.");
+        _loading = false;
+      });
+    }
+  }
+
+  List<ListingOut> get _visible =>
       _selectedType == 'All'
-          ? _listings.cast<Map<String, dynamic>>()
+          ? _listings
           : _listings
-              .cast<Map<String, dynamic>>()
-              .where((l) => l['type'] == _selectedType)
+              .where((l) => ListingMeta.of(l).type == _selectedType)
               .toList();
 
   @override
@@ -91,24 +90,36 @@ class _ListingsScreenState extends State<ListingsScreen> {
           _buildFilter(),
           Expanded(
             child:
-                _visible.isEmpty
+                _loading
+                    ? const LoadingView()
+                    : _error != null
+                    ? ErrorView(message: _error!, onRetry: _load)
+                    : _visible.isEmpty
                     ? _buildEmpty()
-                    : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-                      itemCount: _visible.length,
-                      separatorBuilder: (ctx, i) => const SizedBox(height: 14),
-                      itemBuilder: (context, index) {
-                        final l = _visible[index];
-                        return ListingCard(
-                          title: l['title'] as String,
-                          type: l['type'] as String,
-                          location: l['location'] as String,
-                          rent: l['rent'] as int,
-                          bedsBaths: l['bedsBaths'] as String,
-                          availableDate: l['availableDate'] as String,
-                          animationIndex: index,
-                        );
-                      },
+                    : RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: () => _load(showSpinner: false),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                        itemCount: _visible.length,
+                        separatorBuilder:
+                            (ctx, i) => const SizedBox(height: 14),
+                        itemBuilder: (context, index) {
+                          final l = _visible[index];
+                          final meta = ListingMeta.of(l);
+                          return ListingCard(
+                            title: l.title,
+                            type: meta.type,
+                            location: l.location,
+                            rent: l.rent,
+                            bedsBaths: meta.bedsBaths,
+                            availableDate: meta.availableDate,
+                            photoUrl:
+                                l.photoUrls.isEmpty ? null : l.photoUrls.first,
+                            animationIndex: index,
+                          );
+                        },
+                      ),
                     ),
           ),
         ],
@@ -243,7 +254,9 @@ class _ListingsScreenState extends State<ListingsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'No listings in this category.',
+              _listings.isEmpty
+                  ? 'No listings yet. Check back soon.'
+                  : 'No listings in this category.',
               style: GoogleFonts.dmSans(
                 fontSize: 16,
                 color: AppColors.textSecondary,
@@ -261,7 +274,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => const _PostListingSheet(),
+      builder: (_) => _PostListingSheet(onPosted: _load),
     );
   }
 }
@@ -326,7 +339,10 @@ class _PostButtonState extends State<_PostButton> {
 // ── Post listing sheet ─────────────────────────────────────────────────────────
 
 class _PostListingSheet extends StatefulWidget {
-  const _PostListingSheet();
+  /// Called after the listing was created so the list can refresh.
+  final VoidCallback onPosted;
+
+  const _PostListingSheet({required this.onPosted});
 
   @override
   State<_PostListingSheet> createState() => _PostListingSheetState();
@@ -342,6 +358,11 @@ class _PostListingSheetState extends State<_PostListingSheet> {
 
   final List<String> _photoPaths = [];
   int _coverIndex = 0;
+
+  bool _posting = false;
+
+  /// Client-side and server (422, V5) messages keyed by API field name.
+  Map<String, List<String>> _fieldErrors = const {};
 
   static const _types = [
     'Room',
@@ -403,6 +424,89 @@ class _PostListingSheetState extends State<_PostListingSheet> {
   void _setCover(int index) {
     setState(() => _coverIndex = index);
     HapticFeedback.selectionClick();
+  }
+
+  Map<String, List<String>> _validate() {
+    final errors = <String, List<String>>{};
+    if (_titleCtrl.text.trim().isEmpty) {
+      errors['title'] = ['Add a title.'];
+    } else if (_titleCtrl.text.trim().length > 200) {
+      errors['title'] = ['Keep the title under 200 characters.'];
+    }
+    if (_locationCtrl.text.trim().isEmpty) {
+      errors['location'] = ['Add a location.'];
+    }
+    final rent = int.tryParse(_rentCtrl.text.trim());
+    if (rent == null || rent < 0) errors['rent'] = ['Enter the monthly rent.'];
+    return errors;
+  }
+
+  /// Uploads photos (cover first) via presign → PUT (V8), then creates the
+  /// listing with the returned asset URLs.
+  Future<void> _post() async {
+    if (_posting) return;
+    final local = _validate();
+    setState(() => _fieldErrors = local);
+    if (local.isNotEmpty) return;
+    HapticFeedback.mediumImpact();
+    setState(() => _posting = true);
+
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    try {
+      final ordered = [
+        if (_photoPaths.isNotEmpty) _photoPaths[_coverIndex],
+        for (var i = 0; i < _photoPaths.length; i++)
+          if (i != _coverIndex) _photoPaths[i],
+      ];
+      final assets = locator<AssetRepository>();
+      final urls = <String>[];
+      for (final path in ordered) {
+        urls.add(await assets.upload(
+          kind: AssetKind.listingPhoto,
+          bytes: await File(path).readAsBytes(),
+          contentType: contentTypeForPath(path),
+        ));
+      }
+      await locator<ListingsRepository>().create(ListingCreate(
+        title: _titleCtrl.text.trim(),
+        location: _locationCtrl.text.trim(),
+        rent: int.parse(_rentCtrl.text.trim()),
+        description: ListingMeta.encode(
+          type: _type,
+          bedsBaths: _beds,
+          availableDate: _available,
+        ),
+        photoUrls: urls,
+      ));
+      navigator.pop();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Listing posted! 🎉')),
+      );
+      widget.onPosted();
+    } catch (e) {
+      if (!mounted) return;
+      final fields = fieldErrorsOf(e);
+      setState(() {
+        _posting = false;
+        _fieldErrors = fields;
+      });
+      const shown = {'title', 'location', 'rent'};
+      final other = fields.entries
+          .where((f) => !shown.contains(f.key))
+          .expand((f) => f.value);
+      if (fields.isEmpty || other.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              other.isNotEmpty
+                  ? other.first
+                  : userMessage(e, fallback: "Couldn't post your listing."),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -487,12 +591,14 @@ class _PostListingSheetState extends State<_PostListingSheet> {
                         _titleCtrl,
                         'Title',
                         'e.g. Bright room near downtown',
+                        error: firstFieldError(_fieldErrors, 'title'),
                       ),
                       const SizedBox(height: 12),
                       _sheetField(
                         _locationCtrl,
                         'Location',
                         'Neighborhood, City',
+                        error: firstFieldError(_fieldErrors, 'location'),
                       ),
                       const SizedBox(height: 12),
                       _sheetField(
@@ -500,6 +606,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
                         'Rent / mo',
                         '1200',
                         keyboard: TextInputType.number,
+                        error: firstFieldError(_fieldErrors, 'rent'),
                       ),
                       const SizedBox(height: 12),
                       _dropdownRow(
@@ -524,13 +631,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
                       ),
                       const SizedBox(height: 28),
                       GestureDetector(
-                        onTap: () {
-                          HapticFeedback.mediumImpact();
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Listing posted! 🎉')),
-                          );
-                        },
+                        onTap: _post,
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 18),
@@ -541,7 +642,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
                           ),
                           child: Center(
                             child: Text(
-                              'Post Listing',
+                              _posting ? 'Posting…' : 'Post Listing',
                               style: GoogleFonts.dmSans(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700,
@@ -719,6 +820,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
     String label,
     String hint, {
     TextInputType keyboard = TextInputType.text,
+    String? error,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -740,6 +842,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.dmSans(color: AppColors.gray, fontSize: 15),
+            errorText: error,
             filled: true,
             fillColor: AppColors.background,
             contentPadding: const EdgeInsets.symmetric(

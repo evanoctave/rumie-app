@@ -4,15 +4,16 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../models/roommate.dart';
+import '../domain/entities/entities.dart';
 import '../screens/chat_screen.dart';
 import '../theme/app_colors.dart';
+import 'avatar_style.dart';
 
 class MatchTile extends StatefulWidget {
-  final Roommate roommate;
+  final MatchSummary match;
   final int animationIndex;
 
-  const MatchTile({super.key, required this.roommate, this.animationIndex = 0});
+  const MatchTile({super.key, required this.match, this.animationIndex = 0});
 
   @override
   State<MatchTile> createState() => _MatchTileState();
@@ -45,7 +46,7 @@ class _MatchTileState extends State<MatchTile>
       context,
       PageRouteBuilder(
         pageBuilder: (ctx, anim, secAnim) =>
-            ChatScreen(roommate: widget.roommate),
+            ChatScreen(match: widget.match),
         transitionsBuilder: (ctx, anim, secAnim, child) => SlideTransition(
           position: Tween<Offset>(
             begin: const Offset(1, 0),
@@ -60,7 +61,8 @@ class _MatchTileState extends State<MatchTile>
 
   @override
   Widget build(BuildContext context) {
-    final gradient = widget.roommate.gradient;
+    final style = AvatarStyle.forId(widget.match.id);
+    final gradient = style.gradient;
 
     return GestureDetector(
       onTapDown: (_) {
@@ -105,7 +107,7 @@ class _MatchTileState extends State<MatchTile>
                   child: Padding(
                     padding: const EdgeInsets.all(5),
                     child: SvgPicture.asset(
-                      widget.roommate.avatarAsset,
+                      style.asset,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -118,7 +120,7 @@ class _MatchTileState extends State<MatchTile>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${widget.roommate.name}, ${widget.roommate.age}',
+                      widget.match.title,
                       style: GoogleFonts.dmSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -127,7 +129,7 @@ class _MatchTileState extends State<MatchTile>
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      '${widget.roommate.location} · \$${widget.roommate.budget}/mo',
+                      widget.match.subtitle,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.dmSans(
                         fontSize: 12.5,

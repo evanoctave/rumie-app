@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../models/roommate.dart';
+import '../domain/entities/entities.dart';
 import '../theme/app_colors.dart';
+import 'avatar_style.dart';
 import 'trait_chip.dart';
 
 class RoommateCard extends StatelessWidget {
-  final Roommate roommate;
+  final RoommateCandidate roommate;
   final void Function(bool liked)? onTap;
 
   const RoommateCard({super.key, required this.roommate, this.onTap});
+
+  AvatarStyle get _style => AvatarStyle.forId(roommate.id);
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +46,7 @@ class RoommateCard extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          '${roommate.name}, ${roommate.age}',
+                          roommate.headline,
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
@@ -51,7 +54,7 @@ class RoommateCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      _budgetPill(),
+                      if (roommate.budget != null) _budgetPill(),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -95,10 +98,10 @@ class RoommateCard extends StatelessWidget {
                   Wrap(
                     spacing: 7,
                     runSpacing: 7,
-                    children: roommate.traits
+                    children: roommate.tags
                         .asMap()
                         .entries
-                        .map((e) => TraitChip(trait: e.value)
+                        .map((e) => TraitChip(label: e.value)
                             .animate()
                             .fadeIn(delay: (40 * e.key).ms))
                         .toList(),
@@ -113,23 +116,12 @@ class RoommateCard extends StatelessWidget {
   }
 
   Widget _buildPhotoArea() {
-    final isPhoto = roommate.avatarAsset.endsWith('.jpg') ||
-        roommate.avatarAsset.endsWith('.jpeg') ||
-        roommate.avatarAsset.endsWith('.png');
-
     return SizedBox(
       height: 280,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (isPhoto)
-            Image.asset(
-              roommate.avatarAsset,
-              fit: BoxFit.cover,
-              errorBuilder: (context2, e, _) => _fallbackAvatar(),
-            )
-          else
-            _svgAvatar(),
+          _svgAvatar(),
           // gradient overlay at bottom for readability
           Positioned(
             bottom: 0,
@@ -156,7 +148,7 @@ class RoommateCard extends StatelessWidget {
 
   Widget _svgAvatar() {
     return Container(
-      color: roommate.gradient.first.withAlpha(60),
+      color: _style.gradient.first.withAlpha(60),
       child: Center(
         child: Container(
           width: 88,
@@ -167,18 +159,9 @@ class RoommateCard extends StatelessWidget {
             border: Border.all(color: Colors.white.withAlpha(50), width: 2),
           ),
           child: ClipOval(
-            child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.cover),
+            child: SvgPicture.asset(_style.asset, fit: BoxFit.cover),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _fallbackAvatar() {
-    return Container(
-      color: roommate.gradient.first.withAlpha(60),
-      child: Center(
-        child: Icon(Icons.person, size: 64, color: Colors.white.withAlpha(180)),
       ),
     );
   }

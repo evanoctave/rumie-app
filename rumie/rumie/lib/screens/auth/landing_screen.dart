@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../data/models/role.dart';
+import '../../domain/entities/entities.dart';
 import '../../theme/app_colors.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';

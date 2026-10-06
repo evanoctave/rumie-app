@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 
-import '../models/roommate.dart';
-import '../models/user_profile.dart';
+import '../di/locator.dart';
+import '../domain/entities/entities.dart';
+import '../domain/repositories/conversations_repository.dart';
+import '../state/auth_provider.dart';
+import '../state/profile_provider.dart';
 import '../theme/app_colors.dart';
 import '../widgets/rumie_icon.dart';
 import 'listings_screen.dart';
@@ -20,22 +24,22 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _selectedIndex = 0;
-  final List<Roommate> _matches = [];
   late AnimationController _pageController;
 
-  UserProfile _profile = const UserProfile(
-    name: '',
-    age: 0,
-    bio: '',
-    location: '',
-    budgetMin: 800,
-    budgetMax: 1500,
-  );
+  /// Mutual matches = server conversations (drives the nav badge).
+  int _matchCount = 0;
 
-  void _addMatch(Roommate roommate) {
-    final exists = _matches.any((m) => m.name == roommate.name);
-    if (!exists) setState(() => _matches.add(roommate));
+  Future<void> _refreshMatchCount() async {
+    try {
+      final convs =
+          await locator<ConversationsRepository>().listConversations();
+      if (mounted) setState(() => _matchCount = convs.length);
+    } catch (_) {
+      // Badge is decorative; the Matches tab shows the real error state.
+    }
   }
+
+  void _addMatch(RoommateCandidate _) => _refreshMatchCount();
 
   void _openMatches() => setState(() => _selectedIndex = 1);
 
@@ -47,6 +51,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 200),
       value: 1.0,
     );
+    _refreshMatchCount();
+    // After the first frame: load() notifies listeners, which must not
+    // happen while the tree is building.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<ProfileProvider>().load(context.read<AuthProvider>().user);
+    });
   }
 
   @override
@@ -69,15 +80,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final pages = [
       SwipeScreen(
         onMatch: _addMatch,
-        matchCount: _matches.length,
+        matchCount: _matchCount,
         onOpenMatches: _openMatches,
       ),
-      MatchesScreen(matches: _matches),
-      const ListingsScreen(),
-      ProfileScreen(
-        profile: _profile,
-        onProfileUpdated: (p) => setState(() => _profile = p),
+      MatchesScreen(
+        onLoaded: (count) {
+          if (count != _matchCount) setState(() => _matchCount = count);
+        },
       ),
+      const ListingsScreen(),
+      const ProfileScreen(),
     ];
 
     return Scaffold(
@@ -129,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             children: List.generate(items.length, (i) {
               final item = items[i];
               final selected = _selectedIndex == i;
-              final showBadge = i == 1 && _matches.isNotEmpty;
+              final showBadge = i == 1 && _matchCount > 0;
 
               return Expanded(
                 child: Semantics(
@@ -204,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ),
                                 child: Center(
                                   child: Text(
-                                    '${_matches.length}',
+                                    '$_matchCount',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 9,

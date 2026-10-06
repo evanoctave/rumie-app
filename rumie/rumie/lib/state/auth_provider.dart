@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:local_auth/local_auth.dart';
 
-import '../data/models/login_in.dart';
-import '../data/models/register_in.dart';
-import '../data/models/user_out.dart';
 import '../di/locator.dart';
+import '../domain/entities/entities.dart';
+import '../domain/errors/api_exception.dart';
+import '../domain/errors/error_messages.dart';
 import '../domain/repositories/auth_repository.dart';
-import '../data/api/token_store.dart';
 
 enum AuthStatus { unknown, authenticated, unauthenticated }
 
@@ -14,12 +13,16 @@ class AuthProvider extends ChangeNotifier {
   AuthStatus _status = AuthStatus.unknown;
   UserOut? _user;
   String? _error;
+  Map<String, List<String>> _fieldErrors = const {};
   bool _loading = false;
   bool _isLocked = false;
 
   AuthStatus get status => _status;
   UserOut? get user => _user;
   String? get error => _error;
+
+  /// Per-field server messages from the last failed login/register (422, V5).
+  Map<String, List<String>> get fieldErrors => _fieldErrors;
   bool get loading => _loading;
   bool get isLocked => _isLocked;
 
@@ -36,8 +39,8 @@ class AuthProvider extends ChangeNotifier {
   void initialize() => _checkToken();
 
   Future<void> _checkToken() async {
-    final token = await locator<TokenStore>().readAccess();
-    if (token == null) {
+    final hasSession = await locator<AuthRepository>().hasSession();
+    if (!hasSession) {
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return;
@@ -55,6 +58,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> login(String email, String password) async {
     _loading = true;
     _error = null;
+    _fieldErrors = const {};
     notifyListeners();
     try {
       await locator<AuthRepository>().login(LoginIn(email: email, password: password));
@@ -66,6 +70,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _error = _friendlyError(e);
+      _fieldErrors = fieldErrorsOf(e);
       _loading = false;
       notifyListeners();
       return false;
@@ -75,6 +80,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> register(RegisterIn body) async {
     _loading = true;
     _error = null;
+    _fieldErrors = const {};
     notifyListeners();
     try {
       final out = await locator<AuthRepository>().register(body);
@@ -86,6 +92,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _error = _friendlyError(e);
+      _fieldErrors = fieldErrorsOf(e);
       _loading = false;
       notifyListeners();
       return false;
@@ -152,16 +159,13 @@ class AuthProvider extends ChangeNotifier {
   }
 
   String _friendlyError(Object e) {
-    final msg = e.toString().toLowerCase();
-    if (msg.contains('401') || msg.contains('unauthorized') || msg.contains('incorrect')) {
-      return 'Incorrect email or password.';
-    }
-    if (msg.contains('409') || msg.contains('already')) {
+    if (e is UnauthorizedException) return 'Incorrect email or password.';
+    if (e is ServerException && e.statusCode == 409) {
       return 'An account with that email already exists.';
     }
-    if (msg.contains('network') || msg.contains('socket') || msg.contains('connection')) {
-      return 'No internet connection. Please try again.';
+    if (e is ServerException && e.statusCode == 400 && e.detail != null) {
+      return e.detail!;
     }
-    return 'Something went wrong. Please try again.';
+    return userMessage(e);
   }
 }

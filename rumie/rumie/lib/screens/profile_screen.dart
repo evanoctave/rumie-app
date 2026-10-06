@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -9,19 +7,14 @@ import 'package:provider/provider.dart';
 
 import '../models/user_profile.dart';
 import '../state/auth_provider.dart';
+import '../state/profile_provider.dart';
 import '../state/theme_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/avatar_style.dart';
 import 'profile_create_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final UserProfile profile;
-  final void Function(UserProfile) onProfileUpdated;
-
-  const ProfileScreen({
-    super.key,
-    required this.profile,
-    required this.onProfileUpdated,
-  });
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -34,10 +27,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       MaterialPageRoute(
         builder:
             (_) => ProfileCreateScreen(
-              existing: widget.profile,
-              onSave: (updated) {
-                widget.onProfileUpdated(updated);
-                Navigator.pop(context);
+              existing: context.read<ProfileProvider>().profile,
+              // Throws typed ApiExceptions; ProfileCreateScreen shows them.
+              onSave: (updated) async {
+                await context.read<ProfileProvider>().save(updated);
+                if (mounted) Navigator.pop(context);
               },
             ),
       ),
@@ -46,7 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final p = widget.profile;
+    final p = context.watch<ProfileProvider>().profile;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: p.isComplete ? _buildProfile(p) : _buildEmpty(),
@@ -255,12 +249,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildAvatar(UserProfile p) {
-    if (p.photoPath.isNotEmpty) {
-      return Image.file(File(p.photoPath), fit: BoxFit.cover);
-    }
-    return Padding(
-      padding: const EdgeInsets.all(10),
-      child: SvgPicture.asset('assets/icons/av_you.svg', fit: BoxFit.contain),
+    return ProfilePhoto(
+      path: p.photoPath,
+      placeholder: Padding(
+        padding: const EdgeInsets.all(10),
+        child: SvgPicture.asset('assets/icons/av_you.svg', fit: BoxFit.contain),
+      ),
     );
   }
 

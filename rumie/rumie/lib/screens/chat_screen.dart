@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,93 +6,144 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:provider/provider.dart';
+
+import '../di/locator.dart';
+import '../domain/entities/entities.dart';
+import '../domain/errors/error_messages.dart';
+import '../domain/repositories/conversations_repository.dart';
 import '../models/message.dart';
-import '../models/roommate.dart';
+import '../state/auth_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/avatar_style.dart';
+import '../widgets/state_views.dart';
 
 class ChatScreen extends StatefulWidget {
-  final Roommate roommate;
-  const ChatScreen({super.key, required this.roommate});
+  final MatchSummary match;
+  const ChatScreen({super.key, required this.match});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
+class _ChatScreenState extends State<ChatScreen> {
   final List<Message> _messages = [];
   final TextEditingController _textCtrl = TextEditingController();
   final ScrollController _scrollCtrl = ScrollController();
-  bool _isTyping = false;
-  late AnimationController _typingCtrl;
 
-  static const _responses = [
-    "Hey! So excited we matched 🎉",
-    "What's your schedule like?",
-    "I love that neighborhood too!",
-    "We should definitely meet up and chat.",
-    "What kind of music are you into?",
-    "Do you cook a lot?",
-    "That sounds great honestly.",
-    "I'm flexible on move-in dates — what works for you?",
-    "Let me know when you're free to talk 😊",
-  ];
+  bool _loading = true;
+  bool _sending = false;
+  String? _error;
+  Timer? _poll;
 
-  final _random = Random();
+  late final AvatarStyle _style = AvatarStyle.forId(widget.match.id);
+
+  /// The API has no push channel; poll while the chat is open.
+  static const _pollInterval = Duration(seconds: 5);
+
+  String get _convId => widget.match.conversation.id;
 
   @override
   void initState() {
     super.initState();
-    _typingCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat();
-
-    Future.delayed(700.ms, () {
-      if (mounted) _addTheirMessage("Hey! Looks like we matched 👋");
-    });
+    _load();
+    _poll = Timer.periodic(_pollInterval, (_) => _refresh());
   }
 
   @override
   void dispose() {
-    _typingCtrl.dispose();
+    _poll?.cancel();
     _textCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();
   }
 
-  void _addTheirMessage(String text) {
-    setState(() {
-      _isTyping = false;
-      _messages.add(Message(
-        id: '${DateTime.now().millisecondsSinceEpoch}',
-        text: text,
-        isMe: false,
-        timestamp: DateTime.now(),
-      ));
-    });
-    _scrollToBottom();
+  Message _toMessage(MessageOut m, String? myId) => Message(
+        id: m.id,
+        text: m.body,
+        isMe: m.senderId == myId,
+        timestamp: m.ts,
+      );
+
+  Future<void> _load() async {
+    // Already in the loading state on first run (called from initState).
+    if (!_loading) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
+    try {
+      await _fetchAndMerge();
+      if (!mounted) return;
+      setState(() => _loading = false);
+      _scrollToBottom();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = userMessage(e, fallback: "Couldn't load messages.");
+        _loading = false;
+      });
+    }
   }
 
-  void _send() {
-    final text = _textCtrl.text.trim();
-    if (text.isEmpty) return;
-    HapticFeedback.lightImpact();
-    setState(() {
-      _messages.add(Message(
-        id: '${DateTime.now().millisecondsSinceEpoch}',
-        text: text,
-        isMe: true,
-        timestamp: DateTime.now(),
-      ));
-      _isTyping = true;
-    });
-    _textCtrl.clear();
-    _scrollToBottom();
+  /// Background poll; failures are silent (the next tick retries).
+  Future<void> _refresh() async {
+    if (_loading || _error != null || !mounted) return;
+    try {
+      final added = await _fetchAndMerge();
+      if (added && mounted) _scrollToBottom();
+    } catch (_) {}
+  }
 
-    final delay = 1200 + _random.nextInt(1000);
-    Future.delayed(Duration(milliseconds: delay), () {
-      if (mounted) _addTheirMessage(_responses[_random.nextInt(_responses.length)]);
+  /// Returns whether any new message arrived.
+  Future<bool> _fetchAndMerge() async {
+    final myId = context.read<AuthProvider>().user?.id;
+    final page = await locator<ConversationsRepository>().listMessages(_convId);
+    if (!mounted) return false;
+    final known = _messages.map((m) => m.id).toSet();
+    final fresh = page.where((m) => !known.contains(m.id)).toList();
+    if (fresh.isEmpty) return false;
+    setState(() {
+      _messages
+        ..addAll(fresh.map((m) => _toMessage(m, myId)))
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     });
+    return true;
+  }
+
+  Future<void> _send() async {
+    final text = _textCtrl.text.trim();
+    if (text.isEmpty || _sending) return;
+    HapticFeedback.lightImpact();
+    final myId = context.read<AuthProvider>().user?.id;
+    setState(() => _sending = true);
+    _textCtrl.clear();
+    try {
+      final sent =
+          await locator<ConversationsRepository>().sendMessage(_convId, text);
+      if (!mounted) return;
+      setState(() {
+        if (!_messages.any((m) => m.id == sent.id)) {
+          _messages.add(_toMessage(sent, myId));
+        }
+        _sending = false;
+      });
+      _scrollToBottom();
+    } catch (e) {
+      if (!mounted) return;
+      // Give the text back so nothing typed is lost.
+      if (_textCtrl.text.isEmpty) _textCtrl.text = text;
+      setState(() => _sending = false);
+      final fieldMsg = firstFieldError(fieldErrorsOf(e), 'body');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            fieldMsg ?? userMessage(e, fallback: "Couldn't send your message."),
+          ),
+        ),
+      );
+    }
   }
 
   void _scrollToBottom() {
@@ -115,7 +166,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       body: Column(
         children: [
           Expanded(child: _buildMessages()),
-          if (_isTyping) _buildTypingIndicator(),
           _buildInputBar(),
         ],
       ),
@@ -139,15 +189,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  widget.roommate.gradient.first.withAlpha(80),
-                  widget.roommate.gradient.last.withAlpha(40),
+                  _style.gradient.first.withAlpha(80),
+                  _style.gradient.last.withAlpha(40),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: widget.roommate.gradient.first.withAlpha(80),
+                color: _style.gradient.first.withAlpha(80),
                 width: 1.5,
               ),
             ),
@@ -155,7 +205,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               borderRadius: BorderRadius.circular(11),
               child: Padding(
                 padding: const EdgeInsets.all(4),
-                child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.contain),
+                child: SvgPicture.asset(_style.asset, fit: BoxFit.contain),
               ),
             ),
           ),
@@ -165,7 +215,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                widget.roommate.name,
+                widget.match.title,
                 style: GoogleFonts.dmSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -215,6 +265,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildMessages() {
+    if (_loading) return const LoadingView();
+    if (_error != null) return ErrorView(message: _error!, onRetry: _load);
     if (_messages.isEmpty) {
       return Center(
         child: Column(
@@ -226,15 +278,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    widget.roommate.gradient.first.withAlpha(70),
-                    widget.roommate.gradient.last.withAlpha(40),
+                    _style.gradient.first.withAlpha(70),
+                    _style.gradient.last.withAlpha(40),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: widget.roommate.gradient.first.withAlpha(80),
+                  color: _style.gradient.first.withAlpha(80),
                   width: 2,
                 ),
                 boxShadow: AppColors.cardShadow,
@@ -243,13 +295,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(22),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.contain),
+                  child: SvgPicture.asset(_style.asset, fit: BoxFit.contain),
                 ),
               ),
             ).animate().scale(duration: 450.ms, curve: Curves.easeOutBack),
             const SizedBox(height: 16),
             Text(
-              'Matched with ${widget.roommate.name}',
+              'Matched with ${widget.match.title}',
               style: GoogleFonts.dmSans(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
@@ -278,7 +330,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         final prevIsMe = index > 0 && _messages[index - 1].isMe == msg.isMe;
         return _Bubble(
           message: msg,
-          roommate: widget.roommate,
+          style: _style,
           showAvatar: !msg.isMe && !prevIsMe,
         )
             .animate()
@@ -286,75 +338,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             .slideY(begin: 0.12, duration: 220.ms, curve: Curves.easeOutCubic);
       },
     );
-  }
-
-  Widget _buildTypingIndicator() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
-      child: Row(
-        children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  widget.roommate.gradient.first.withAlpha(80),
-                  widget.roommate.gradient.last.withAlpha(40),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(9),
-              child: Padding(
-                padding: const EdgeInsets.all(3),
-                child: SvgPicture.asset(widget.roommate.avatarAsset, fit: BoxFit.contain),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(4),
-                topRight: Radius.circular(18),
-                bottomLeft: Radius.circular(18),
-                bottomRight: Radius.circular(18),
-              ),
-              boxShadow: AppColors.cardShadow,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(3, (i) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2.5),
-                  child: AnimatedBuilder(
-                    animation: _typingCtrl,
-                    builder: (ctx, _) {
-                      final off = sin((_typingCtrl.value * 2 * pi) - (i * pi / 3));
-                      return Transform.translate(
-                        offset: Offset(0, -4 * (off + 1) / 2),
-                        child: Container(
-                          width: 7,
-                          height: 7,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withAlpha(160),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              }),
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(duration: 180.ms);
   }
 
   Widget _buildInputBar() {
@@ -402,7 +385,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 ),
               ),
               const SizedBox(width: 10),
-              _SendButton(onTap: _send),
+              _SendButton(onTap: _send, busy: _sending),
             ],
           ),
         ),
@@ -415,7 +398,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
 class _SendButton extends StatefulWidget {
   final VoidCallback onTap;
-  const _SendButton({required this.onTap});
+  final bool busy;
+  const _SendButton({required this.onTap, this.busy = false});
 
   @override
   State<_SendButton> createState() => _SendButtonState();
@@ -456,12 +440,21 @@ class _SendButtonState extends State<_SendButton> with SingleTickerProviderState
             boxShadow: AppColors.buttonShadow,
           ),
           child: Center(
-            child: SvgPicture.asset(
-              'assets/icons/ic_send.svg',
-              width: 20,
-              height: 20,
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-            ),
+            child: widget.busy
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                    ),
+                  )
+                : SvgPicture.asset(
+                    'assets/icons/ic_send.svg',
+                    width: 20,
+                    height: 20,
+                    colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  ),
           ),
         ),
       ),
@@ -473,10 +466,10 @@ class _SendButtonState extends State<_SendButton> with SingleTickerProviderState
 
 class _Bubble extends StatelessWidget {
   final Message message;
-  final Roommate roommate;
+  final AvatarStyle style;
   final bool showAvatar;
 
-  const _Bubble({required this.message, required this.roommate, required this.showAvatar});
+  const _Bubble({required this.message, required this.style, required this.showAvatar});
 
   @override
   Widget build(BuildContext context) {
@@ -496,8 +489,8 @@ class _Bubble extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            roommate.gradient.first.withAlpha(80),
-                            roommate.gradient.last.withAlpha(40),
+                            style.gradient.first.withAlpha(80),
+                            style.gradient.last.withAlpha(40),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(10),
@@ -506,7 +499,7 @@ class _Bubble extends StatelessWidget {
                         borderRadius: BorderRadius.circular(9),
                         child: Padding(
                           padding: const EdgeInsets.all(3),
-                          child: SvgPicture.asset(roommate.avatarAsset, fit: BoxFit.contain),
+                          child: SvgPicture.asset(style.asset, fit: BoxFit.contain),
                         ),
                       ),
                     )

@@ -1,17 +1,20 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../domain/errors/error_messages.dart';
 import '../models/user_profile.dart';
 import '../theme/app_colors.dart';
+import '../widgets/avatar_style.dart';
 
 class ProfileCreateScreen extends StatefulWidget {
   final UserProfile? existing;
-  final void Function(UserProfile) onSave;
+
+  /// Persists the profile. May throw a typed `ApiException`; a 422's
+  /// per-field messages are shown next to the matching section (V5).
+  final Future<void> Function(UserProfile) onSave;
 
   const ProfileCreateScreen({
     super.key,
@@ -60,6 +63,12 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
   static const _petTypes = ['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Other'];
 
   final Set<String> _selectedTraits = {};
+
+  bool _saving = false;
+  Map<String, List<String>> _serverErrors = const {};
+
+  /// Server fields rendered inline; anything else goes to a snackbar.
+  static const _inlineFields = {'budget', 'tags'};
 
   @override
   void initState() {
@@ -214,7 +223,8 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
     HapticFeedback.selectionClick();
   }
 
-  void _save() {
+  Future<void> _save() async {
+    if (_saving) return;
     if (!_formKey.currentState!.validate()) return;
     HapticFeedback.mediumImpact();
     final profile = UserProfile(
@@ -232,7 +242,48 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       haspets: _hasPets,
       pets: _hasPets ? List.unmodifiable(_pets) : const [],
     );
-    widget.onSave(profile);
+    setState(() {
+      _saving = true;
+      _serverErrors = const {};
+    });
+    try {
+      await widget.onSave(profile);
+      if (mounted) setState(() => _saving = false);
+    } catch (e) {
+      if (!mounted) return;
+      final fields = fieldErrorsOf(e);
+      setState(() {
+        _saving = false;
+        _serverErrors = fields;
+      });
+      final other = fields.entries
+          .where((f) => !_inlineFields.contains(f.key))
+          .expand((f) => f.value)
+          .toList();
+      if (fields.isEmpty || other.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              other.isNotEmpty
+                  ? other.first
+                  : userMessage(e, fallback: "Couldn't save your profile."),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _serverError(String field) {
+    final msg = firstFieldError(_serverErrors, field);
+    if (msg == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Text(
+        msg,
+        style: const TextStyle(color: AppColors.red, fontSize: 12.5),
+      ),
+    );
   }
 
   @override
@@ -259,7 +310,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
         centerTitle: true,
         actions: [
           TextButton(
-            onPressed: _save,
+            onPressed: _saving ? null : _save,
             child: ShaderMask(
               shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
               child: Text(
@@ -350,6 +401,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                 _budgetMax = v.end.round();
               }),
             ),
+            _serverError('budget'),
             const SizedBox(height: 32),
             _sectionLabel('Living Style'),
             const SizedBox(height: 12),
@@ -387,11 +439,14 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
             ),
             const SizedBox(height: 12),
             _buildTraitGrid(),
+            _serverError('tags'),
             const SizedBox(height: 12),
             _buildCustomTraitInput(),
             const SizedBox(height: 40),
             _PrimaryButton(
-              label: isEdit ? 'Save Changes' : 'Create Profile',
+              label: _saving
+                  ? 'Saving…'
+                  : (isEdit ? 'Save Changes' : 'Create Profile'),
               onTap: _save,
             ),
           ],
@@ -684,7 +739,10 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               ),
               child: _photoPath.isNotEmpty
                   ? ClipOval(
-                      child: Image.file(File(_photoPath), fit: BoxFit.cover),
+                      child: ProfilePhoto(
+                        path: _photoPath,
+                        placeholder: const SizedBox.shrink(),
+                      ),
                     )
                   : Center(
                       child: SvgPicture.asset(

@@ -10,8 +10,14 @@ class ListingCard extends StatefulWidget {
   final String type;
   final String location;
   final int rent;
-  final String bedsBaths;
-  final String availableDate;
+  /// Null when the listing has no beds/baths info (not an API field).
+  final String? bedsBaths;
+
+  /// Null when unknown; `'Now'` renders the "Available Now" badge.
+  final String? availableDate;
+
+  /// First of `ListingOut.photo_urls`, shown as the card image when present.
+  final String? photoUrl;
   final int animationIndex;
 
   const ListingCard({
@@ -20,8 +26,9 @@ class ListingCard extends StatefulWidget {
     required this.type,
     required this.location,
     required this.rent,
-    required this.bedsBaths,
-    required this.availableDate,
+    this.bedsBaths,
+    this.availableDate,
+    this.photoUrl,
     this.animationIndex = 0,
   });
 
@@ -167,8 +174,10 @@ class _ListingCardState extends State<ListingCard>
                       runSpacing: 8,
                       children: [
                         _InfoTag('\$${widget.rent}/mo', AppColors.green, AppColors.softGreen),
-                        _InfoTag(widget.bedsBaths, _accent, _accentSoft),
-                        if (widget.availableDate != 'Now')
+                        if (widget.bedsBaths != null)
+                          _InfoTag(widget.bedsBaths!, _accent, _accentSoft),
+                        if (widget.availableDate != null &&
+                            widget.availableDate != 'Now')
                           _InfoTag('Avail. ${widget.availableDate}', AppColors.orange, AppColors.softOrange),
                       ],
                     ),
@@ -233,6 +242,19 @@ class _ListingCardState extends State<ListingCard>
                   _accent.withAlpha(140), BlendMode.srcIn),
             ),
           ),
+          if (widget.photoUrl != null)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(19)),
+                child: Image.network(
+                  widget.photoUrl!,
+                  fit: BoxFit.cover,
+                  // Falls back to the decorative placeholder underneath.
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
         ],
       ),
     );

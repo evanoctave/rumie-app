@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 
+import '../../domain/errors/error_messages.dart';
 import '../../state/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/validators.dart';
@@ -21,6 +22,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passCtrl = TextEditingController();
   bool _obscure = true;
 
+  /// Server 422 messages (V5), shown under the matching field.
+  Map<String, List<String>> _serverErrors = const {};
+
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -29,10 +33,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
+    _serverErrors = const {};
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
     final ok = await auth.login(sanitizeEmail(_emailCtrl.text), _passCtrl.text);
     if (!mounted) return;
+    if (!ok && auth.fieldErrors.isNotEmpty) {
+      setState(() => _serverErrors = auth.fieldErrors);
+      _formKey.currentState!.validate();
+    }
     if (ok) {
       await _promptBiometrics();
       if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
@@ -164,7 +173,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   hint: 'you@example.com',
                   keyboardType: TextInputType.emailAddress,
                   maxLength: 254,
-                  validator: validateEmail,
+                  validator: (v) =>
+                      firstFieldError(_serverErrors, 'email') ??
+                      validateEmail(v),
                 ),
                 const SizedBox(height: 18),
                 _buildLabel('Password'),
@@ -188,7 +199,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   maxLength: 128,
-                  validator: (v) => validatePassword(v, isLogin: true),
+                  validator: (v) =>
+                      firstFieldError(_serverErrors, 'password') ??
+                      validatePassword(v, isLogin: true),
                 ),
                 const SizedBox(height: 32),
                 _SubmitButton(

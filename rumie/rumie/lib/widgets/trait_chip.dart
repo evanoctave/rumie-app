@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../models/trait.dart';
+import 'avatar_style.dart';
 
 class TraitChip extends StatelessWidget {
-  final Trait trait;
-  const TraitChip({super.key, required this.trait});
+  final String label;
+
+  /// Defaults to a stable color derived from [label].
+  final Color? color;
+
+  const TraitChip({super.key, required this.label, this.color});
 
   @override
   Widget build(BuildContext context) {
+    final c = color ?? AvatarStyle.traitColor(label);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: trait.color.withAlpha(16),
+        color: c.withAlpha(16),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: trait.color.withAlpha(60), width: 1.5),
+        border: Border.all(color: c.withAlpha(60), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -22,13 +27,13 @@ class TraitChip extends StatelessWidget {
           Container(
             width: 7,
             height: 7,
-            decoration: BoxDecoration(color: trait.color, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: c, shape: BoxShape.circle),
           ),
           const SizedBox(width: 7),
           Text(
-            trait.title,
+            label,
             style: GoogleFonts.dmSans(
-              color: trait.color,
+              color: c,
               fontWeight: FontWeight.w700,
               fontSize: 12.5,
             ),

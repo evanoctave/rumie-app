@@ -4,9 +4,8 @@ import 'package:provider/provider.dart';
 
 import 'package:flutter/services.dart';
 
-import '../../data/models/gender.dart';
-import '../../data/models/register_in.dart';
-import '../../data/models/role.dart';
+import '../../domain/entities/entities.dart';
+import '../../domain/errors/error_messages.dart';
 import '../../state/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/validators.dart';
@@ -27,6 +26,15 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscure = true;
   Gender _gender = Gender.other;
 
+  /// Server 422 messages (V5), shown under the matching field.
+  Map<String, List<String>> _serverErrors = const {};
+
+  String? Function(String?) _withServer(
+    String field,
+    String? Function(String?) local,
+  ) =>
+      (v) => firstFieldError(_serverErrors, field) ?? local(v);
+
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -36,6 +44,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _submit() async {
+    setState(() => _serverErrors = const {});
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
     final ok = await auth.register(
@@ -49,6 +58,10 @@ class _SignupScreenState extends State<SignupScreen> {
     );
     if (!mounted) return;
     if (!ok) {
+      if (auth.fieldErrors.isNotEmpty) {
+        setState(() => _serverErrors = auth.fieldErrors);
+        _formKey.currentState!.validate();
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(auth.error ?? 'Registration failed.'),
@@ -173,7 +186,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   hint: 'you@example.com',
                   keyboardType: TextInputType.emailAddress,
                   maxLength: 254,
-                  validator: validateEmail,
+                  validator: _withServer('email', validateEmail),
                 ),
                 const SizedBox(height: 20),
                 _buildLabel('Password'),
@@ -191,7 +204,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
                   maxLength: 128,
-                  validator: validatePassword,
+                  validator: _withServer('password', validatePassword),
                 ),
                 const SizedBox(height: 20),
                 _buildLabel('Age'),
@@ -201,12 +214,20 @@ class _SignupScreenState extends State<SignupScreen> {
                   hint: '24',
                   keyboardType: TextInputType.number,
                   maxLength: 3,
-                  validator: validateAge,
+                  validator: _withServer('age', validateAge),
                 ),
                 const SizedBox(height: 20),
                 _buildLabel('Gender'),
                 const SizedBox(height: 8),
                 _buildGenderRow(),
+                if (firstFieldError(_serverErrors, 'gender') != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      firstFieldError(_serverErrors, 'gender')!,
+                      style: const TextStyle(color: AppColors.red, fontSize: 12),
+                    ),
+                  ),
                 const SizedBox(height: 36),
                 _SubmitButton(
                   label: 'Create Account',
