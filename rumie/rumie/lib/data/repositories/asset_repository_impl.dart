@@ -50,8 +50,9 @@ class AssetRepositoryImpl implements AssetRepository {
           contentType: contentType,
         ),
       );
-    } on DioException catch (e) {
-      throw NetworkException('Upload PUT failed: ${e.message ?? e.type.name}');
+    } on DioException {
+      // Bare PUT Dio has no ErrorInterceptor; keep the message user-safe (V6).
+      throw const NetworkException("Couldn't upload the photo. Please try again.");
     }
     return presigned.assetUrl;
   }

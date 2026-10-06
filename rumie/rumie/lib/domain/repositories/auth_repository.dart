@@ -9,6 +9,10 @@ abstract class AuthRepository {
   Future<RegisterOut> register(RegisterIn body);
   Future<UserOut> me();
 
+  /// Whether an access token is stored locally (cold-start check). Does not
+  /// hit the network; validity is established by a following [me] call.
+  Future<bool> hasSession();
+
   /// Client-side only: clears the local token store. The API has no logout
   /// endpoint (V15).
   Future<void> logout();

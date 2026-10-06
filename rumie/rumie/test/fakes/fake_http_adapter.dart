@@ -36,8 +36,9 @@ class FakeHttpAdapter implements HttpClientAdapter {
     Future<dynamic>? cancelFuture,
   ) async {
     // Match against the path Dio computes — covers both relative `/me` and
-    // absolute path under a baseUrl.
-    final key = _key(options.method, options.path);
+    // absolute URLs (presigned PUT). Query strings are ignored so a route
+    // registered as `http://s3/key` matches `http://s3/key?sig=…`.
+    final key = _key(options.method, options.path.split('?').first);
     _hits[key] = (_hits[key] ?? 0) + 1;
 
     if (responseDelay > Duration.zero) {
