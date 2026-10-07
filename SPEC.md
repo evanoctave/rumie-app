@@ -8,7 +8,7 @@ Flutter app `roomie` (`rumie/rumie/`) ! swap mock data → live Rumie API @ `htt
 - package name: `roomie`
 - deps add: `dio`, `json_annotation`, `json_serializable` (dev), `build_runner` (dev), `flutter_secure_storage`, `get_it`
 - ⊥ `retrofit` codegen — hand-written Dio call sites under repositories
-- Clean Architecture layers: `lib/data/api/` (client+interceptors), `lib/data/models/` (DTOs+`*.g.dart`), `lib/data/repositories/` (`*RepositoryImpl`), `lib/domain/entities/` (plain Dart types ?if distinct from DTO), `lib/domain/repositories/` (abstract repo ifaces), `lib/di/` (locator)
+- Clean Architecture layers: `lib/data/api/` (client+interceptors), `lib/data/models/` (DTOs+`*.g.dart`), `lib/data/repositories/` (`*RepositoryImpl`), `lib/domain/entities/` (plain Dart types ?if distinct from DTO; `entities.dart` barrel re-exports DTOs → single UI import point), `lib/domain/errors/` (`ApiException` hierarchy + `userMessage`/`fieldErrorsOf`), `lib/domain/repositories/` (abstract repo ifaces), `lib/di/` (locator)
 - screens depend on `lib/domain/repositories/` ifaces, ⊥ on `lib/data/`
 - OpenAPI canonical: `https://rumie.xyz/openapi.json` — schemas + endpoints derived, ⊥ hand-spec
 - snapshot OpenAPI → `lib/data/api/openapi.json` (committed) for reproducible codegen
@@ -22,7 +22,7 @@ Flutter app `roomie` (`rumie/rumie/`) ! swap mock data → live Rumie API @ `htt
 - env: `RUMIE_BASE_URL` ? set; default `https://rumie.xyz` → DioClient baseUrl = `<RUMIE_BASE_URL>/api/v1`
 - http: single `Dio` instance @ `lib/data/api/dio_client.dart` w/ interceptors `[AuthInterceptor, ErrorInterceptor, LoggingInterceptor]` (logging debug-only)
 - storage: `flutter_secure_storage` keys: `rumie_access_token`, `rumie_refresh_token`
-- exceptions: `ApiException` (base), `UnauthorizedException` (401 after refresh fail), `ValidationException(Map<String,List<String>> fieldErrors)` (422), `ServerException` (5xx), `NetworkException` (no conn/timeout)
+- exceptions @ `lib/domain/errors/api_exception.dart` (re-exported by `lib/data/api/exceptions.dart`): `ApiException` (base, `message` ! user-safe), `UnauthorizedException` (401 after refresh fail), `ValidationException(Map<String,List<String>> fieldErrors)` (422), `ServerException(statusCode?, detail?)` (5xx & other 4xx; `detail` = FastAPI string detail), `NetworkException` (no conn/timeout), `StorageException` (token persist fail, V14)
 - DI: `GetIt` locator in `lib/di/locator.dart`
 
 repos (each = abstract @ `lib/domain/repositories/<x>_repository.dart`, impl @ `lib/data/repositories/<x>_repository_impl.dart`):
@@ -31,6 +31,7 @@ repos (each = abstract @ `lib/domain/repositories/<x>_repository.dart`, impl @ `
   - `login(email, password) → TokensOut` ; impl auto-persists tokens via `SecureTokenStore`
   - `register(RegisterIn) → RegisterOut {user, tokens}` ; impl auto-persists tokens
   - `me() → UserOut`
+  - `hasSession() → bool` ; local-only check for stored access token (cold start) ; ⊥ network
   - `logout()` → client-side: clear `SecureTokenStore` ; ⊥ server call (no endpoint)
   - `refresh(refreshToken) → TokensOut` ! `internal` — only `AuthInterceptor` calls ; ⊥ exposed to UI
 - `GroupsRepository`:
@@ -79,7 +80,7 @@ V13: ⊥ secret/token logged ; `LoggingInterceptor` redacts `Authorization` head
 V14: `register` & `login` responses → `SecureTokenStore.write(access, refresh)` ! before returning ; failure to persist → throw, do ⊥ return success
 V15: `logout()` → `SecureTokenStore.clear()` ! ; ⊥ network call (server has no endpoint)
 V16: `SwipeOut.inquiry` ≠ null → caller ! receives full inquiry payload (landlord-match path) ; `SwipeOut.merge` ≠ null → caller receives merge proposal (group-match path)
-V17: screens import ! from `lib/domain/repositories/` ; ⊥ import from `lib/data/` (enforced by analyzer rule if feasible, else code review)
+V17: screens import ! from `lib/domain/repositories/` ; ⊥ import from `lib/data/` (enforced by `test/architecture_test.dart` over `lib/screens`, `lib/widgets`, `lib/state`)
 V18: ∀ repo method → exactly one of: returns typed model | throws typed exception. ⊥ returns null on error.
 
 ## §T TASKS
@@ -92,20 +93,36 @@ T5|x|`AuthInterceptor` attach bearer ; 401→refresh-and-retry ; single-flight r
 T6|x|`ErrorInterceptor` map 422→`ValidationException`, 5xx→`ServerException`, timeout→`NetworkException`|V5,V6,V9
 T7|x|`LoggingInterceptor` w/ redaction (debug only)|V13
 T8|x|gen DTO models from OpenAPI schemas → `lib/data/models/*.dart` + `*.g.dart` (build_runner)|V7,V12
-T9|~|`AuthRepository` iface + impl: `login`, `register`, `me`, `logout` (client-clear) ; internal `refresh` for interceptor|I,V9,V14,V15
-T10|~|`DiscoveryRepository` iface + impl: `discoverGroups({limit})`, `discoverListings({limit})`|I,V9
-T11|~|`SwipeRepository` iface + impl: `swipe(SwipeIn) → SwipeOut`|I,V9,V16
-T12|~|`ConversationRepository` iface + impl: `listConversations`, `listMessages(convId,{limit,before})`, `sendMessage(convId,body)`|I,V9
-T13|~|`AssetRepository` iface + impl: `presign`, `upload` (2-step PUT, ⊥ auth header on `put_url`)|V8,V9
-T18|~|`GroupsRepository` iface + impl: `getMyGroup`, `patchMyGroup`, `leaveGroup`, `createInvite`, `acceptInvite`, `rejectInvite`|I,V9
-T19|~|`ListingsRepository` iface + impl (landlord CRUD): `create`, `get`, `patch`, `delete`|I,V9
-T20|~|`InquiriesRepository` iface + impl (landlord: `list({status?})`, `accept`, `reject`|I,V9
-T14|~|`lib/di/locator.dart` w/ `GetIt` register Dio + all 8 repos + token store|I
-T15|.|wire `lib/screens/*` & `lib/widgets/*` → domain repo ifaces ; rm imports of `sample_data.dart`|V10,V17
-T16|.|delete `lib/data/sample_data.dart` & legacy `lib/models/{roommate,trait}.dart` once unused|-
-T17|.|tests: `AuthInterceptor` refresh single-flight (V2,V3) ; 422 parser (V5) ; 2-step upload ⊥ auth on PUT (V8) ; register auto-persist (V14) ; logout clears store (V15)|V2,V3,V5,V8,V14,V15
-T21|~|tests: each repo happy-path against mocked `Dio` ; one 422 path per repo|V9,V18
-T22|.|README: doc `--dart-define=RUMIE_BASE_URL=...` + how to refresh `openapi.json` snapshot|C
+T9|x|`AuthRepository` iface + impl: `login`, `register`, `me`, `logout` (client-clear) ; internal `refresh` for interceptor|I,V9,V14,V15
+T10|x|`DiscoveryRepository` iface + impl: `discoverGroups({limit})`, `discoverListings({limit})`|I,V9
+T11|x|`SwipeRepository` iface + impl: `swipe(SwipeIn) → SwipeOut`|I,V9,V16
+T12|x|`ConversationRepository` iface + impl: `listConversations`, `listMessages(convId,{limit,before})`, `sendMessage(convId,body)`|I,V9
+T13|x|`AssetRepository` iface + impl: `presign`, `upload` (2-step PUT, ⊥ auth header on `put_url`)|V8,V9
+T18|x|`GroupsRepository` iface + impl: `getMyGroup`, `patchMyGroup`, `leaveGroup`, `createInvite`, `acceptInvite`, `rejectInvite`|I,V9
+T19|x|`ListingsRepository` iface + impl (landlord CRUD): `create`, `get`, `patch`, `delete`|I,V9
+T20|x|`InquiriesRepository` iface + impl (landlord: `list({status?})`, `accept`, `reject`|I,V9
+T14|x|`lib/di/locator.dart` w/ `GetIt` register Dio + all 8 repos + token store|I
+T15|x|wire `lib/screens/*` & `lib/widgets/*` → domain repo ifaces ; rm imports of `sample_data.dart`|V10,V17
+T16|x|delete `lib/data/sample_data.dart` & legacy `lib/models/{roommate,trait}.dart` once unused|-
+T17|x|tests: `AuthInterceptor` refresh single-flight (V2,V3) ; 422 parser (V5) ; 2-step upload ⊥ auth on PUT (V8) ; register auto-persist (V14) ; logout clears store (V15)|V2,V3,V5,V8,V14,V15
+T21|x|tests: each repo happy-path against mocked `Dio` ; one 422 path per repo|V9,V18
+T22|x|README: doc `--dart-define=RUMIE_BASE_URL=...` + how to refresh `openapi.json` snapshot|C
+T23|x|rm legacy `lib/api/api_client.dart` (localhost:3000) + `lib/services/auth_service.dart` — single Dio client|I
+T24|x|widget tests: swipe/login/listings/matches against fake repos (loading, empty, error, 422 per-field)|V5,V6,V16
+T25|.|landlord UI: inquiries list/accept/reject ; group invites UI (repos+tests ready, no screens in current design)|I
+T26|.|chat: paginate older messages via `before` (currently last 50 + 5 s poll)|I
 
 ## §B BUGS
 id|date|cause|fix
+B1|2026-10-05|`FakeHttpAdapter` matched routes on full path incl. query → presigned `put_url?sig=…` never matched → V8 upload test failed (404)|fake strips query before matching
+B2|2026-10-05|`ErrorInterceptor`, `callApi`, asset PUT built `NetworkException` from raw `DioException.message` → dev text reached UI (V6)|fixed user-safe messages per type/status; 4xx string `detail` kept separately on `ServerException.detail`
+B3|2026-10-05|`AuthInterceptor` retry after refresh re-entered `onError` on a 2nd 401 → unbounded refresh→retry loop|retry carries `extra['rumie_auth_retried']`; 2nd 401 surfaced as `UnauthorizedException`
+B4|2026-10-05|req sent w/ pre-refresh token whose 401 arrives after a concurrent refresh finished → 2nd refresh w/ already-rotated refresh token → spurious logout (V3)|compare sent bearer vs stored token; if rotated, retry w/o refresh
+B5|2026-10-05|422 `loc` parser: list index as key (`['body','preferences','tags',0]` → `0`), scope-only loc keyed `body`|drop only leading scope, skip int segments, scope-only → `_`; `['body','body']` (MessageIn) → `body`
+B6|2026-10-05|`callApi` let `TypeError`/`CheckedFromJsonException` from off-schema payload escape repo boundary (V9, V18)|mapped → `ServerException`
+B7|2026-10-05|login/register: secure-storage write failure escaped as raw `PlatformException` (V9, V14)|clear store, throw `StorageException`
+B8|2026-10-05|mock avatars `assets/images/evan_*.jpg` rendered via `SvgPicture.asset` → broken image on swipe/match/chat|`AvatarStyle` maps entity id → bundled `av_*.svg` + palette
+B9|2026-10-05|`AuthProvider._friendlyError` matched substrings of `toString()` (401/409 detection brittle)|typed exception mapping; 422 → `fieldErrors` → per-field form errors
+B10|2026-10-05|API gap: no endpoint sets `UserOut.profile_photo_url`; no fields for name/bio/location/schedule/pets|open (server). Avatar uploaded via presign; `asset_url` kept client-side; unsynced profile fields stay on-device
+B11|2026-10-05|API gap: discovery `GroupOut` has member ids only (no names/photos/bio)|open (server). Cards show derived text (`RoommateCandidate.fromGroup`)
+B12|2026-10-05|API gap: `ListingOut` has no type/beds/availability|workaround: `ListingMeta` encodes `"<type> · <beds> · Available <when>"` as 1st `description` line; foreign listings infer type from title

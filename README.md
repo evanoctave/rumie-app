@@ -49,12 +49,17 @@ rumie/
 │   ├── theme/
 │   │   └── app_colors.dart   ← all colors live here
 │   │
-│   ├── models/
-│   │   ├── roommate.dart
-│   │   └── trait.dart
+│   ├── data/                 ← API layer (screens never import this)
+│   │   ├── api/              ← DioClient, interceptors, token store, openapi.json
+│   │   ├── models/           ← DTOs + generated *.g.dart
+│   │   └── repositories/     ← *RepositoryImpl (hand-written Dio calls)
 │   │
-│   ├── data/
-│   │   └── sample_data.dart  ← placeholder roommate list
+│   ├── domain/               ← what screens import
+│   │   ├── entities/         ← entities.dart barrel + UI-facing types
+│   │   ├── errors/           ← typed ApiException + user-safe messages
+│   │   └── repositories/     ← abstract repository interfaces
+│   │
+│   ├── di/locator.dart       ← GetIt registrations
 │   │
 │   ├── screens/
 │   │   ├── home_screen.dart      ← bottom-nav shell
@@ -91,14 +96,55 @@ rumie/
 - **Pill-shaped trait chips** — your "pill interactives"
 - **Listing detail sheet** — tap a row in the Listings tab to see the full profile in a draggable bottom sheet
 
-## What's still on the backend side (from the API column of the whiteboard)
+## Backend API
 
-These need a server to be real, not just the Flutter app:
+The app talks to the Rumie API (FastAPI) through a single Dio client. Screens
+depend only on the repository interfaces in `lib/domain/repositories/`,
+resolved from the GetIt locator in `lib/di/locator.dart`. See `SPEC.md` for
+the full contract and invariants.
 
-- Basic CRUD (creating/reading roommate profiles)
-- Health-status endpoint
-- Auth
+### Pointing the app at a different server
 
-When you're ready, the data source is isolated in `lib/data/sample_data.dart`
-— swap that file for a real HTTP/Firebase fetch and the rest of the app
-doesn't need to change.
+The base URL is a compile-time define. It defaults to `https://rumie.xyz`, and
+`/api/v1` is appended automatically, so pass only the origin:
+
+```bash
+cd rumie/rumie
+flutter run --dart-define=RUMIE_BASE_URL=http://localhost:8000
+# release builds take the same flag
+flutter build ios --dart-define=RUMIE_BASE_URL=https://staging.rumie.xyz
+```
+
+Android emulators reach the host machine at `http://10.0.2.2:<port>`, not
+`localhost`. Plain-`http` servers also need cleartext traffic allowed on
+Android and an ATS exception on iOS.
+
+### Refreshing the OpenAPI snapshot
+
+`lib/data/api/openapi.json` is the committed contract that the DTOs in
+`lib/data/models/` are derived from. Commit it whenever the API changes:
+
+```bash
+cd rumie/rumie
+curl -fsSL https://rumie.xyz/openapi.json -o lib/data/api/openapi.json
+git diff --stat lib/data/api/openapi.json     # see what changed
+```
+
+Then:
+
+1. Update the matching DTOs in `lib/data/models/`. Nullable schema fields
+   become `?` and non-nullable ones become `required`; enums use
+   `@JsonValue`.
+2. Regenerate the serializers:
+   `dart run build_runner build --delete-conflicting-outputs`
+3. Update the affected repository interfaces and implementations, then run
+   `flutter analyze && flutter test`.
+
+### Running the tests
+
+```bash
+cd rumie/rumie
+flutter test      # repositories run against a fake HTTP adapter, screens against fake repositories
+```
+
+The tests never touch the network.
