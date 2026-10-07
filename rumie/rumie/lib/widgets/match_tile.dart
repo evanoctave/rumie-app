@@ -1,109 +1,63 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../models/roommate.dart';
 import '../screens/chat_screen.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_shapes.dart';
+import '../theme/app_text.dart';
+import 'rumie_icon.dart';
+import 'ui/photo.dart';
+import 'ui/pressable.dart';
 
+/// Row in the matches list. Avatar flies into the chat header on tap.
 class MatchTile extends StatelessWidget {
   final Roommate roommate;
   final VoidCallback? onTap;
 
   const MatchTile({super.key, required this.roommate, this.onTap});
 
-  void _openChat(BuildContext context) {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, anim, sec) => ChatScreen(roommate: roommate),
-        transitionsBuilder: (_, anim, sec, child) => SlideTransition(
-          position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
-              .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-          child: child,
-        ),
-        transitionDuration: const Duration(milliseconds: 280),
-      ),
-    );
-  }
+  static String heroTag(Roommate r) => 'avatar-${r.name}';
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        if (onTap != null) {
-          onTap!();
-        } else {
-          _openChat(context);
-        }
-      },
+    final r = roommate;
+    return Pressable(
+      onTap: onTap ?? () => Navigator.of(context).push(ChatScreen.route(r)),
+      pressedScale: 0.98,
+      semanticLabel: 'Chat with ${r.name}',
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.borderSoft, width: 1)),
+        padding: const EdgeInsets.all(12),
+        decoration: ShapeDecoration(
+          color: AppColors.surface,
+          shape: AppShapes.shape(AppShapes.tile, side: BorderSide(color: AppColors.line)),
+          shadows: AppColors.cardShadow,
         ),
         child: Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.accentSoft,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.border, width: 1.5),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                roommate.name.isNotEmpty ? roommate.name[0].toUpperCase() : '?',
-                style: GoogleFonts.syne(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.accent,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
+            Avatar(path: r.avatarAsset, name: r.name, size: 58, tint: r.gradient, heroTag: heroTag(r)),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(r.name, style: AppText.tileTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 3),
                   Text(
-                    roommate.name.toUpperCase(),
-                    style: GoogleFonts.syne(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.text,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${roommate.location} · \$${roommate.budget}/mo',
+                    '${r.location}  ·  \$${r.budget}/mo',
+                    style: AppText.caption,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.btnPrimary,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'CHAT →',
-                style: GoogleFonts.inter(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.btnPrimaryText,
-                  letterSpacing: 1.5,
-                ),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: AppColors.accentSoft, shape: BoxShape.circle),
+              child: Center(
+                child: RumieIcon(asset: 'assets/icons/ic_chat.svg', size: 18, color: AppColors.accentDeep),
               ),
             ),
           ],

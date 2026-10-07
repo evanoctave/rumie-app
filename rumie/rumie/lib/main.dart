@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'dev/dev_start.dart';
 import 'di/locator.dart';
 import 'screens/auth/landing_screen.dart';
 import 'screens/auth/lock_screen.dart';
@@ -12,17 +12,12 @@ import 'state/auth_provider.dart';
 import 'state/profile_provider.dart';
 import 'state/theme_provider.dart';
 import 'theme/app_colors.dart';
+import 'theme/app_motion.dart';
+import 'theme/app_theme.dart';
+import 'widgets/ui/wordmark.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: Color(0xFFFAF9F7),
-      systemNavigationBarIconBrightness: Brightness.dark,
-    ),
-  );
   Animate.restartOnHotReload = true;
 
   final authProvider = AuthProvider.deferred();
@@ -68,78 +63,18 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
     }
   }
 
-  ThemeData _buildTheme(bool dark) {
-    AppColors.isDark = dark;
-    final base = dark ? Brightness.dark : Brightness.light;
-    return ThemeData(
-      scaffoldBackgroundColor: AppColors.background,
-      brightness: base,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.accent,
-        brightness: base,
-        surface: AppColors.surface,
-      ).copyWith(surface: AppColors.surface, primary: AppColors.accent),
-      textTheme: GoogleFonts.interTextTheme().copyWith(
-        bodyLarge:  GoogleFonts.inter(fontSize: 16, color: AppColors.text),
-        bodyMedium: GoogleFonts.inter(fontSize: 14, color: AppColors.text),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        hintStyle: TextStyle(color: AppColors.textSecondary),
-        filled: true,
-        fillColor: AppColors.surface,
-        border: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(5)),
-          borderSide: BorderSide(color: AppColors.borderSoft, width: 1.5),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(5)),
-          borderSide: BorderSide(color: AppColors.borderSoft, width: 1.5),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(5)),
-          borderSide: BorderSide(color: AppColors.accent, width: 1.5),
-        ),
-      ),
-      switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? AppColors.background : AppColors.textSecondary,
-        ),
-        trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? AppColors.accent : AppColors.borderSoft,
-        ),
-      ),
-      snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.surface,
-        contentTextStyle: GoogleFonts.inter(color: AppColors.text),
-      ),
-      appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.text,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-      ),
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.android: ZoomPageTransitionsBuilder(),
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final isDark = themeProvider.isDark;
 
-    // Sync static flag before building theme
+    // Tokens are static getters gated on this flag; set it before building.
     AppColors.isDark = isDark;
-
-    // Update system UI overlay based on theme
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
         systemNavigationBarColor: AppColors.background,
         systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
       ),
@@ -148,8 +83,8 @@ class _RumieState extends State<Rumie> with WidgetsBindingObserver {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Rumie',
-      theme: _buildTheme(false),
-      darkTheme: _buildTheme(true),
+      theme: AppTheme.build(false),
+      darkTheme: AppTheme.build(true),
       themeMode: themeProvider.mode,
       builder: (context, child) => _LockOverlay(child: child!),
       home: const _AuthGate(),
@@ -164,10 +99,14 @@ class _LockOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    if (auth.status == AuthStatus.authenticated && auth.isLocked) {
-      return const LockScreen();
-    }
-    return child;
+    final locked = auth.status == AuthStatus.authenticated && auth.isLocked;
+    return AnimatedSwitcher(
+      duration: AppMotion.of(context, AppMotion.slow),
+      switchInCurve: AppMotion.enter,
+      switchOutCurve: AppMotion.exit,
+      transitionBuilder: (c, a) => FadeTransition(opacity: a, child: c),
+      child: locked ? const LockScreen(key: ValueKey('lock')) : KeyedSubtree(key: const ValueKey('app'), child: child),
+    );
   }
 }
 
@@ -178,23 +117,40 @@ class _AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = context.watch<AuthProvider>().status;
 
+    final dev = DevStart.screen();
+    if (dev != null && status == AuthStatus.authenticated) return dev;
+
     final Widget screen = switch (status) {
-      AuthStatus.unknown => Scaffold(
-          backgroundColor: AppColors.background,
-          body: Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation(AppColors.accent),
-            ),
-          ),
-        ),
-      AuthStatus.authenticated    => const HomeScreen(),
-      AuthStatus.unauthenticated  => const LandingScreen(),
+      AuthStatus.unknown => const _Splash(),
+      AuthStatus.authenticated => const HomeScreen(),
+      AuthStatus.unauthenticated => const LandingScreen(),
     };
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 400),
-      transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
+      duration: AppMotion.of(context, const Duration(milliseconds: 420)),
+      switchInCurve: AppMotion.enter,
+      switchOutCurve: AppMotion.exit,
+      transitionBuilder: (child, anim) => FadeTransition(
+        opacity: anim,
+        child: ScaleTransition(scale: Tween(begin: 0.98, end: 1.0).animate(anim), child: child),
+      ),
       child: KeyedSubtree(key: ValueKey(status), child: screen),
+    );
+  }
+}
+
+class _Splash extends StatelessWidget {
+  const _Splash();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: const Wordmark(size: 40)
+            .animate(onPlay: (c) => c.repeat(reverse: true))
+            .fade(begin: 0.55, end: 1, duration: 900.ms, curve: Curves.easeInOut),
+      ),
     );
   }
 }

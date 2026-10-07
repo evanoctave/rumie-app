@@ -1,249 +1,207 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../data/models/role.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_motion.dart';
+import '../../theme/app_shapes.dart';
+import '../../theme/app_text.dart';
+import '../../widgets/ui/app_button.dart';
+import '../../widgets/ui/photo.dart';
+import '../../widgets/ui/wordmark.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
 
+/// First screen. A slow-drifting photo wall fades into the paper ground;
+/// the wordmark and actions rise in beneath it.
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
 
   static PageRoute<T> slideRoute<T>(Widget screen) {
-    return PageRouteBuilder(
-      pageBuilder: (ctx, anim, sec) => screen,
-      transitionsBuilder: (ctx, anim, sec, child) => SlideTransition(
-        position: Tween(begin: const Offset(1, 0), end: Offset.zero).animate(
-          CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
-        ),
-        child: child,
-      ),
-      transitionDuration: const Duration(milliseconds: 280),
+    return PageRouteBuilder<T>(
+      pageBuilder: (_, _, _) => screen,
+      transitionDuration: const Duration(milliseconds: 380),
+      reverseTransitionDuration: const Duration(milliseconds: 300),
+      transitionsBuilder: (_, anim, _, child) {
+        final curved = CurvedAnimation(parent: anim, curve: AppMotion.enter, reverseCurve: AppMotion.exit);
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position: Tween(begin: const Offset(0.08, 0), end: Offset.zero).animate(curved),
+            child: child,
+          ),
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 48, 28, 32),
-          child: Column(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: size.height * 0.56,
+            child: ClipRect(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  const OverflowBox(
+                    alignment: Alignment.topCenter,
+                    maxHeight: double.infinity,
+                    child: _PhotoWall(),
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.background.withValues(alpha: 0.35),
+                          AppColors.background.withValues(alpha: 0),
+                          AppColors.background.withValues(alpha: 0),
+                          AppColors.background,
+                        ],
+                        stops: const [0, 0.18, 0.5, 0.98],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Spacer(),
+                  const Wordmark(size: 64)
+                      .animate()
+                      .fadeIn(duration: 500.ms, curve: AppMotion.enter)
+                      .slideY(begin: 0.3, duration: 600.ms, curve: AppMotion.enter),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Roommates you’ll actually\nlike living with.',
+                    style: AppText.sectionTitle.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                  ).animate().fadeIn(delay: 120.ms, duration: 500.ms).slideY(begin: 0.3, delay: 120.ms, duration: 600.ms, curve: AppMotion.enter),
+                  const SizedBox(height: 32),
+                  AppButton(
+                    label: 'Get started',
+                    onTap: () => Navigator.push(context, slideRoute(const SignupScreen(role: Role.rumie))),
+                  ).animate().fadeIn(delay: 240.ms, duration: 400.ms).slideY(begin: 0.4, delay: 240.ms, duration: 600.ms, curve: AppMotion.enter),
+                  const SizedBox(height: 10),
+                  AppButton(
+                    label: 'I already have an account',
+                    style: AppButtonStyle.secondary,
+                    onTap: () => Navigator.push(context, slideRoute(const LoginScreen())),
+                  ).animate().fadeIn(delay: 320.ms, duration: 400.ms).slideY(begin: 0.4, delay: 320.ms, duration: 600.ms, curve: AppMotion.enter),
+                  const SizedBox(height: 18),
+                  Center(
+                    child: Text(
+                      'By continuing you agree to our Terms of Service.',
+                      style: AppText.caption.copyWith(color: AppColors.textTertiary),
+                    ),
+                  ).animate().fadeIn(delay: 420.ms, duration: 400.ms),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Two columns of photos that drift in opposite directions. Static under
+/// reduced motion.
+class _PhotoWall extends StatefulWidget {
+  const _PhotoWall();
+
+  @override
+  State<_PhotoWall> createState() => _PhotoWallState();
+}
+
+class _PhotoWallState extends State<_PhotoWall> with SingleTickerProviderStateMixin {
+  late final AnimationController _drift;
+
+  static const _left = ['assets/images/evan_1.jpg', 'assets/images/p_malik.jpg', 'assets/images/p_devon.jpg'];
+  static const _right = ['assets/images/p_marcus.jpg', 'assets/images/evan_4.jpg', 'assets/images/p_darius.jpg'];
+
+  @override
+  void initState() {
+    super.initState();
+    _drift = AnimationController(vsync: this, duration: const Duration(seconds: 28));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (AppMotion.reduced(context)) {
+      _drift.stop();
+    } else if (!_drift.isAnimating) {
+      _drift.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _drift.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
+      child: AnimatedBuilder(
+        animation: _drift,
+        builder: (context, _) {
+          final wave = math.sin(_drift.value * 2 * math.pi);
+          return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'ru',
-                      style: GoogleFonts.syne(
-                        fontSize: 42,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.text,
-                        letterSpacing: -2,
-                      ),
-                    ),
-                    TextSpan(
-                      text: 'mie',
-                      style: GoogleFonts.syne(
-                        fontSize: 42,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.accent,
-                        letterSpacing: -2,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-                  .animate()
-                  .fadeIn(duration: 400.ms)
-                  .slideY(begin: -0.1, duration: 400.ms, curve: Curves.easeOutCubic),
-
-              const SizedBox(height: 8),
-              Text(
-                'Find your perfect roommate.',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ).animate().fadeIn(delay: 80.ms, duration: 400.ms),
-
-              const Spacer(),
-
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.border, width: 1.5),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'NO GUESSWORK.\nJUST ROOMMATES.',
-                      style: GoogleFonts.syne(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.text,
-                        letterSpacing: -1,
-                        height: 1.1,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Divider(color: AppColors.border, thickness: 1.5, height: 1),
-                    const SizedBox(height: 12),
-                    const Row(
-                      children: [
-                        _Pill('Discover'),
-                        SizedBox(width: 6),
-                        _Pill('Connect'),
-                        SizedBox(width: 6),
-                        _Pill('Move in', accent: true),
-                      ],
-                    ),
-                  ],
-                ),
-              )
-                  .animate()
-                  .fadeIn(delay: 160.ms, duration: 400.ms)
-                  .slideY(
-                    begin: 0.06,
-                    delay: 160.ms,
-                    duration: 400.ms,
-                    curve: Curves.easeOutCubic,
-                  ),
-
-              const SizedBox(height: 32),
-
-              _PrimaryBtn(
-                label: 'GET STARTED →',
-                onTap: () => Navigator.push(
-                  context,
-                  slideRoute(const SignupScreen(role: Role.rumie)),
-                ),
-              ).animate().fadeIn(delay: 240.ms, duration: 300.ms),
-
-              const SizedBox(height: 10),
-
-              _OutlineBtn(
-                label: 'SIGN IN',
-                onTap: () => Navigator.push(
-                  context,
-                  slideRoute(const LoginScreen()),
-                ),
-              ).animate().fadeIn(delay: 280.ms, duration: 300.ms),
-
-              const SizedBox(height: 16),
-              Center(
-                child: Text(
-                  'By continuing you agree to our Terms of Service.',
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
+              Expanded(child: _column(_left, dy: -26 * wave, startOffset: -30, stagger: 0)),
+              const SizedBox(width: 12),
+              Expanded(child: _column(_right, dy: 26 * wave, startOffset: 40, stagger: 1)),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }
-}
 
-class _Pill extends StatelessWidget {
-  final String label;
-  final bool accent;
-  const _Pill(this.label, {this.accent = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: BoxDecoration(
-        color: accent ? AppColors.accent : AppColors.chipBg,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label.toUpperCase(),
-        style: GoogleFonts.inter(
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-          color: accent ? const Color(0xFFF2F0EB) : AppColors.chipText,
-          letterSpacing: 0.8,
-        ),
-      ),
-    );
-  }
-}
-
-class _PrimaryBtn extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-  const _PrimaryBtn({required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.mediumImpact();
-        onTap();
-      },
-      child: Container(
-        width: double.infinity,
-        height: 50,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppColors.btnPrimary,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: AppColors.btnPrimaryText,
-            letterSpacing: 2,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _OutlineBtn extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-  const _OutlineBtn({required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        onTap();
-      },
-      child: Container(
-        width: double.infinity,
-        height: 46,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.borderSoft, width: 1.5),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: AppColors.text,
-            letterSpacing: 2,
-          ),
-        ),
+  Widget _column(List<String> paths, {required double dy, required double startOffset, required int stagger}) {
+    return Transform.translate(
+      offset: Offset(0, startOffset + dy),
+      child: Column(
+        children: [
+          for (var i = 0; i < paths.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: AspectRatio(
+                aspectRatio: 0.8,
+                child: ClipRSuperellipse(
+                  borderRadius: AppShapes.radius(AppShapes.photo),
+                  child: RumiePhoto(path: paths[i], fallbackName: '?'),
+                ),
+              ).animate().fadeIn(delay: (80 * (i * 2 + stagger)).ms, duration: 700.ms, curve: AppMotion.enter).scale(
+                    begin: const Offset(0.94, 0.94),
+                    delay: (80 * (i * 2 + stagger)).ms,
+                    duration: 800.ms,
+                    curve: AppMotion.enter,
+                  ),
+            ),
+        ],
       ),
     );
   }

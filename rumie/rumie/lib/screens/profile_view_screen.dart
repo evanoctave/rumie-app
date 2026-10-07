@@ -1,260 +1,269 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../models/roommate.dart';
 import '../theme/app_colors.dart';
-import '../widgets/trait_chip.dart';
+import '../theme/app_motion.dart';
+import '../theme/app_shapes.dart';
+import '../theme/app_text.dart';
+import '../widgets/discover_card.dart';
+import '../widgets/rumie_icon.dart';
+import '../widgets/ui/app_button.dart';
+import '../widgets/ui/app_chip.dart';
+import '../widgets/ui/circle_button.dart';
+import '../widgets/ui/photo.dart';
+import '../widgets/ui/reveal.dart';
 
+/// Full profile. The photo flies in from the discover card, stretches on
+/// overscroll, and the facts rise in underneath. Pops with `true` on
+/// Connect, `false` on Pass, `null` on back.
 class ProfileViewScreen extends StatelessWidget {
   final Roommate roommate;
   const ProfileViewScreen({super.key, required this.roommate});
 
-  static PageRoute<void> route(Roommate r) {
-    return PageRouteBuilder(
-      pageBuilder: (_, anim, sec) => ProfileViewScreen(roommate: r),
-      transitionsBuilder: (_, anim, sec, child) => SlideTransition(
-        position: Tween(begin: const Offset(0, 1), end: Offset.zero).animate(
-          CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
-        ),
-        child: child,
-      ),
-      transitionDuration: const Duration(milliseconds: 300),
+  static PageRoute<bool> route(Roommate r) {
+    return PageRouteBuilder<bool>(
+      transitionDuration: const Duration(milliseconds: 420),
+      reverseTransitionDuration: const Duration(milliseconds: 320),
+      pageBuilder: (_, _, _) => ProfileViewScreen(roommate: r),
+      transitionsBuilder: (_, anim, _, child) {
+        final curved = CurvedAnimation(parent: anim, curve: AppMotion.enter, reverseCurve: AppMotion.exit);
+        return FadeTransition(opacity: curved, child: child);
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final r = roommate;
+    final width = MediaQuery.sizeOf(context).width;
+    final photoHeight = (width * 1.18).clamp(380.0, 560.0);
+    final safeTop = MediaQuery.paddingOf(context).top;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                border: Border(bottom: BorderSide(color: AppColors.border, width: 1.5)),
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Text(
-                      '←',
-                      style: GoogleFonts.syne(
-                          fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.text),
+      body: Stack(
+        children: [
+          CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                expandedHeight: photoHeight,
+                toolbarHeight: 0,
+                collapsedHeight: 0,
+                automaticallyImplyLeading: false,
+                backgroundColor: AppColors.background,
+                stretch: true,
+                elevation: 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  stretchModes: const [StretchMode.zoomBackground],
+                  background: ClipRSuperellipse(
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(36)),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Hero(
+                          tag: DiscoverCard.heroTag(r),
+                          child: RumiePhoto(path: r.avatarAsset, fallbackName: r.name, tint: r.gradient),
+                        ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          height: 220,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  AppColors.photoInk.withValues(alpha: 0),
+                                  AppColors.photoInk.withValues(alpha: 0.7),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          left: 24,
+                          right: 24,
+                          bottom: 26,
+                          child: Reveal(
+                            offsetY: 12,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  r.name,
+                                  style: AppText.hero.copyWith(fontSize: 40, color: AppColors.photoText),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    RumieIcon(asset: 'assets/icons/ic_location.svg', size: 15, color: AppColors.photoText.withValues(alpha: 0.85)),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      '${r.age} · ${r.location}',
+                                      style: AppText.bodyMedium.copyWith(color: AppColors.photoText.withValues(alpha: 0.88)),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const Spacer(),
-                  Text(
-                    'PROFILE',
-                    style: GoogleFonts.inter(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textSecondary,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ],
+                ),
               ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 22, 20, 140),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    Reveal(index: 1, child: _Facts(roommate: r)),
+                    const SizedBox(height: 28),
+                    Reveal(index: 2, child: Text('About', style: AppText.sectionTitle)),
+                    const SizedBox(height: 8),
+                    Reveal(index: 2, child: Text(r.bio, style: AppText.bodyLarge)),
+                    const SizedBox(height: 28),
+                    Reveal(index: 3, child: Text('Lifestyle', style: AppText.sectionTitle)),
+                    const SizedBox(height: 12),
+                    Reveal(
+                      index: 3,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (var i = 0; i < r.traits.length; i++)
+                            AppChip(label: r.traits[i].title, style: i == 0 ? AppChipStyle.accent : AppChipStyle.neutral),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            top: safeTop + 10,
+            left: 16,
+            child: CircleButton(
+              iconAsset: 'assets/icons/ic_back.svg',
+              style: CircleButtonStyle.onPhoto,
+              semanticLabel: 'Back',
+              onTap: () => Navigator.of(context).pop(),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _ActionBar(
+              onPass: () {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).pop(false);
+              },
+              onConnect: () {
+                HapticFeedback.mediumImpact();
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Facts extends StatelessWidget {
+  final Roommate roommate;
+  const _Facts({required this.roommate});
+
+  @override
+  Widget build(BuildContext context) {
+    final r = roommate;
+    final cells = [
+      ('\$${r.budget}', 'per month'),
+      ('${r.age}', 'years old'),
+      ('Flexible', 'move-in'),
+    ];
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: ShapeDecoration(
+        color: AppColors.surface,
+        shape: AppShapes.shape(AppShapes.tile, side: BorderSide(color: AppColors.line)),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            for (var i = 0; i < cells.length; i++) ...[
+              if (i > 0) VerticalDivider(width: 1, thickness: 1, color: AppColors.line),
+              Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      roommate.name.toUpperCase(),
-                      style: GoogleFonts.syne(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.text,
-                        letterSpacing: -2,
-                        height: 0.95,
-                      ),
-                    ),
-                    Text(
-                      '${roommate.age} · ${roommate.location}',
-                      style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 20),
-                    Divider(color: AppColors.border, thickness: 1.5, height: 1),
-                    const SizedBox(height: 20),
-
-                    const _SectionLabel('PHOTOS'),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 180,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: 3,
-                        separatorBuilder: (_, _) => const SizedBox(width: 8),
-                        itemBuilder: (_, _) => _PhotoPlaceholder(),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    const _SectionLabel('DETAILS'),
-                    const SizedBox(height: 8),
-                    _StatsGrid(roommate: roommate),
-                    const SizedBox(height: 20),
-
-                    if (roommate.traits.isNotEmpty) ...[
-                      const _SectionLabel('TRAITS'),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 5,
-                        runSpacing: 5,
-                        children: roommate.traits.asMap().entries.map((e) =>
-                          TraitChip(trait: e.value, accent: e.key == 0),
-                        ).toList(),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-
-                    if (roommate.bio.isNotEmpty) ...[
-                      const _SectionLabel('BIO'),
-                      const SizedBox(height: 8),
-                      Text(
-                        roommate.bio,
-                        style: GoogleFonts.inter(
-                            fontSize: 14, color: AppColors.text, height: 1.5),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
+                    Text(cells[i].$1, style: AppText.stat, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 3),
+                    Text(cells[i].$2, style: AppText.caption),
                   ],
                 ),
               ),
-            ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                border: Border(top: BorderSide(color: AppColors.border, width: 1.5)),
-              ),
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  Navigator.pop(context);
-                },
-                child: Container(
-                  width: double.infinity,
-                  height: 50,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.btnPrimary,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'CONNECT →',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.btnPrimaryText,
-                      letterSpacing: 2,
-                    ),
+class _ActionBar extends StatelessWidget {
+  final VoidCallback onPass;
+  final VoidCallback onConnect;
+  const _ActionBar({required this.onPass, required this.onConnect});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [AppColors.background.withValues(alpha: 0), AppColors.background],
+          stops: const [0, 0.4],
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: 12),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
+          child: Reveal(
+            index: 2,
+            offsetY: 24,
+            child: Row(
+              children: [
+                CircleButton(
+                  size: 56,
+                  iconAsset: 'assets/icons/ic_close.svg',
+                  semanticLabel: 'Pass',
+                  onTap: onPass,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: AppButton(
+                    label: 'Connect',
+                    iconAsset: 'assets/icons/ic_like.svg',
+                    onTap: onConnect,
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  final String text;
-  const _SectionLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) => Text(
-        text,
-        style: GoogleFonts.inter(
-          fontSize: 8,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textSecondary,
-          letterSpacing: 2,
-        ),
-      );
-}
-
-class _PhotoPlaceholder extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 140,
-      height: 180,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.borderSoft, width: 1.5),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        'PHOTO',
-        style: GoogleFonts.inter(
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textSecondary,
-          letterSpacing: 2,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatsGrid extends StatelessWidget {
-  final Roommate roommate;
-  const _StatsGrid({required this.roommate});
-
-  @override
-  Widget build(BuildContext context) {
-    final cells = [
-      ('\$${roommate.budget}/mo', 'BUDGET'),
-      ('${roommate.age}', 'AGE'),
-      (roommate.location, 'LOCATION'),
-      ('Flexible', 'MOVE-IN'),
-    ];
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 8,
-      mainAxisSpacing: 8,
-      childAspectRatio: 2.4,
-      children: cells.map((c) => Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.borderSoft, width: 1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              c.$1,
-              style: GoogleFonts.syne(
-                  fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.text),
-            ),
-            Text(
-              c.$2,
-              style: GoogleFonts.inter(
-                fontSize: 8,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textSecondary,
-                letterSpacing: 1,
-              ),
-            ),
-          ],
-        ),
-      )).toList(),
     );
   }
 }

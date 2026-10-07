@@ -1,216 +1,231 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import '../models/roommate.dart';
 import '../theme/app_colors.dart';
-import 'trait_chip.dart';
+import '../theme/app_shapes.dart';
+import '../theme/app_text.dart';
+import 'rumie_icon.dart';
+import 'ui/app_button.dart';
+import 'ui/app_chip.dart';
+import 'ui/circle_button.dart';
+import 'ui/photo.dart';
+import 'ui/pressable.dart';
 
+/// Photo-first discover card. The photo parallaxes against scroll; the
+/// name, traits, and actions sit on a scrim at the bottom.
 class DiscoverCard extends StatelessWidget {
   final Roommate roommate;
-  final int index;
   final VoidCallback onPass;
   final VoidCallback onConnect;
   final VoidCallback onTap;
+  final bool heroEnabled;
 
   const DiscoverCard({
     super.key,
     required this.roommate,
-    required this.index,
     required this.onPass,
     required this.onConnect,
     required this.onTap,
+    this.heroEnabled = true,
   });
 
-  (String, String) get _nameParts {
-    final idx = roommate.name.indexOf(' ');
-    if (idx == -1) return (roommate.name, '');
-    return (roommate.name.substring(0, idx), roommate.name.substring(idx + 1));
-  }
+  static String heroTag(Roommate r) => 'photo-${r.name}';
 
   @override
   Widget build(BuildContext context) {
-    final (first, last) = _nameParts;
-    final num = (index + 1).toString().padLeft(2, '0');
+    final r = roommate;
+    Widget photo = ParallaxPhoto(path: r.avatarAsset, name: r.name, tint: r.gradient);
+    if (heroEnabled) photo = Hero(tag: heroTag(r), child: photo);
 
-    return GestureDetector(
+    return Pressable(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.border, width: 1.5),
-          boxShadow: AppColors.cardShadow,
+      pressedScale: 0.985,
+      haptic: false,
+      semanticLabel: '${r.name}, ${r.age}, ${r.location}',
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          shape: AppShapes.shape(AppShapes.card),
+          shadows: AppColors.cardShadow,
         ),
-        padding: const EdgeInsets.all(16),
-        child: Stack(
-          children: [
-            Positioned(
-              right: 0,
-              top: -8,
-              child: Opacity(
-                opacity: 0.05,
-                child: Text(
-                  num,
-                  style: GoogleFonts.syne(
-                    fontSize: 64,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.text,
-                    letterSpacing: -4,
-                    height: 1,
+        child: ClipRSuperellipse(
+          borderRadius: AppShapes.radius(AppShapes.card),
+          child: AspectRatio(
+            aspectRatio: 3 / 4,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                photo,
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: 300,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.photoInk.withValues(alpha: 0),
+                          AppColors.photoInk.withValues(alpha: 0.55),
+                          AppColors.photoInk.withValues(alpha: 0.82),
+                        ],
+                        stops: const [0, 0.45, 1],
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RichText(
-                  text: TextSpan(
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: AppChip(
+                    label: '\$${r.budget}/mo',
+                    style: AppChipStyle.onPhoto,
+                    leading: const RumieIcon(asset: 'assets/icons/ic_money.svg', size: 14, color: AppColors.photoText),
+                  ),
+                ),
+                Positioned(
+                  left: 18,
+                  right: 18,
+                  bottom: 18,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextSpan(
-                        text: '${first.toUpperCase()}\n',
-                        style: GoogleFonts.syne(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.text,
-                          letterSpacing: -1.5,
-                          height: 0.95,
-                        ),
-                      ),
-                      if (last.isNotEmpty)
+                      Text.rich(
                         TextSpan(
-                          text: last.toUpperCase(),
-                          style: GoogleFonts.syne(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.accent,
-                            letterSpacing: -1.5,
-                            height: 0.95,
-                          ),
+                          children: [
+                            TextSpan(text: r.name, style: AppText.cardName.copyWith(color: AppColors.photoText)),
+                            TextSpan(
+                              text: '  ${r.age}',
+                              style: AppText.cardName.copyWith(
+                                color: AppColors.photoText.withValues(alpha: 0.7),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 22,
+                              ),
+                            ),
+                          ],
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          RumieIcon(asset: 'assets/icons/ic_location.svg', size: 14, color: AppColors.photoText.withValues(alpha: 0.85)),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              r.location,
+                              style: AppText.secondary.copyWith(color: AppColors.photoText.withValues(alpha: 0.85)),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          for (final t in r.traits.take(3))
+                            AppChip(label: t.title, style: AppChipStyle.onPhoto, dense: true),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          CircleButton(
+                            size: 54,
+                            iconAsset: 'assets/icons/ic_close.svg',
+                            style: CircleButtonStyle.onPhoto,
+                            semanticLabel: 'Pass on ${r.name}',
+                            onTap: onPass,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: AppButton(
+                              label: 'Connect',
+                              iconAsset: 'assets/icons/ic_like.svg',
+                              size: AppButtonSize.large,
+                              onTap: onConnect,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
-                Divider(color: AppColors.border, thickness: 1.5, height: 1),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    _Stat(value: '${roommate.age}', label: 'AGE'),
-                    _Stat(value: roommate.location, label: 'LOCATION'),
-                    _Stat(value: '\$${roommate.budget}', label: 'BUDGET'),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                if (roommate.traits.isNotEmpty)
-                  Wrap(
-                    spacing: 5,
-                    runSpacing: 5,
-                    children: roommate.traits.asMap().entries.map((e) =>
-                      TraitChip(trait: e.value, accent: e.key == 0),
-                    ).toList(),
-                  ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _CardBtn(
-                        label: 'PASS',
-                        primary: false,
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          onPass();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 2,
-                      child: _CardBtn(
-                        label: 'CONNECT →',
-                        primary: true,
-                        onTap: () {
-                          HapticFeedback.mediumImpact();
-                          onConnect();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _Stat extends StatelessWidget {
-  final String value;
-  final String label;
-  const _Stat({required this.value, required this.label});
+/// Photo that drifts against the nearest scrollable. Outside a scrollable
+/// (for example mid Hero flight) it renders as a plain photo.
+class ParallaxPhoto extends StatefulWidget {
+  final String path;
+  final String name;
+  final List<Color>? tint;
+
+  const ParallaxPhoto({super.key, required this.path, required this.name, this.tint});
+
+  @override
+  State<ParallaxPhoto> createState() => _ParallaxPhotoState();
+}
+
+class _ParallaxPhotoState extends State<ParallaxPhoto> {
+  final GlobalKey _imageKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: GoogleFonts.syne(
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              color: AppColors.text,
-            ),
-          ),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 8,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textSecondary,
-              letterSpacing: 1,
-            ),
-          ),
-        ],
-      ),
+    final scrollable = Scrollable.maybeOf(context);
+    final photo = RumiePhoto(key: _imageKey, path: widget.path, fallbackName: widget.name, tint: widget.tint);
+    if (scrollable == null || MediaQuery.disableAnimationsOf(context)) return photo;
+    return Flow(
+      clipBehavior: Clip.hardEdge,
+      delegate: _ParallaxDelegate(scrollable: scrollable, itemContext: context, imageKey: _imageKey),
+      children: [photo],
     );
   }
 }
 
-class _CardBtn extends StatelessWidget {
-  final String label;
-  final bool primary;
-  final VoidCallback onTap;
-  const _CardBtn({required this.label, required this.primary, required this.onTap});
+class _ParallaxDelegate extends FlowDelegate {
+  final ScrollableState scrollable;
+  final BuildContext itemContext;
+  final GlobalKey imageKey;
+
+  static const double _extra = 0.22;
+
+  _ParallaxDelegate({required this.scrollable, required this.itemContext, required this.imageKey})
+      : super(repaint: scrollable.position);
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 38,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: primary ? AppColors.btnPrimary : Colors.transparent,
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(
-            color: primary ? AppColors.btnPrimary : AppColors.border,
-            width: 1.5,
-          ),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: primary ? AppColors.btnPrimaryText : AppColors.textSecondary,
-            letterSpacing: 1.5,
-          ),
-        ),
-      ),
-    );
+  BoxConstraints getConstraintsForChild(int i, BoxConstraints constraints) =>
+      BoxConstraints.tightFor(width: constraints.maxWidth, height: constraints.maxHeight * (1 + _extra));
+
+  @override
+  void paintChildren(FlowPaintingContext context) {
+    final viewport = scrollable.context.findRenderObject() as RenderBox?;
+    final item = itemContext.findRenderObject() as RenderBox?;
+    final image = imageKey.currentContext?.findRenderObject() as RenderBox?;
+    if (viewport == null || item == null || image == null || !item.attached) {
+      context.paintChild(0);
+      return;
+    }
+    final itemCenter = item.localToGlobal(item.size.center(Offset.zero), ancestor: viewport);
+    final frac = (itemCenter.dy / viewport.size.height).clamp(0.0, 1.0);
+    final overflow = image.size.height - context.size.height;
+    final dy = -overflow * (1 - frac);
+    context.paintChild(0, transform: Matrix4.translationValues(0, dy, 0));
   }
+
+  @override
+  bool shouldRepaint(_ParallaxDelegate old) =>
+      old.scrollable != scrollable || old.itemContext != itemContext || old.imageKey != imageKey;
 }

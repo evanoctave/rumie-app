@@ -1,12 +1,21 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/user_profile.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
+import '../theme/app_shapes.dart';
+import '../theme/app_text.dart';
+import '../widgets/rumie_icon.dart';
+import '../widgets/ui/app_button.dart';
+import '../widgets/ui/app_chip.dart';
+import '../widgets/ui/app_segmented.dart';
+import '../widgets/ui/app_text_field.dart';
+import '../widgets/ui/circle_button.dart';
+import '../widgets/ui/photo.dart';
+import '../widgets/ui/pressable.dart';
+import '../widgets/ui/settings_rows.dart';
 
 class ProfileCreateScreen extends StatefulWidget {
   final UserProfile? existing;
@@ -57,6 +66,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
     'Early riser',
   ];
   static const _petTypes = ['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Other'];
+  static const _maxTraits = 6;
 
   final Set<String> _selectedTraits = {};
 
@@ -106,71 +116,40 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
 
   void _showPhotoPicker() {
     HapticFeedback.selectionClick();
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-      ),
+      backgroundColor: Colors.transparent,
+      barrierColor: AppColors.photoInk.withValues(alpha: 0.45),
       builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: 1.5,
-              color: AppColors.border,
-            ),
-            const SizedBox(height: 20),
-            _sheetOption(
-              label: 'Choose from library',
-              onTap: () {
-                Navigator.pop(context);
-                _pickPhoto(ImageSource.gallery);
-              },
-            ),
-            _sheetOption(
-              label: 'Take a photo',
-              onTap: () {
-                Navigator.pop(context);
-                _pickPhoto(ImageSource.camera);
-              },
-            ),
-            if (_photoPath.isNotEmpty)
-              _sheetOption(
-                label: 'Remove photo',
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: SettingsGroup(
+            children: [
+              NavRow(
+                label: 'Choose from library',
                 onTap: () {
-                  setState(() => _photoPath = '');
                   Navigator.pop(context);
+                  _pickPhoto(ImageSource.gallery);
                 },
-                danger: true,
               ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _sheetOption({
-    required String label,
-    required VoidCallback onTap,
-    bool danger = false,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Row(
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                color: danger ? AppColors.scoreLow : AppColors.text,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+              NavRow(
+                label: 'Take a photo',
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickPhoto(ImageSource.camera);
+                },
               ),
-            ),
-          ],
+              if (_photoPath.isNotEmpty)
+                NavRow(
+                  label: 'Remove photo',
+                  danger: true,
+                  onTap: () {
+                    setState(() => _photoPath = '');
+                    Navigator.pop(context);
+                  },
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -179,9 +158,9 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
   void _addCustomTrait() {
     final text = _customTraitCtrl.text.trim();
     if (text.isEmpty) return;
-    if (_selectedTraits.length >= 6) {
+    if (_selectedTraits.length >= _maxTraits) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Max 6 traits selected')),
+        const SnackBar(content: Text('You can pick up to 6 traits')),
       );
       return;
     }
@@ -193,6 +172,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
   }
 
   void _addPet() {
+    HapticFeedback.selectionClick();
     setState(() => _pets.add(const Pet(name: '', type: 'Dog', age: 0)));
   }
 
@@ -230,50 +210,25 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // flat header
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                border: Border(
-                    bottom: BorderSide(color: AppColors.border, width: 1.5)),
-              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
               child: Row(
                 children: [
-                  GestureDetector(
+                  CircleButton(
+                    iconAsset: 'assets/icons/ic_close.svg',
+                    semanticLabel: 'Close',
                     onTap: () => Navigator.pop(context),
-                    child: Text(
-                      '×',
-                      style: GoogleFonts.syne(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.text,
-                      ),
-                    ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
-                    child: Text(
-                      isEdit ? 'EDIT PROFILE' : 'CREATE PROFILE',
-                      style: GoogleFonts.syne(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.text,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
+                    child: Text(isEdit ? 'Edit profile' : 'Create profile', style: AppText.sectionTitle),
                   ),
-                  GestureDetector(
+                  AppButton(
+                    label: isEdit ? 'Save' : 'Done',
+                    size: AppButtonSize.small,
+                    style: AppButtonStyle.tonal,
+                    expand: false,
                     onTap: _save,
-                    child: Text(
-                      isEdit ? 'SAVE' : 'DONE',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.accent,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
                   ),
                 ],
               ),
@@ -282,121 +237,139 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
               child: Form(
                 key: _formKey,
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 60),
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 48),
                   children: [
                     _buildPhotoSection(),
                     const SizedBox(height: 32),
-                    _sectionLabel('BASIC INFO'),
-                    const SizedBox(height: 12),
-                    _field(
+                    Text('Basics', style: AppText.sectionTitle),
+                    const SizedBox(height: 14),
+                    AppTextField(
                       controller: _nameCtrl,
-                      label: 'FULL NAME',
+                      label: 'Name',
                       hint: 'Your name',
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      textCapitalization: TextCapitalization.words,
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
-                    const SizedBox(height: 12),
-                    _field(
-                      controller: _ageCtrl,
-                      label: 'AGE',
-                      hint: '22',
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      validator: (v) {
-                        final n = int.tryParse(v ?? '');
-                        if (n == null || n < 18 || n > 99) {
-                          return 'Enter a valid age (18–99)';
-                        }
-                        return null;
-                      },
+                    const SizedBox(height: 14),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 110,
+                          child: AppTextField(
+                            controller: _ageCtrl,
+                            label: 'Age',
+                            hint: '22',
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            validator: (v) {
+                              final n = int.tryParse(v ?? '');
+                              if (n == null || n < 18 || n > 99) return '18 to 99';
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: AppTextField(
+                            controller: _locationCtrl,
+                            label: 'Location',
+                            hint: 'City, neighborhood',
+                            textCapitalization: TextCapitalization.words,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    _field(
-                      controller: _locationCtrl,
-                      label: 'LOCATION',
-                      hint: 'City, neighborhood',
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    _field(
+                    const SizedBox(height: 14),
+                    AppTextField(
                       controller: _bioCtrl,
-                      label: 'ABOUT ME',
-                      hint: 'A short intro about yourself...',
+                      label: 'About you',
+                      hint: 'A short intro. What are you like to live with?',
                       maxLines: 4,
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      minLines: 3,
+                      textCapitalization: TextCapitalization.sentences,
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
                     const SizedBox(height: 32),
-                    _sectionLabel('BUDGET'),
-                    const SizedBox(height: 4),
-                    Text(
-                      '\$${_budgetMin.toStringAsFixed(0)} – \$${_budgetMax.toStringAsFixed(0)}/mo',
-                      style: GoogleFonts.syne(
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(child: Text('Budget', style: AppText.sectionTitle)),
+                        AnimatedSwitcher(
+                          duration: AppMotion.of(context, AppMotion.fast),
+                          child: Text(
+                            '\$$_budgetMin – \$$_budgetMax',
+                            key: ValueKey('$_budgetMin-$_budgetMax'),
+                            style: AppText.stat.copyWith(color: AppColors.accent),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
+                    Text('per month', style: AppText.caption),
+                    const SizedBox(height: 6),
                     RangeSlider(
-                      values:
-                          RangeValues(_budgetMin.toDouble(), _budgetMax.toDouble()),
+                      values: RangeValues(_budgetMin.toDouble(), _budgetMax.toDouble()),
                       min: 400,
                       max: 5000,
                       divisions: 92,
-                      activeColor: AppColors.accent,
-                      inactiveColor: AppColors.borderSoft,
                       onChanged: (v) => setState(() {
                         _budgetMin = v.start.round();
                         _budgetMax = v.end.round();
                       }),
                     ),
-                    const SizedBox(height: 32),
-                    _sectionLabel('LIVING STYLE'),
-                    const SizedBox(height: 12),
-                    _segmentRow('SCHEDULE', _scheduleOptions, _schedule,
-                        (v) => setState(() => _schedule = v)),
-                    const SizedBox(height: 12),
-                    _segmentRow('TIDINESS', _tidinessOptions, _tidiness,
-                        (v) => setState(() => _tidiness = v)),
-                    const SizedBox(height: 12),
-                    _segmentRow('MOVE-IN', _moveInOptions, _moveIn,
-                        (v) => setState(() => _moveIn = v)),
+                    const SizedBox(height: 28),
+                    Text('Living style', style: AppText.sectionTitle),
+                    const SizedBox(height: 14),
+                    Text('Schedule', style: AppText.label),
+                    const SizedBox(height: 8),
+                    AppSegmented(options: _scheduleOptions, value: _schedule, onChanged: (v) => setState(() => _schedule = v)),
                     const SizedBox(height: 16),
-                    _toggleRow(
-                      'Has pets',
-                      _hasPets,
-                      (v) => setState(() {
-                        _hasPets = v;
-                        if (!v) _pets.clear();
-                      }),
+                    Text('Tidiness', style: AppText.label),
+                    const SizedBox(height: 8),
+                    AppSegmented(options: _tidinessOptions, value: _tidiness, onChanged: (v) => setState(() => _tidiness = v)),
+                    const SizedBox(height: 16),
+                    Text('Move-in', style: AppText.label),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final o in _moveInOptions)
+                          AppChip(label: o, selected: _moveIn == o, onTap: () => setState(() => _moveIn = o)),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    SettingsGroup(
+                      children: [
+                        ToggleRow(
+                          label: 'I have pets',
+                          value: _hasPets,
+                          onChanged: (v) => setState(() {
+                            _hasPets = v;
+                            if (!v) _pets.clear();
+                          }),
+                        ),
+                      ],
                     ),
                     AnimatedSize(
-                      duration: const Duration(milliseconds: 280),
-                      curve: Curves.easeOutCubic,
-                      child:
-                          _hasPets ? _buildPetSection() : const SizedBox.shrink(),
+                      duration: AppMotion.of(context, AppMotion.slow),
+                      curve: AppMotion.enter,
+                      alignment: Alignment.topCenter,
+                      child: _hasPets ? _buildPetSection() : const SizedBox(width: double.infinity),
                     ),
                     const SizedBox(height: 32),
-                    _sectionLabel('TRAITS'),
+                    Text('Lifestyle', style: AppText.sectionTitle),
                     const SizedBox(height: 4),
-                    Text(
-                      'Pick up to 6 — or add your own',
-                      style: GoogleFonts.inter(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    Text('Pick up to $_maxTraits, or add your own.', style: AppText.secondary),
+                    const SizedBox(height: 14),
                     _buildTraitGrid(),
                     const SizedBox(height: 12),
                     _buildCustomTraitInput(),
                     const SizedBox(height: 40),
-                    _SaveBtn(
-                      label: isEdit ? 'SAVE CHANGES' : 'CREATE PROFILE',
-                      onTap: _save,
-                    ),
+                    AppButton(label: isEdit ? 'Save changes' : 'Create profile', onTap: _save),
                   ],
                 ),
               ),
@@ -409,58 +382,40 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
 
   Widget _buildPhotoSection() {
     return Center(
-      child: GestureDetector(
+      child: Pressable(
         onTap: _showPhotoPicker,
+        pressedScale: 0.95,
+        semanticLabel: 'Change profile photo',
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: _photoPath.isEmpty
-                      ? AppColors.border
-                      : AppColors.accent,
-                  width: 1.5,
-                ),
+            AnimatedContainer(
+              duration: AppMotion.of(context, AppMotion.base),
+              decoration: ShapeDecoration(
+                shape: AppShapes.shape(36, side: BorderSide(color: _photoPath.isEmpty ? AppColors.lineStrong : AppColors.accent, width: 2)),
               ),
-              child: _photoPath.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(5),
-                      child: Image.file(File(_photoPath), fit: BoxFit.cover),
+              padding: const EdgeInsets.all(4),
+              child: _photoPath.isEmpty
+                  ? Container(
+                      width: 104,
+                      height: 104,
+                      decoration: ShapeDecoration(color: AppColors.surfaceSunken, shape: AppShapes.shape(32)),
+                      child: Center(child: Icon(Icons.person_outline_rounded, size: 40, color: AppColors.textTertiary)),
                     )
-                  : Center(
-                      child: Text(
-                        'PHOTO',
-                        style: GoogleFonts.inter(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textSecondary,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ),
+                  : Avatar(path: _photoPath, name: _nameCtrl.text, size: 104),
             ),
             Positioned(
-              bottom: 0,
-              right: 0,
+              bottom: -2,
+              right: -2,
               child: Container(
-                width: 28,
-                height: 28,
+                width: 34,
+                height: 34,
                 decoration: BoxDecoration(
-                  color: AppColors.btnPrimary,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    bottomRight: Radius.circular(5),
-                  ),
+                  color: AppColors.accent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.background, width: 3),
                 ),
-                child: Icon(
-                  Icons.add_rounded,
-                  color: AppColors.btnPrimaryText,
-                  size: 18,
-                ),
+                child: Center(child: RumieIcon(asset: 'assets/icons/ic_edit.svg', size: 14, color: AppColors.onAccent)),
               ),
             ),
           ],
@@ -476,36 +431,14 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
         const SizedBox(height: 16),
         Row(
           children: [
-            Text(
-              'MY PETS',
-              style: GoogleFonts.inter(
-                color: AppColors.textSecondary,
-                fontSize: 8,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 2,
-              ),
-            ),
-            const Spacer(),
-            GestureDetector(
+            Expanded(child: Text('My pets', style: AppText.label)),
+            AppButton(
+              label: 'Add pet',
+              icon: Icons.add_rounded,
+              size: AppButtonSize.small,
+              style: AppButtonStyle.secondary,
+              expand: false,
               onTap: _addPet,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: AppColors.border, width: 1.5),
-                ),
-                child: Text(
-                  '+ ADD PET',
-                  style: GoogleFonts.inter(
-                    color: AppColors.text,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
             ),
           ],
         ),
@@ -513,21 +446,12 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
         if (_pets.isEmpty)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: AppColors.borderSoft),
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            decoration: ShapeDecoration(
+              color: AppColors.surfaceSunken,
+              shape: AppShapes.shape(AppShapes.tile),
             ),
-            child: Center(
-              child: Text(
-                'Tap "Add pet" to list your pets',
-                style: GoogleFonts.inter(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                ),
-              ),
-            ),
+            child: Center(child: Text('Add a pet so roommates know who else lives with you.', style: AppText.caption, textAlign: TextAlign.center)),
           )
         else
           ...List.generate(_pets.length, (i) => _buildPetRow(i)),
@@ -538,523 +462,143 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
   Widget _buildPetRow(int index) {
     Pet pet = _pets[index];
     final nameCtrl = TextEditingController(text: pet.name);
-    final ageCtrl =
-        TextEditingController(text: pet.age > 0 ? '${pet.age}' : '');
+    final ageCtrl = TextEditingController(text: pet.age > 0 ? '${pet.age}' : '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.border, width: 1.5),
+        shape: AppShapes.shape(AppShapes.tile, side: BorderSide(color: AppColors.line)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(
-                'PET ${index + 1}',
-                style: GoogleFonts.inter(
-                  color: AppColors.textSecondary,
-                  fontSize: 8,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 2,
-                ),
-              ),
-              const Spacer(),
-              GestureDetector(
+              Expanded(child: Text('Pet ${index + 1}', style: AppText.label)),
+              CircleButton(
+                size: 32,
+                iconAsset: 'assets/icons/ic_close.svg',
+                style: CircleButtonStyle.danger,
+                semanticLabel: 'Remove pet',
                 onTap: () => _removePet(index),
-                child: Text(
-                  '×',
-                  style: GoogleFonts.syne(
-                    color: AppColors.scoreLow,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
               ),
             ],
           ),
           const SizedBox(height: 10),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 flex: 2,
-                child: TextField(
+                child: AppTextField(
                   controller: nameCtrl,
+                  label: 'Name',
+                  hint: 'e.g. Buddy',
+                  textCapitalization: TextCapitalization.words,
                   onChanged: (v) {
                     _pets[index] = pet.copyWith(name: v);
                     pet = _pets[index];
                   },
-                  style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
-                  decoration: _inputDeco('NAME', 'e.g. Buddy'),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                flex: 1,
-                child: TextField(
+                child: AppTextField(
                   controller: ageCtrl,
+                  label: 'Age',
+                  hint: '3',
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   onChanged: (v) {
                     _pets[index] = pet.copyWith(age: int.tryParse(v) ?? 0);
                     pet = _pets[index];
                   },
-                  style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
-                  decoration: _inputDeco('AGE', '3'),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(5),
-              border: Border.all(color: AppColors.border, width: 1.5),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _petTypes.contains(pet.type) ? pet.type : _petTypes[0],
-                isExpanded: true,
-                dropdownColor: AppColors.surface,
-                style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
-                icon: Icon(
-                  Icons.expand_more_rounded,
-                  color: AppColors.textSecondary,
-                  size: 18,
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final t in _petTypes)
+                AppChip(
+                  label: t,
+                  dense: true,
+                  selected: (_petTypes.contains(pet.type) ? pet.type : _petTypes[0]) == t,
+                  onTap: () => setState(() => _pets[index] = pet.copyWith(type: t)),
                 ),
-                items: _petTypes
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                    .toList(),
-                onChanged: (v) {
-                  if (v == null) return;
-                  setState(() => _pets[index] = pet.copyWith(type: v));
-                },
-              ),
-            ),
+            ],
           ),
         ],
-      ),
-    );
-  }
-
-  InputDecoration _inputDeco(String label, String hint) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: GoogleFonts.inter(
-          color: AppColors.textSecondary,
-          fontSize: 8,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.5),
-      hintText: hint,
-      hintStyle: GoogleFonts.inter(color: AppColors.textSecondary),
-      filled: true,
-      fillColor: AppColors.surface,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(5),
-        borderSide: BorderSide(color: AppColors.border, width: 1.5),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(5),
-        borderSide: BorderSide(color: AppColors.border, width: 1.5),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(5),
-        borderSide: BorderSide(color: AppColors.accent, width: 1.5),
       ),
     );
   }
 
   Widget _buildCustomTraitInput() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-          child: TextField(
+          child: AppTextField(
             controller: _customTraitCtrl,
+            hint: 'Add your own',
+            textCapitalization: TextCapitalization.sentences,
+            textInputAction: TextInputAction.done,
             onSubmitted: (_) => _addCustomTrait(),
-            style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
-            decoration: InputDecoration(
-              hintText: 'Add a custom trait...',
-              hintStyle:
-                  GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 14),
-              filled: true,
-              fillColor: AppColors.surface,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: AppColors.border, width: 1.5),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: AppColors.border, width: 1.5),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: AppColors.accent, width: 1.5),
-              ),
-            ),
           ),
         ),
         const SizedBox(width: 10),
-        GestureDetector(
+        CircleButton(
+          size: 52,
+          icon: Icons.add_rounded,
+          style: CircleButtonStyle.accent,
+          semanticLabel: 'Add trait',
           onTap: _addCustomTrait,
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.btnPrimary,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Icon(Icons.add_rounded, color: AppColors.btnPrimaryText, size: 20),
-          ),
         ),
       ],
-    );
-  }
-
-  Widget _sectionLabel(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.inter(
-        color: AppColors.textSecondary,
-        fontSize: 8,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 2,
-      ),
-    );
-  }
-
-  Widget _field({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    TextInputType? keyboardType,
-    List<TextInputFormatter>? inputFormatters,
-    String? Function(String?)? validator,
-    int maxLines = 1,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            color: AppColors.textSecondary,
-            fontSize: 8,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 2,
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          inputFormatters: inputFormatters,
-          validator: validator,
-          maxLines: maxLines,
-          style: GoogleFonts.inter(color: AppColors.text, fontSize: 15),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary),
-            filled: true,
-            fillColor: AppColors.surface,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5),
-              borderSide: BorderSide(color: AppColors.border, width: 1.5),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5),
-              borderSide: BorderSide(color: AppColors.border, width: 1.5),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5),
-              borderSide: BorderSide(color: AppColors.accent, width: 1.5),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5),
-              borderSide: BorderSide(color: AppColors.scoreLow),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5),
-              borderSide: BorderSide(color: AppColors.scoreLow, width: 1.5),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _segmentRow(
-    String label,
-    List<String> options,
-    String selected,
-    void Function(String) onSelect,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            color: AppColors.textSecondary,
-            fontSize: 8,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 2,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: options.map((opt) {
-            final isSelected = opt == selected;
-            return Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  onSelect(opt);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  margin: EdgeInsets.only(
-                    right: opt == options.last ? 0 : 6,
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.btnPrimary : AppColors.surface,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: isSelected ? AppColors.btnPrimary : AppColors.border,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      opt,
-                      style: GoogleFonts.inter(
-                        color: isSelected
-                            ? AppColors.btnPrimaryText
-                            : AppColors.textSecondary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _toggleRow(
-    String label,
-    bool value,
-    void Function(bool) onChanged,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: AppColors.border, width: 1.5),
-      ),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              color: AppColors.text,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const Spacer(),
-          Switch.adaptive(
-            value: value,
-            onChanged: (v) {
-              HapticFeedback.selectionClick();
-              onChanged(v);
-            },
-            activeTrackColor: AppColors.accent,
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildTraitGrid() {
+    final full = _selectedTraits.length >= _maxTraits;
     return Wrap(
-      spacing: 6,
-      runSpacing: 6,
+      spacing: 8,
+      runSpacing: 8,
       children: [
         ..._presetTraits.map((trait) {
           final selected = _selectedTraits.contains(trait);
-          final disabled = !selected && _selectedTraits.length >= 6;
-          return GestureDetector(
-            onTap: disabled
-                ? null
-                : () {
-                    HapticFeedback.selectionClick();
-                    setState(() {
-                      if (selected) {
-                        _selectedTraits.remove(trait);
-                      } else {
-                        _selectedTraits.add(trait);
-                      }
-                    });
-                  },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: selected
-                    ? AppColors.chipBg
-                    : AppColors.surface,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: selected
-                      ? AppColors.chipBg
-                      : disabled
-                          ? AppColors.borderSoft
-                          : AppColors.border,
-                  width: 1.5,
-                ),
-              ),
-              child: Text(
-                trait.toUpperCase(),
-                style: GoogleFonts.inter(
-                  color: selected
-                      ? AppColors.chipText
-                      : disabled
-                          ? AppColors.textSecondary
-                          : AppColors.text,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1,
-                ),
-              ),
+          final disabled = !selected && full;
+          return AnimatedOpacity(
+            duration: AppMotion.of(context, AppMotion.base),
+            opacity: disabled ? 0.45 : 1,
+            child: AppChip(
+              label: trait,
+              selected: selected,
+              onTap: disabled
+                  ? null
+                  : () => setState(() {
+                        if (selected) {
+                          _selectedTraits.remove(trait);
+                        } else {
+                          _selectedTraits.add(trait);
+                        }
+                      }),
             ),
           );
         }),
-        ..._selectedTraits
-            .where((t) => !_presetTraits.contains(t))
-            .map((trait) => GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() => _selectedTraits.remove(trait));
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: AppColors.chipBg,
-                      borderRadius: BorderRadius.circular(4),
-                      border:
-                          Border.all(color: AppColors.chipBg, width: 1.5),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          trait.toUpperCase(),
-                          style: GoogleFonts.inter(
-                            color: AppColors.chipText,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Icon(
-                          Icons.close_rounded,
-                          color: AppColors.chipText,
-                          size: 12,
-                        ),
-                      ],
-                    ),
-                  ),
-                )),
-      ],
-    );
-  }
-}
-
-class _SaveBtn extends StatefulWidget {
-  final String label;
-  final VoidCallback onTap;
-
-  const _SaveBtn({required this.label, required this.onTap});
-
-  @override
-  State<_SaveBtn> createState() => _SaveBtnState();
-}
-
-class _SaveBtnState extends State<_SaveBtn>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 100),
-      lowerBound: 0.96,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        HapticFeedback.selectionClick();
-        _ctrl.reverse();
-      },
-      onTapUp: (_) {
-        _ctrl.forward();
-        widget.onTap();
-      },
-      onTapCancel: () => _ctrl.forward(),
-      child: ScaleTransition(
-        scale: _ctrl,
-        child: Container(
-          width: double.infinity,
-          height: 52,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.btnPrimary,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            widget.label,
-            style: GoogleFonts.inter(
-              color: AppColors.btnPrimaryText,
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-              letterSpacing: 2,
+        ..._selectedTraits.where((t) => !_presetTraits.contains(t)).map(
+              (trait) => AppChip(
+                label: trait,
+                selected: true,
+                trailing: RumieIcon(asset: 'assets/icons/ic_close.svg', size: 11, color: AppColors.background),
+                onTap: () => setState(() => _selectedTraits.remove(trait)),
+              ),
             ),
-          ),
-        ),
-      ),
+      ],
     );
   }
 }

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../models/roommate.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
+import '../theme/app_text.dart';
 import '../widgets/match_tile.dart';
+import '../widgets/ui/reveal.dart';
+import '../widgets/ui/screen_header.dart';
+import 'home_screen.dart';
 
 class MatchesScreen extends StatelessWidget {
   final List<Roommate> matches;
@@ -12,93 +16,73 @@ class MatchesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: AppColors.background,
-      child: Column(
-        children: [
-          _buildHeader(),
-          Expanded(child: matches.isEmpty ? _buildEmpty() : _buildList()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        border: Border(bottom: BorderSide(color: AppColors.border, width: 1.5)),
-      ),
-      child: Row(
-        children: [
-          Text(
-            'Matches',
-            style: GoogleFonts.syne(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppColors.text,
-              letterSpacing: -0.8,
-            ),
+    final bottomPad = kNavClearance + MediaQuery.paddingOf(context).bottom;
+    return Column(
+      children: [
+        SafeArea(
+          bottom: false,
+          child: ScreenHeader(
+            title: 'Matches',
+            subtitle: matches.isEmpty
+                ? 'People you connect with land here'
+                : '${matches.length} ${matches.length == 1 ? 'connection' : 'connections'}',
           ),
-          const Spacer(),
-          if (matches.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.text,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                '${matches.length} NEW',
-                style: GoogleFonts.inter(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.background,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ),
-        ],
-      ),
+        ),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: AppMotion.of(context, AppMotion.slow),
+            switchInCurve: AppMotion.enter,
+            switchOutCurve: AppMotion.exit,
+            child: matches.isEmpty
+                ? const _Empty(key: ValueKey('empty'))
+                : ListView.separated(
+                    key: const ValueKey('list'),
+                    padding: EdgeInsets.fromLTRB(16, 4, 16, bottomPad),
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: matches.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
+                    itemBuilder: (context, i) => Reveal(
+                      key: ValueKey(matches[i].name),
+                      index: i,
+                      child: MatchTile(roommate: matches[i]),
+                    ),
+                  ),
+          ),
+        ),
+      ],
     );
   }
+}
 
-  Widget _buildList() {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-      itemCount: matches.length,
-      itemBuilder: (context, i) => MatchTile(roommate: matches[i]),
-    );
-  }
+class _Empty extends StatelessWidget {
+  const _Empty({super.key});
 
-  Widget _buildEmpty() {
+  @override
+  Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'NO\nMATCHES\nYET',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.syne(
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-              color: AppColors.text,
-              letterSpacing: -1.5,
-              height: 0.95,
-            ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(32, 0, 32, 80),
+        child: Reveal(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(color: AppColors.accentSoft, shape: BoxShape.circle),
+                child: const Center(child: Text('💬', style: TextStyle(fontSize: 38))),
+              ),
+              const SizedBox(height: 22),
+              Text('No matches yet', style: AppText.sectionTitle),
+              const SizedBox(height: 8),
+              Text(
+                'Connect with someone in Discover\nand start the conversation here.',
+                style: AppText.secondary,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            'Connect with someone in Discover\nand wait for them to respond.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

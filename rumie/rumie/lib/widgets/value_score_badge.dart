@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import '../services/value_score.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_text.dart';
+import 'ui/app_chip.dart';
+import 'ui/score_ring.dart';
 
+/// Value score for a listing: animated ring, tier label, three factor bars.
 class ValueScoreBadge extends StatelessWidget {
   final ValueScore score;
-  const ValueScoreBadge({super.key, required this.score});
+  final bool showBars;
+  const ValueScoreBadge({super.key, required this.score, this.showBars = true});
 
-  Color get _fg => score.isHigh
+  Color get color => score.isHigh
       ? AppColors.scoreHigh
       : score.isMid
           ? AppColors.scoreMid
           : AppColors.scoreLow;
 
-  Color get _bg => score.isHigh
+  Color get softColor => score.isHigh
       ? AppColors.scoreHighBg
       : score.isMid
           ? AppColors.scoreMidBg
@@ -24,100 +29,48 @@ class ValueScoreBadge extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: _bg,
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: _fg, width: 1),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '${score.overall}',
-                style: GoogleFonts.syne(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: _fg,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'VALUE SCORE',
-                    style: GoogleFonts.inter(
-                      fontSize: 7,
-                      fontWeight: FontWeight.w700,
-                      color: _fg,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  Text(
-                    score.tier.toUpperCase(),
-                    style: GoogleFonts.inter(
-                      fontSize: 7,
-                      fontWeight: FontWeight.w700,
-                      color: _fg,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        Row(
+          children: [
+            ScoreRing(value: score.overall, color: color, size: 60),
+            const SizedBox(width: 14),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Value score', style: AppText.label),
+                const SizedBox(height: 6),
+                _TierChip(label: score.tier, color: color, background: softColor),
+              ],
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        _MiniBar(label: 'VS MEDIAN', value: score.priceScore / 100, color: _fg),
-        const SizedBox(height: 4),
-        _MiniBar(label: '\$/SQFT',   value: score.sqftScore   / 100, color: _fg),
-        const SizedBox(height: 4),
-        _MiniBar(label: 'TRANSIT',   value: score.transitScore / 100, color: _fg),
+        if (showBars) ...[
+          const SizedBox(height: 14),
+          MiniBar(label: 'vs median', value: score.priceScore / 100, color: color),
+          const SizedBox(height: 6),
+          MiniBar(label: '\$ per sqft', value: score.sqftScore / 100, color: color),
+          const SizedBox(height: 6),
+          MiniBar(label: 'Transit', value: score.transitScore / 100, color: color),
+        ],
       ],
     );
   }
 }
 
-class _MiniBar extends StatelessWidget {
+class _TierChip extends StatelessWidget {
   final String label;
-  final double value;
   final Color color;
-  const _MiniBar({required this.label, required this.value, required this.color});
+  final Color background;
+  const _TierChip({required this.label, required this.color, required this.background});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 60,
-          child: Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 7,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textSecondary,
-              letterSpacing: 0.8,
-            ),
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            child: LinearProgressIndicator(
-              value: value.clamp(0.0, 1.0),
-              backgroundColor: AppColors.borderSoft,
-              valueColor: AlwaysStoppedAnimation(color),
-              minHeight: 3,
-            ),
-          ),
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(999)),
+      child: Text(label, style: AppText.chip.copyWith(color: color, fontSize: 12)),
     );
   }
 }
+
+/// Keeps [AppChip] import used for callers that want a plain neutral tag.
+typedef ScoreTag = AppChip;

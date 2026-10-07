@@ -37,7 +37,7 @@ const List<Roommate> sampleRoommates = [
   Roommate(
     name: 'Malik',
     age: 22,
-    avatarAsset: 'assets/images/evan_2.jpg',
+    avatarAsset: 'assets/images/p_malik.jpg',
     budget: 900,
     location: 'Oakland',
     bio: 'Art student. I cook a lot. Sometimes paint at 2am. Not sorry about it.',
@@ -52,7 +52,7 @@ const List<Roommate> sampleRoommates = [
   Roommate(
     name: 'Darius',
     age: 25,
-    avatarAsset: 'assets/images/evan_3.jpg',
+    avatarAsset: 'assets/images/p_darius.jpg',
     budget: 1800,
     location: 'Berkeley',
     bio: 'Fitness lover, sneaker head, plant collector. Looking for someone calm and respectful.',
@@ -67,7 +67,7 @@ const List<Roommate> sampleRoommates = [
   Roommate(
     name: 'Devon',
     age: 25,
-    avatarAsset: 'assets/images/evan_1.jpg',
+    avatarAsset: 'assets/images/p_devon.jpg',
     budget: 1100,
     location: 'Outer Sunset',
     bio: 'Musician + barista. Headphones are my love language. Quiet apartment, loud songs.',

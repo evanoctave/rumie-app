@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import '../services/value_score.dart';
 import '../theme/app_colors.dart';
-import 'value_score_badge.dart';
+import '../theme/app_shapes.dart';
+import '../theme/app_text.dart';
+import 'rumie_icon.dart';
+import 'ui/app_chip.dart';
+import 'ui/score_ring.dart';
 
 class ListingCard extends StatelessWidget {
   final String title;
@@ -33,84 +37,103 @@ class ListingCard extends StatelessWidget {
     return (parts.firstOrNull?.trim() ?? bedsBaths, parts.elementAtOrNull(1)?.trim() ?? '');
   }
 
+  Color _tierColor(ValueScore s) => s.isHigh
+      ? AppColors.scoreHigh
+      : s.isMid
+          ? AppColors.scoreMid
+          : AppColors.scoreLow;
+
+  Color _tierSoft(ValueScore s) => s.isHigh
+      ? AppColors.scoreHighBg
+      : s.isMid
+          ? AppColors.scoreMidBg
+          : AppColors.scoreLowBg;
+
   @override
   Widget build(BuildContext context) {
     final (beds, baths) = _bedBath;
+    final score = valueScore;
     return Container(
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.all(18),
+      decoration: ShapeDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border, width: 1.5),
-        boxShadow: AppColors.cardShadow,
+        shape: AppShapes.shape(AppShapes.card - 4, side: BorderSide(color: AppColors.line)),
+        shadows: AppColors.cardShadow,
       ),
-      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (valueScore != null) ...[
-            ValueScoreBadge(score: valueScore!),
-            const SizedBox(height: 12),
-          ] else ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-              decoration: BoxDecoration(
-                color: AppColors.borderSoft,
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Text(
-                'SCORE UNAVAILABLE',
-                style: GoogleFonts.inter(
-                  fontSize: 8,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 1.5,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(text: '\$$rent', style: AppText.cardName),
+                          TextSpan(text: ' /mo', style: AppText.secondary),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(title, style: AppText.tileTitle, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        RumieIcon(asset: 'assets/icons/ic_location.svg', size: 13, color: AppColors.textTertiary),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(location, style: AppText.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(width: 12),
+              if (score != null)
+                Column(
+                  children: [
+                    ScoreRing(value: score.overall, color: _tierColor(score), size: 58),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: _tierSoft(score), borderRadius: BorderRadius.circular(999)),
+                      child: Text(score.tier, style: AppText.micro.copyWith(color: _tierColor(score))),
+                    ),
+                  ],
+                )
+              else
+                const AppChip(label: 'Scoring…', dense: true),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: ShapeDecoration(
+              color: AppColors.surfaceSunken,
+              shape: AppShapes.shape(AppShapes.small + 2),
             ),
-            const SizedBox(height: 12),
-          ],
-          RichText(
-            text: TextSpan(
+            child: Row(
               children: [
-                TextSpan(
-                  text: '\$$rent',
-                  style: GoogleFonts.syne(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.text,
-                    letterSpacing: -1,
-                  ),
-                ),
-                TextSpan(
-                  text: '/mo',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
+                _Spec(value: beds, label: 'Bed'),
+                _Spec(value: baths, label: 'Bath'),
+                _Spec(value: availableDate, label: 'Move-in'),
+                if (sqft > 0) _Spec(value: '$sqft', label: 'Sq ft'),
               ],
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            location,
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Divider(color: AppColors.borderSoft, thickness: 1, height: 1),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _Spec(label: 'BED', value: beds),
-              _Spec(label: 'BATH', value: baths),
-              _Spec(label: 'MOVE-IN', value: availableDate),
-              if (sqft > 0) _Spec(label: 'SQFT', value: '$sqft'),
-            ],
-          ),
+          if (score != null) ...[
+            const SizedBox(height: 14),
+            MiniBar(label: 'vs median', value: score.priceScore / 100, color: _tierColor(score)),
+            const SizedBox(height: 6),
+            MiniBar(label: '\$ per sqft', value: score.sqftScore / 100, color: _tierColor(score)),
+            const SizedBox(height: 6),
+            MiniBar(label: 'Transit', value: score.transitScore / 100, color: _tierColor(score)),
+          ],
         ],
       ),
     );
@@ -118,9 +141,9 @@ class ListingCard extends StatelessWidget {
 }
 
 class _Spec extends StatelessWidget {
-  final String label;
   final String value;
-  const _Spec({required this.label, required this.value});
+  final String label;
+  const _Spec({required this.value, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -128,22 +151,13 @@ class _Spec extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(label, style: AppText.caption.copyWith(fontSize: 12)),
+          const SizedBox(height: 3),
           Text(
-            value,
-            style: GoogleFonts.syne(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: AppColors.text,
-            ),
-          ),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 8,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textSecondary,
-              letterSpacing: 1,
-            ),
+            value.replaceAll(RegExp(r'\s*(bed|bath)s?$', caseSensitive: false), ''),
+            style: AppText.buttonSmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

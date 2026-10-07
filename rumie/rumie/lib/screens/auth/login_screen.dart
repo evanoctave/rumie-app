@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 
 import '../../state/auth_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_text.dart';
+import '../../data/models/role.dart';
 import '../../utils/validators.dart';
+import '../../widgets/ui/app_button.dart';
+import '../../widgets/ui/app_dialog.dart';
+import '../../widgets/ui/app_text_field.dart';
+import '../../widgets/ui/circle_button.dart';
+import '../../widgets/ui/pressable.dart';
+import '../../widgets/ui/reveal.dart';
+import 'landing_screen.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,6 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
     final auth = context.read<AuthProvider>();
     final ok = await auth.login(sanitizeEmail(_emailCtrl.text), _passCtrl.text);
     if (!mounted) return;
@@ -51,37 +59,15 @@ class _LoginScreenState extends State<LoginScreen> {
     final available = await auth.getAvailableBiometrics();
     if (!available.contains(BiometricType.face) || !mounted) return;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: AppColors.border, width: 1.5),
-        ),
-        title: Text('Enable Face ID?',
-            style: GoogleFonts.syne(
-                fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.text)),
-        content: Text(
-          'Unlock Rumie instantly with Face ID every time you open the app.',
-          style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary, height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Not now',
-                style: GoogleFonts.inter(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('Enable',
-                style: GoogleFonts.inter(color: AppColors.accent, fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
+    final confirmed = await showAppDialog(
+      context,
+      title: 'Enable Face ID?',
+      message: 'Unlock Rumie instantly with Face ID every time you open the app.',
+      confirmLabel: 'Enable',
+      cancelLabel: 'Not now',
     );
 
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       try {
         await auth.authenticate(
           localizedReason: 'Authenticate to enable Face ID for Rumie',
@@ -99,210 +85,102 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(28, 48, 28, 32),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GestureDetector(
+                CircleButton(
+                  iconAsset: 'assets/icons/ic_back.svg',
+                  semanticLabel: 'Back',
                   onTap: () => Navigator.pop(context),
-                  child: Text(
-                    '←',
-                    style: GoogleFonts.syne(
-                        fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.text),
+                ),
+                const SizedBox(height: 36),
+                Reveal(child: Text('Welcome back', style: AppText.screenTitle)),
+                const SizedBox(height: 6),
+                Reveal(index: 1, child: Text('Sign in to keep looking.', style: AppText.secondary)),
+                const SizedBox(height: 32),
+                Reveal(
+                  index: 2,
+                  child: AppTextField(
+                    controller: _emailCtrl,
+                    label: 'Email',
+                    hint: 'you@example.com',
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    maxLength: 254,
+                    inputFormatters: const [SanitizingFormatter()],
+                    validator: validateEmail,
                   ),
                 ),
-                const SizedBox(height: 32),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'SIGN\n',
-                        style: GoogleFonts.syne(
-                          fontSize: 38,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.text,
-                          letterSpacing: -2,
-                          height: 0.95,
-                        ),
+                const SizedBox(height: 18),
+                Reveal(
+                  index: 3,
+                  child: AppTextField(
+                    controller: _passCtrl,
+                    label: 'Password',
+                    hint: '••••••••',
+                    obscure: _obscure,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _submit(),
+                    maxLength: 128,
+                    inputFormatters: const [SanitizingFormatter()],
+                    validator: (v) => validatePassword(v, isLogin: true),
+                    suffix: Pressable(
+                      onTap: () => setState(() => _obscure = !_obscure),
+                      pressedScale: 0.85,
+                      semanticLabel: _obscure ? 'Show password' : 'Hide password',
+                      child: Icon(
+                        _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: AppColors.textSecondary,
+                        size: 20,
                       ),
-                      TextSpan(
-                        text: 'IN',
-                        style: GoogleFonts.syne(
-                          fontSize: 38,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.accent,
-                          letterSpacing: -2,
-                          height: 0.95,
-                        ),
-                      ),
-                    ],
-                  ),
-                ).animate().fadeIn(duration: 300.ms),
-                const SizedBox(height: 32),
-                const _BrutalLabel('EMAIL'),
-                const SizedBox(height: 8),
-                _BrutalField(
-                  controller: _emailCtrl,
-                  hint: 'you@example.com',
-                  keyboardType: TextInputType.emailAddress,
-                  maxLength: 254,
-                  validator: validateEmail,
-                ),
-                const SizedBox(height: 14),
-                const _BrutalLabel('PASSWORD'),
-                const SizedBox(height: 8),
-                _BrutalField(
-                  controller: _passCtrl,
-                  hint: '••••••••',
-                  obscure: _obscure,
-                  maxLength: 128,
-                  validator: (v) => validatePassword(v, isLogin: true),
-                  suffix: GestureDetector(
-                    onTap: () => setState(() => _obscure = !_obscure),
-                    child: Icon(
-                      _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: AppColors.textSecondary,
-                      size: 18,
                     ),
                   ),
                 ),
                 const SizedBox(height: 28),
-                _SubmitBtn(label: 'SIGN IN →', loading: loading, onTap: _submit),
-                const SizedBox(height: 40),
+                Reveal(
+                  index: 4,
+                  child: AppButton(
+                    label: 'Sign in',
+                    loading: loading,
+                    iconAsset: 'assets/icons/ic_chevron.svg',
+                    iconTrailing: true,
+                    onTap: _submit,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Reveal(
+                  index: 5,
+                  child: Center(
+                    child: Pressable(
+                      onTap: () => Navigator.pushReplacement(
+                        context,
+                        LandingScreen.slideRoute(const SignupScreen(role: Role.rumie)),
+                      ),
+                      pressedScale: 0.97,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: 'New here? ', style: AppText.secondary),
+                              TextSpan(
+                                text: 'Create an account',
+                                style: AppText.secondary.copyWith(color: AppColors.accent, fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BrutalLabel extends StatelessWidget {
-  final String text;
-  const _BrutalLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: GoogleFonts.inter(
-        fontSize: 9,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textSecondary,
-        letterSpacing: 1.5,
-      ),
-    );
-  }
-}
-
-class _BrutalField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hint;
-  final TextInputType? keyboardType;
-  final bool obscure;
-  final Widget? suffix;
-  final int? maxLength;
-  final String? Function(String?)? validator;
-
-  const _BrutalField({
-    required this.controller,
-    required this.hint,
-    this.keyboardType,
-    this.obscure = false,
-    this.suffix,
-    this.maxLength,
-    this.validator,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const radius = BorderRadius.all(Radius.circular(5));
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscure,
-      maxLength: maxLength,
-      maxLengthEnforcement: MaxLengthEnforcement.enforced,
-      inputFormatters: const [SanitizingFormatter()],
-      style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 14),
-        suffixIcon: suffix != null ? Padding(padding: const EdgeInsets.only(right: 12), child: suffix) : null,
-        suffixIconConstraints: const BoxConstraints(maxWidth: 40, maxHeight: 40),
-        filled: true,
-        fillColor: AppColors.surface,
-        counterText: '',
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        border: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: AppColors.border, width: 1.5)),
-        enabledBorder: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: AppColors.border, width: 1.5)),
-        focusedBorder: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: AppColors.accent, width: 1.5)),
-        errorBorder: const OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: AppColors.red, width: 1.5)),
-        focusedErrorBorder: const OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: AppColors.red, width: 1.5)),
-        errorStyle: GoogleFonts.inter(color: AppColors.red, fontSize: 11),
-      ),
-    );
-  }
-}
-
-class _SubmitBtn extends StatefulWidget {
-  final String label;
-  final bool loading;
-  final VoidCallback onTap;
-  const _SubmitBtn({required this.label, required this.loading, required this.onTap});
-
-  @override
-  State<_SubmitBtn> createState() => _SubmitBtnState();
-}
-
-class _SubmitBtnState extends State<_SubmitBtn> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        HapticFeedback.mediumImpact();
-        setState(() => _pressed = true);
-      },
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        if (!widget.loading) widget.onTap();
-      },
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 100),
-        child: Container(
-          width: double.infinity,
-          height: 50,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.btnPrimary,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: widget.loading
-              ? SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation(AppColors.btnPrimaryText),
-                  ),
-                )
-              : Text(
-                  widget.label,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.btnPrimaryText,
-                    letterSpacing: 2,
-                  ),
-                ),
         ),
       ),
     );

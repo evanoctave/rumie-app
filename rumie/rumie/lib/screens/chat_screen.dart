@@ -3,15 +3,21 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../models/message.dart';
 import '../models/roommate.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
+import '../theme/app_text.dart';
+import '../widgets/match_tile.dart';
+import '../widgets/ui/circle_button.dart';
+import '../widgets/ui/photo.dart';
 
 class ChatScreen extends StatefulWidget {
   final Roommate roommate;
   const ChatScreen({super.key, required this.roommate});
+
+  static Route<void> route(Roommate r) => MaterialPageRoute(builder: (_) => ChatScreen(roommate: r));
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -32,7 +38,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     "What kind of music are you into?",
     "Do you cook a lot?",
     "That sounds great honestly.",
-    "I'm flexible on move-in dates — what works for you?",
+    "I'm flexible on move-in dates. What works for you?",
     "Let me know when you're free to talk.",
   ];
 
@@ -41,11 +47,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _typingCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat();
-
+    _typingCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat();
     Future.delayed(700.ms, () {
       if (mounted) _addTheirMessage('Hey! Looks like we matched.');
     });
@@ -99,8 +101,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       if (_scrollCtrl.hasClients) {
         _scrollCtrl.animateTo(
           _scrollCtrl.position.maxScrollExtent,
-          duration: 280.ms,
-          curve: Curves.easeOut,
+          duration: AppMotion.slow,
+          curve: AppMotion.standard,
         );
       }
     });
@@ -124,47 +126,33 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildTopBar() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        border: Border(bottom: BorderSide(color: AppColors.border, width: 1.5)),
-      ),
+    final r = widget.roommate;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
       child: Row(
         children: [
-          GestureDetector(
+          CircleButton(
+            iconAsset: 'assets/icons/ic_back.svg',
+            semanticLabel: 'Back',
             onTap: () => Navigator.pop(context),
-            child: Text(
-              '←',
-              style: GoogleFonts.syne(
-                  fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.text),
-            ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
+          Avatar(path: r.avatarAsset, name: r.name, size: 42, tint: r.gradient, heroTag: MatchTile.heroTag(r)),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              widget.roommate.name.toUpperCase(),
-              style: GoogleFonts.syne(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: AppColors.text,
-                letterSpacing: -0.5,
-              ),
-            ),
-          ),
-          Container(
-            width: 8,
-            height: 8,
-            decoration: const BoxDecoration(color: AppColors.green, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'ACTIVE',
-            style: GoogleFonts.inter(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              color: AppColors.green,
-              letterSpacing: 1.5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(r.name, style: AppText.tileTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const _PulseDot(),
+                    const SizedBox(width: 6),
+                    Text('Active now', style: AppText.caption),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
@@ -173,25 +161,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildMessages() {
+    final r = widget.roommate;
     if (_messages.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              widget.roommate.name.toUpperCase(),
-              style: GoogleFonts.syne(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                color: AppColors.text,
-                letterSpacing: -1.5,
-              ),
-            ).animate().fadeIn(duration: 300.ms),
-            const SizedBox(height: 8),
-            Text(
-              'Say hello.',
-              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
-            ).animate().fadeIn(delay: 120.ms),
+            Avatar(path: r.avatarAsset, name: r.name, size: 96, tint: r.gradient)
+                .animate()
+                .fadeIn(duration: 300.ms)
+                .scale(begin: const Offset(0.9, 0.9), curve: AppMotion.enter, duration: 500.ms),
+            const SizedBox(height: 18),
+            Text('Say hi to ${r.name}', style: AppText.sectionTitle).animate().fadeIn(delay: 100.ms),
+            const SizedBox(height: 6),
+            Text('You both want a place in the Bay.', style: AppText.secondary).animate().fadeIn(delay: 180.ms),
           ],
         ),
       );
@@ -199,67 +182,54 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     return ListView.builder(
       controller: _scrollCtrl,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
       itemCount: _messages.length,
       itemBuilder: (context, index) {
         final msg = _messages[index];
-        return _Bubble(message: msg)
+        final prev = index > 0 ? _messages[index - 1] : null;
+        final grouped = prev != null && prev.isMe == msg.isMe;
+        return _Bubble(message: msg, grouped: grouped)
             .animate()
-            .fadeIn(duration: 200.ms)
-            .slideY(begin: 0.08, duration: 200.ms, curve: Curves.easeOutCubic);
+            .fadeIn(duration: 220.ms)
+            .scale(begin: const Offset(0.94, 0.94), alignment: msg.isMe ? Alignment.bottomRight : Alignment.bottomLeft, duration: 320.ms, curve: AppMotion.enter)
+            .slideY(begin: 0.2, duration: 320.ms, curve: AppMotion.enter);
       },
     );
   }
 
   Widget _buildTypingIndicator() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Row(
         children: [
           Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: AppColors.accentSoft,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: AppColors.border, width: 1.5),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              widget.roommate.name[0].toUpperCase(),
-              style: GoogleFonts.syne(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: AppColors.accent,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: AppColors.borderSoft, width: 1),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+                bottomLeft: Radius.circular(6),
+              ),
+              border: Border.all(color: AppColors.line),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: List.generate(3, (i) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 2.5),
                   child: AnimatedBuilder(
                     animation: _typingCtrl,
                     builder: (ctx, _) {
                       final off = sin((_typingCtrl.value * 2 * pi) - (i * pi / 3));
                       return Transform.translate(
-                        offset: Offset(0, -4 * (off + 1) / 2),
+                        offset: Offset(0, -3 * (off + 1) / 2),
                         child: Container(
-                          width: 5,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: AppColors.textSecondary,
-                            shape: BoxShape.circle,
-                          ),
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(color: AppColors.textTertiary, shape: BoxShape.circle),
                         ),
                       );
                     },
@@ -270,68 +240,69 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 180.ms);
+    ).animate().fadeIn(duration: 180.ms).slideY(begin: 0.3, duration: 260.ms, curve: AppMotion.enter);
   }
 
   Widget _buildInputBar() {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.background,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1.5)),
+        border: Border(top: BorderSide(color: AppColors.line)),
       ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-          child: Row(
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(color: AppColors.border, width: 1.5),
-                  ),
-                  child: TextField(
-                    controller: _textCtrl,
-                    style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
-                    maxLines: 4,
-                    minLines: 1,
-                    textCapitalization: TextCapitalization.sentences,
-                    decoration: InputDecoration(
-                      hintText: 'Message...',
-                      hintStyle: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 14),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      border: InputBorder.none,
-                    ),
-                    onSubmitted: (_) => _send(),
-                  ),
-                ),
+      padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppColors.line),
               ),
-              const SizedBox(width: 10),
-              GestureDetector(
-                onTap: _send,
-                child: Container(
-                  width: 42,
-                  height: 42,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.btnPrimary,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text(
-                    '→',
-                    style: GoogleFonts.syne(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.btnPrimaryText,
-                    ),
-                  ),
+              child: TextField(
+                controller: _textCtrl,
+                style: AppText.bodyMedium,
+                maxLines: 4,
+                minLines: 1,
+                cursorColor: AppColors.accent,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  hintText: 'Message ${widget.roommate.name}',
+                  filled: false,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                 ),
+                onSubmitted: (_) => _send(),
               ),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(width: 8),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _textCtrl,
+            builder: (context, value, _) {
+              final canSend = value.text.trim().isNotEmpty;
+              return AnimatedScale(
+                scale: canSend ? 1 : 0.9,
+                duration: AppMotion.of(context, AppMotion.base),
+                curve: AppMotion.enter,
+                child: AnimatedOpacity(
+                  opacity: canSend ? 1 : 0.5,
+                  duration: AppMotion.of(context, AppMotion.base),
+                  child: CircleButton(
+                    size: 46,
+                    iconAsset: 'assets/icons/ic_send.svg',
+                    style: canSend ? CircleButtonStyle.accent : CircleButtonStyle.surface,
+                    semanticLabel: 'Send',
+                    onTap: canSend ? _send : null,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -339,40 +310,59 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
 class _Bubble extends StatelessWidget {
   final Message message;
-  const _Bubble({required this.message});
+  final bool grouped;
+  const _Bubble({required this.message, required this.grouped});
 
   @override
   Widget build(BuildContext context) {
+    final me = message.isMe;
+    const big = Radius.circular(20);
+    const small = Radius.circular(6);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: EdgeInsets.only(bottom: grouped ? 4 : 10),
       child: Row(
-        mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: me ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           Flexible(
             child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.70,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.72),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
               decoration: BoxDecoration(
-                color: message.isMe ? AppColors.btnPrimary : AppColors.surface,
-                borderRadius: BorderRadius.circular(6),
-                border: message.isMe
-                    ? null
-                    : Border.all(color: AppColors.borderSoft, width: 1),
+                color: me ? AppColors.accent : AppColors.surface,
+                borderRadius: BorderRadius.only(
+                  topLeft: big,
+                  topRight: big,
+                  bottomLeft: me ? big : small,
+                  bottomRight: me ? small : big,
+                ),
+                border: me ? null : Border.all(color: AppColors.line),
+                boxShadow: me ? AppColors.accentGlow(0.18) : null,
               ),
               child: Text(
                 message.text,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  height: 1.45,
-                  color: message.isMe ? AppColors.btnPrimaryText : AppColors.text,
-                ),
+                style: AppText.bodyMedium.copyWith(color: me ? AppColors.onAccent : AppColors.text),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+class _PulseDot extends StatelessWidget {
+  const _PulseDot();
+
+  @override
+  Widget build(BuildContext context) {
+    final dot = Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(color: AppColors.positive, shape: BoxShape.circle),
+    );
+    if (AppMotion.reduced(context)) return dot;
+    return dot
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.15, 1.15), duration: 1100.ms, curve: Curves.easeInOut);
   }
 }

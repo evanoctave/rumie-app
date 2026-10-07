@@ -11,6 +11,10 @@ import '../data/api/token_store.dart';
 enum AuthStatus { unknown, authenticated, unauthenticated }
 
 class AuthProvider extends ChangeNotifier {
+  /// `flutter run --dart-define=RUMIE_DEMO=true` skips the backend and
+  /// opens straight into the app with sample data. Design iteration only.
+  static const bool demo = bool.fromEnvironment('RUMIE_DEMO');
+
   AuthStatus _status = AuthStatus.unknown;
   UserOut? _user;
   String? _error;
@@ -36,6 +40,12 @@ class AuthProvider extends ChangeNotifier {
   void initialize() => _checkToken();
 
   Future<void> _checkToken() async {
+    if (demo) {
+      _status = AuthStatus.authenticated;
+      _isLocked = false;
+      notifyListeners();
+      return;
+    }
     final token = await locator<TokenStore>().readAccess();
     if (token == null) {
       _status = AuthStatus.unauthenticated;
@@ -144,7 +154,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await locator<AuthRepository>().logout();
+    if (!demo) await locator<AuthRepository>().logout();
     _user = null;
     _status = AuthStatus.unauthenticated;
     _isLocked = false;

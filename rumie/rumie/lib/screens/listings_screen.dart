@@ -2,13 +2,24 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../services/value_score.dart';
 import '../services/value_score_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
+import '../theme/app_shapes.dart';
+import '../theme/app_text.dart';
 import '../widgets/listing_card.dart';
+import '../widgets/rumie_icon.dart';
+import '../widgets/ui/app_button.dart';
+import '../widgets/ui/app_chip.dart';
+import '../widgets/ui/app_sheet.dart';
+import '../widgets/ui/app_text_field.dart';
+import '../widgets/ui/pressable.dart';
+import '../widgets/ui/reveal.dart';
+import '../widgets/ui/screen_header.dart';
+import 'home_screen.dart';
 
 class ListingsScreen extends StatefulWidget {
   const ListingsScreen({super.key});
@@ -59,105 +70,79 @@ class _ListingsScreenState extends State<ListingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: AppColors.background,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(),
-          _buildFilter(),
-          Expanded(
-            child: _visible.isEmpty
+    final bottomPad = kNavClearance + MediaQuery.paddingOf(context).bottom;
+    final visible = _visible;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SafeArea(
+          bottom: false,
+          child: ScreenHeader(
+            title: 'Listings',
+            subtitle: '${visible.length} available',
+            trailing: AppButton(
+              label: 'Post',
+              icon: Icons.add_rounded,
+              size: AppButtonSize.small,
+              expand: false,
+              onTap: () => _showPostSheet(context),
+            ),
+          ),
+        ),
+        _buildFilter(),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: AppMotion.of(context, AppMotion.slow),
+            switchInCurve: AppMotion.enter,
+            switchOutCurve: AppMotion.exit,
+            child: visible.isEmpty
                 ? _buildEmpty()
                 : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-                    itemCount: _visible.length,
+                    key: ValueKey(_selectedType),
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, bottomPad),
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: visible.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, i) {
-                      final l = _visible[i];
+                      final l = visible[i];
                       final gi = _globalIndex(l);
-                      return ListingCard(
-                        title: l['title'] as String,
-                        type: l['type'] as String,
-                        location: l['location'] as String,
-                        rent: l['rent'] as int,
-                        sqft: l['sqft'] as int? ?? 0,
-                        bedsBaths: l['bedsBaths'] as String,
-                        availableDate: l['availableDate'] as String,
-                        valueScore: _scores[gi],
-                        animationIndex: i,
+                      return Reveal(
+                        index: i,
+                        child: ListingCard(
+                          title: l['title'] as String,
+                          type: l['type'] as String,
+                          location: l['location'] as String,
+                          rent: l['rent'] as int,
+                          sqft: l['sqft'] as int? ?? 0,
+                          bedsBaths: l['bedsBaths'] as String,
+                          availableDate: l['availableDate'] as String,
+                          valueScore: _scores[gi],
+                          animationIndex: i,
+                        ),
                       );
                     },
                   ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        border: Border(bottom: BorderSide(color: AppColors.border, width: 1.5)),
-      ),
-      child: Row(
-        children: [
-          Text(
-            'Listings',
-            style: GoogleFonts.syne(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppColors.text,
-              letterSpacing: -0.8,
-            ),
-          ),
-          const Spacer(),
-          _PostBtn(onTap: () => _showPostSheet(context)),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildFilter() {
     return SizedBox(
-      height: 48,
+      height: 44,
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         itemCount: _types.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 6),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final type = _types[i];
-          final selected = _selectedType == type;
-          return GestureDetector(
-            onTap: () {
-              HapticFeedback.selectionClick();
-              setState(() => _selectedType = type);
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: selected ? AppColors.text : Colors.transparent,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: selected ? AppColors.text : AppColors.borderSoft,
-                  width: 1.5,
-                ),
-              ),
-              child: Text(
-                type.toUpperCase(),
-                style: GoogleFonts.inter(
-                  color: selected ? AppColors.background : AppColors.textSecondary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 9,
-                  letterSpacing: 1,
-                ),
-              ),
-            ),
+          return AppChip(
+            label: type,
+            selected: _selectedType == type,
+            onTap: () => setState(() => _selectedType = type),
           );
         },
       ),
@@ -166,57 +151,26 @@ class _ListingsScreenState extends State<ListingsScreen> {
 
   Widget _buildEmpty() {
     return Center(
-      child: Text(
-        'NO LISTINGS\nIN THIS TYPE',
-        textAlign: TextAlign.center,
-        style: GoogleFonts.syne(
-          fontSize: 24,
-          fontWeight: FontWeight.w800,
-          color: AppColors.text,
-          letterSpacing: -1,
-          height: 1,
+      key: const ValueKey('empty'),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(32, 0, 32, 80),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Nothing here yet', style: AppText.sectionTitle),
+            const SizedBox(height: 8),
+            Text('No ${_selectedType.toLowerCase()} listings right now.', style: AppText.secondary, textAlign: TextAlign.center),
+          ],
         ),
       ),
     );
   }
 
   void _showPostSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const _PostListingSheet(),
-    );
-  }
-}
-
-class _PostBtn extends StatelessWidget {
-  final VoidCallback onTap;
-  const _PostBtn({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.mediumImpact();
-        onTap();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppColors.btnPrimary,
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Text(
-          '+ POST',
-          style: GoogleFonts.inter(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: AppColors.btnPrimaryText,
-            letterSpacing: 1.5,
-          ),
-        ),
-      ),
+    showAppSheet<void>(
+      context,
+      initialSize: 0.9,
+      builder: (controller) => _PostListingSheet(scrollController: controller),
     );
   }
 }
@@ -224,7 +178,8 @@ class _PostBtn extends StatelessWidget {
 // ── Post listing sheet ─────────────────────────────────────────────────────────
 
 class _PostListingSheet extends StatefulWidget {
-  const _PostListingSheet();
+  final ScrollController scrollController;
+  const _PostListingSheet({required this.scrollController});
 
   @override
   State<_PostListingSheet> createState() => _PostListingSheetState();
@@ -283,116 +238,36 @@ class _PostListingSheetState extends State<_PostListingSheet> {
     HapticFeedback.selectionClick();
   }
 
+  void _post() {
+    HapticFeedback.mediumImpact();
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Listing posted')));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.88,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      builder: (context, scrollController) => Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-          border: Border(top: BorderSide(color: AppColors.border, width: 1.5)),
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-              child: Column(
-                children: [
-                  Center(
-                    child: Container(
-                      width: 32,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: AppColors.borderSoft,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Text(
-                        'POST LISTING',
-                        style: GoogleFonts.syne(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.text,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.border, width: 1.5),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                controller: scrollController,
-                padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 32),
-                children: [
-                  _buildPhotoSection(),
-                  const SizedBox(height: 20),
-                  _sheetField(_titleCtrl, 'TITLE', 'e.g. Bright room near downtown'),
-                  const SizedBox(height: 12),
-                  _sheetField(_locationCtrl, 'LOCATION', 'Neighborhood, City'),
-                  const SizedBox(height: 12),
-                  _sheetField(_rentCtrl, 'RENT / MO', '1200', keyboard: TextInputType.number),
-                  const SizedBox(height: 12),
-                  _dropdownRow('TYPE', _types, _type, (v) => setState(() => _type = v!)),
-                  const SizedBox(height: 12),
-                  _dropdownRow('BEDS / BATHS', _bedOptions, _beds, (v) => setState(() => _beds = v!)),
-                  const SizedBox(height: 12),
-                  _dropdownRow('AVAILABLE', _availOptions, _available, (v) => setState(() => _available = v!)),
-                  const SizedBox(height: 28),
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.mediumImpact();
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Listing posted!')),
-                      );
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      height: 50,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: AppColors.btnPrimary,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'POST LISTING →',
-                        style: GoogleFonts.inter(
-                          color: AppColors.btnPrimaryText,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+    return AppSheet(
+      title: 'Post a listing',
+      scrollController: widget.scrollController,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildPhotoSection(),
+          const SizedBox(height: 20),
+          AppTextField(controller: _titleCtrl, label: 'Title', hint: 'e.g. Bright room near downtown', textCapitalization: TextCapitalization.sentences),
+          const SizedBox(height: 14),
+          AppTextField(controller: _locationCtrl, label: 'Location', hint: 'Neighborhood, City', textCapitalization: TextCapitalization.words),
+          const SizedBox(height: 14),
+          AppTextField(controller: _rentCtrl, label: 'Rent per month', hint: '1200', keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
+          const SizedBox(height: 18),
+          _ChoiceRow(label: 'Type', options: _types, value: _type, onChanged: (v) => setState(() => _type = v)),
+          const SizedBox(height: 14),
+          _ChoiceRow(label: 'Beds and baths', options: _bedOptions, value: _beds, onChanged: (v) => setState(() => _beds = v)),
+          const SizedBox(height: 14),
+          _ChoiceRow(label: 'Available', options: _availOptions, value: _available, onChanged: (v) => setState(() => _available = v)),
+          const SizedBox(height: 28),
+          AppButton(label: 'Post listing', onTap: _post),
+        ],
       ),
     );
   }
@@ -401,20 +276,13 @@ class _PostListingSheetState extends State<_PostListingSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'PHOTOS',
-          style: GoogleFonts.inter(
-            color: AppColors.textSecondary,
-            fontSize: 9,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.5,
-          ),
-        ),
+        Text('Photos', style: AppText.label),
         const SizedBox(height: 8),
         SizedBox(
-          height: 100,
+          height: 104,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
             itemCount: _photoPaths.length + 1,
             separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
@@ -428,29 +296,23 @@ class _PostListingSheetState extends State<_PostListingSheet> {
   }
 
   Widget _addPhotoButton() {
-    return GestureDetector(
+    return Pressable(
       onTap: _pickPhotos,
+      pressedScale: 0.95,
+      semanticLabel: 'Add photos',
       child: Container(
-        width: 80,
-        height: 100,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.border, width: 1.5),
+        width: 84,
+        height: 104,
+        decoration: ShapeDecoration(
+          color: AppColors.surfaceSunken,
+          shape: AppShapes.shape(AppShapes.input, side: BorderSide(color: AppColors.lineStrong)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_photo_alternate_rounded, color: AppColors.textSecondary, size: 22),
-            const SizedBox(height: 4),
-            Text(
-              'ADD',
-              style: GoogleFonts.inter(
-                color: AppColors.textSecondary,
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1,
-              ),
-            ),
+            Icon(Icons.add_photo_alternate_outlined, color: AppColors.textSecondary, size: 22),
+            const SizedBox(height: 6),
+            Text('Add', style: AppText.caption),
           ],
         ),
       ),
@@ -459,59 +321,45 @@ class _PostListingSheetState extends State<_PostListingSheet> {
 
   Widget _photoThumbnail(int index) {
     final isCover = index == _coverIndex;
-    return GestureDetector(
+    return Pressable(
       onTap: () => _setCover(index),
+      pressedScale: 0.95,
       child: Stack(
         children: [
-          Container(
-            width: 80,
-            height: 100,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: isCover ? AppColors.accent : AppColors.border,
-                width: isCover ? 2 : 1.5,
-              ),
+          AnimatedContainer(
+            duration: AppMotion.of(context, AppMotion.base),
+            width: 84,
+            height: 104,
+            decoration: ShapeDecoration(
+              shape: AppShapes.shape(AppShapes.input, side: BorderSide(color: isCover ? AppColors.accent : AppColors.line, width: isCover ? 2 : 1)),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(5),
+            child: ClipRSuperellipse(
+              borderRadius: AppShapes.radius(AppShapes.input - 2),
               child: Image.file(File(_photoPaths[index]), fit: BoxFit.cover),
             ),
           ),
           if (isCover)
             Positioned(
-              top: 5,
-              left: 5,
+              top: 6,
+              left: 6,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: Text(
-                  'COVER',
-                  style: GoogleFonts.inter(
-                    color: const Color(0xFFF2F0EB),
-                    fontSize: 7,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
-                  ),
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(999)),
+                child: Text('Cover', style: AppText.micro.copyWith(color: AppColors.onAccent, fontSize: 10)),
               ),
             ),
           Positioned(
             top: 4,
             right: 4,
-            child: GestureDetector(
+            child: Pressable(
               onTap: () => _removePhoto(index),
+              pressedScale: 0.85,
+              semanticLabel: 'Remove photo',
               child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: Colors.black.withAlpha(160),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: const Icon(Icons.close_rounded, color: Colors.white, size: 12),
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(color: AppColors.photoInk.withValues(alpha: 0.7), shape: BoxShape.circle),
+                child: const Center(child: RumieIcon(asset: 'assets/icons/ic_close.svg', size: 11, color: AppColors.photoText)),
               ),
             ),
           ),
@@ -519,73 +367,29 @@ class _PostListingSheetState extends State<_PostListingSheet> {
       ),
     );
   }
+}
 
-  Widget _sheetField(TextEditingController ctrl, String label, String hint, {TextInputType keyboard = TextInputType.text}) {
+class _ChoiceRow extends StatelessWidget {
+  final String label;
+  final List<String> options;
+  final String value;
+  final ValueChanged<String> onChanged;
+  const _ChoiceRow({required this.label, required this.options, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            color: AppColors.textSecondary,
-            fontSize: 9,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.5,
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextField(
-          controller: ctrl,
-          keyboardType: keyboard,
-          style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 14),
-            filled: true,
-            fillColor: AppColors.background,
-            counterText: '',
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide(color: AppColors.border, width: 1.5)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide(color: AppColors.border, width: 1.5)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide(color: AppColors.accent, width: 1.5)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _dropdownRow(String label, List<String> options, String value, void Function(String?) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            color: AppColors.textSecondary,
-            fontSize: 9,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.5,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: AppColors.border, width: 1.5),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              isExpanded: true,
-              dropdownColor: AppColors.surface,
-              style: GoogleFonts.inter(color: AppColors.text, fontSize: 14),
-              icon: Icon(Icons.expand_more_rounded, color: AppColors.textSecondary, size: 18),
-              items: options.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
-              onChanged: onChanged,
-            ),
-          ),
+        Text(label, style: AppText.label),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final o in options)
+              AppChip(label: o, selected: o == value, onTap: () => onChanged(o)),
+          ],
         ),
       ],
     );
