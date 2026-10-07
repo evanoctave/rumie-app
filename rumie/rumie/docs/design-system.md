@@ -28,7 +28,7 @@ Replaces the brutalist editorial pass. Warm, photo-first, tactile.
 ## Dev flags
 
 ```bash
-# Skip the backend, open with sample data
+# Skip the backend: in-memory repositories with sample data (lib/dev/demo_locator.dart)
 flutter run --dart-define=RUMIE_DEMO=true
 
 # Open straight into one screen (discover, matches, listings, profile,

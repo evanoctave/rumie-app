@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
+import 'dev/demo_locator.dart';
 import 'dev/dev_start.dart';
 import 'di/locator.dart';
 import 'screens/auth/landing_screen.dart';
@@ -21,7 +22,11 @@ void main() {
   Animate.restartOnHotReload = true;
 
   final authProvider = AuthProvider.deferred();
-  setupLocator(onLogout: () => authProvider.logout());
+  if (AuthProvider.demo) {
+    setupDemoLocator();
+  } else {
+    setupLocator(onLogout: () => authProvider.logout());
+  }
   authProvider.initialize();
 
   runApp(

@@ -27,6 +27,9 @@ class AppTextField extends StatefulWidget {
   final FocusNode? focusNode;
   final bool autofocus;
 
+  /// Server-side message shown under the field (takes priority over validator output).
+  final String? errorText;
+
   const AppTextField({
     super.key,
     required this.controller,
@@ -46,6 +49,7 @@ class AppTextField extends StatefulWidget {
     this.textInputAction,
     this.focusNode,
     this.autofocus = false,
+    this.errorText,
   });
 
   @override
@@ -121,6 +125,7 @@ class _AppTextFieldState extends State<AppTextField> {
             style: AppText.bodyLarge,
             decoration: InputDecoration(
               hintText: widget.hint,
+              errorText: widget.errorText,
               counterText: '',
               suffixIcon: widget.suffix != null
                   ? Padding(padding: const EdgeInsets.only(right: 14), child: widget.suffix)

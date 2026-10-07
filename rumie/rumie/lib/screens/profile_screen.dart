@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../models/user_profile.dart';
 import '../state/auth_provider.dart';
+import '../state/profile_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_shapes.dart';
 import '../theme/app_text.dart';
@@ -19,14 +20,7 @@ import 'profile_create_screen.dart';
 import 'settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final UserProfile profile;
-  final void Function(UserProfile) onProfileUpdated;
-
-  const ProfileScreen({
-    super.key,
-    required this.profile,
-    required this.onProfileUpdated,
-  });
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -34,15 +28,17 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   void _openEdit() {
+    final provider = context.read<ProfileProvider>();
     Navigator.push(
       context,
       MaterialPageRoute(
         fullscreenDialog: true,
         builder: (_) => ProfileCreateScreen(
-          existing: widget.profile,
-          onSave: (updated) {
-            widget.onProfileUpdated(updated);
-            Navigator.pop(context);
+          existing: provider.profile,
+          // Throws typed ApiExceptions; ProfileCreateScreen shows them.
+          onSave: (updated) async {
+            await provider.save(updated);
+            if (mounted) Navigator.pop(context);
           },
         ),
       ),
@@ -68,7 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final p = widget.profile;
+    final p = context.watch<ProfileProvider>().profile;
     final bottomPad = kNavClearance + MediaQuery.paddingOf(context).bottom;
     return Column(
       children: [

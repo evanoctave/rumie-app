@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../models/roommate.dart';
+import '../domain/entities/entities.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_shapes.dart';
 import '../theme/app_text.dart';
+import '../widgets/avatar_style.dart';
 import '../widgets/discover_card.dart';
 import '../widgets/rumie_icon.dart';
 import '../widgets/ui/app_button.dart';
 import '../widgets/ui/app_chip.dart';
 import '../widgets/ui/circle_button.dart';
-import '../widgets/ui/photo.dart';
 import '../widgets/ui/reveal.dart';
 
-/// Full profile. The photo flies in from the discover card, stretches on
-/// overscroll, and the facts rise in underneath. Pops with `true` on
-/// Connect, `false` on Pass, `null` on back.
+/// Full candidate profile. The art flies in from the discover card and
+/// stretches on overscroll. Pops with `true` on Connect, `false` on Pass,
+/// `null` on back.
 class ProfileViewScreen extends StatelessWidget {
-  final Roommate roommate;
-  const ProfileViewScreen({super.key, required this.roommate});
+  final RoommateCandidate candidate;
+  const ProfileViewScreen({super.key, required this.candidate});
 
-  static PageRoute<bool> route(Roommate r) {
+  static PageRoute<bool> route(RoommateCandidate c) {
     return PageRouteBuilder<bool>(
       transitionDuration: const Duration(milliseconds: 420),
       reverseTransitionDuration: const Duration(milliseconds: 320),
-      pageBuilder: (_, _, _) => ProfileViewScreen(roommate: r),
+      pageBuilder: (_, _, _) => ProfileViewScreen(candidate: c),
       transitionsBuilder: (_, anim, _, child) {
         final curved = CurvedAnimation(parent: anim, curve: AppMotion.enter, reverseCurve: AppMotion.exit);
         return FadeTransition(opacity: curved, child: child);
@@ -35,7 +35,7 @@ class ProfileViewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final r = roommate;
+    final c = candidate;
     final width = MediaQuery.sizeOf(context).width;
     final photoHeight = (width * 1.18).clamp(380.0, 560.0);
     final safeTop = MediaQuery.paddingOf(context).top;
@@ -62,10 +62,7 @@ class ProfileViewScreen extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        Hero(
-                          tag: DiscoverCard.heroTag(r),
-                          child: RumiePhoto(path: r.avatarAsset, fallbackName: r.name, tint: r.gradient),
-                        ),
+                        Hero(tag: DiscoverCard.heroTag(c), child: CandidateArt(candidate: c)),
                         Positioned(
                           left: 0,
                           right: 0,
@@ -95,7 +92,7 @@ class ProfileViewScreen extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  r.name,
+                                  c.name,
                                   style: AppText.hero.copyWith(fontSize: 40, color: AppColors.photoText),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -106,7 +103,7 @@ class ProfileViewScreen extends StatelessWidget {
                                     RumieIcon(asset: 'assets/icons/ic_location.svg', size: 15, color: AppColors.photoText.withValues(alpha: 0.85)),
                                     const SizedBox(width: 5),
                                     Text(
-                                      '${r.age} · ${r.location}',
+                                      c.ageLabel.isEmpty ? c.location : '${c.ageLabel} · ${c.location}',
                                       style: AppText.bodyMedium.copyWith(color: AppColors.photoText.withValues(alpha: 0.88)),
                                     ),
                                   ],
@@ -124,25 +121,27 @@ class ProfileViewScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 22, 20, 140),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    Reveal(index: 1, child: _Facts(roommate: r)),
+                    Reveal(index: 1, child: _Facts(candidate: c)),
                     const SizedBox(height: 28),
                     Reveal(index: 2, child: Text('About', style: AppText.sectionTitle)),
                     const SizedBox(height: 8),
-                    Reveal(index: 2, child: Text(r.bio, style: AppText.bodyLarge)),
-                    const SizedBox(height: 28),
-                    Reveal(index: 3, child: Text('Lifestyle', style: AppText.sectionTitle)),
-                    const SizedBox(height: 12),
-                    Reveal(
-                      index: 3,
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (var i = 0; i < r.traits.length; i++)
-                            AppChip(label: r.traits[i].title, style: i == 0 ? AppChipStyle.accent : AppChipStyle.neutral),
-                        ],
+                    Reveal(index: 2, child: Text(c.bio, style: AppText.bodyLarge)),
+                    if (c.tags.isNotEmpty) ...[
+                      const SizedBox(height: 28),
+                      Reveal(index: 3, child: Text('Lifestyle', style: AppText.sectionTitle)),
+                      const SizedBox(height: 12),
+                      Reveal(
+                        index: 3,
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (var i = 0; i < c.tags.length; i++)
+                              AppChip(label: c.tags[i], style: i == 0 ? AppChipStyle.accent : AppChipStyle.neutral),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ]),
                 ),
               ),
@@ -180,16 +179,16 @@ class ProfileViewScreen extends StatelessWidget {
 }
 
 class _Facts extends StatelessWidget {
-  final Roommate roommate;
-  const _Facts({required this.roommate});
+  final RoommateCandidate candidate;
+  const _Facts({required this.candidate});
 
   @override
   Widget build(BuildContext context) {
-    final r = roommate;
+    final c = candidate;
     final cells = [
-      ('\$${r.budget}', 'per month'),
-      ('${r.age}', 'years old'),
-      ('Flexible', 'move-in'),
+      (c.budget != null ? '\$${c.budget}' : '—', 'per month'),
+      (c.ageLabel.isEmpty ? '—' : c.ageLabel, 'age range'),
+      (c.location, 'availability'),
     ];
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),

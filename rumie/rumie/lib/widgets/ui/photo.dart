@@ -25,21 +25,36 @@ class RumiePhoto extends StatelessWidget {
   });
 
   bool get _isFile => path.startsWith('/');
+  bool get _isRemote => path.startsWith('http://') || path.startsWith('https://');
   bool get _isSvg => path.endsWith('.svg');
 
   @override
   Widget build(BuildContext context) {
     if (path.isEmpty) return _Fallback(name: fallbackName, tint: tint);
     if (_isSvg) {
-      return ColoredBox(
-        color: (tint?.first ?? AppColors.accent).withValues(alpha: 0.18),
+      final colors = tint ?? [AppColors.accent, AppColors.accentDeep];
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [colors.first.withValues(alpha: 0.35), colors.last.withValues(alpha: 0.55)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Center(
           child: FractionallySizedBox(
-            widthFactor: 0.5,
-            heightFactor: 0.5,
+            widthFactor: 0.74,
+            heightFactor: 0.74,
             child: SvgPicture.asset(path, fit: BoxFit.contain),
           ),
         ),
+      );
+    }
+    if (_isRemote) {
+      return Image.network(
+        path,
+        fit: fit,
+        errorBuilder: (_, _, _) => _Fallback(name: fallbackName, tint: tint),
       );
     }
     if (_isFile) {

@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 
-import '../models/roommate.dart';
+import '../domain/entities/entities.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_shapes.dart';
 import '../theme/app_text.dart';
+import 'avatar_style.dart';
 import 'rumie_icon.dart';
 import 'ui/app_button.dart';
 import 'ui/app_chip.dart';
 import 'ui/circle_button.dart';
-import 'ui/photo.dart';
 import 'ui/pressable.dart';
 
-/// Photo-first discover card. The photo parallaxes against scroll; the
-/// name, traits, and actions sit on a scrim at the bottom.
+/// Photo-first discover card. The art parallaxes against scroll; the name,
+/// tags, and actions sit on a scrim at the bottom.
 class DiscoverCard extends StatelessWidget {
-  final Roommate roommate;
+  final RoommateCandidate candidate;
   final VoidCallback onPass;
   final VoidCallback onConnect;
   final VoidCallback onTap;
@@ -22,26 +22,26 @@ class DiscoverCard extends StatelessWidget {
 
   const DiscoverCard({
     super.key,
-    required this.roommate,
+    required this.candidate,
     required this.onPass,
     required this.onConnect,
     required this.onTap,
     this.heroEnabled = true,
   });
 
-  static String heroTag(Roommate r) => 'photo-${r.name}';
+  static String heroTag(RoommateCandidate c) => 'photo-${c.id}';
 
   @override
   Widget build(BuildContext context) {
-    final r = roommate;
-    Widget photo = ParallaxPhoto(path: r.avatarAsset, name: r.name, tint: r.gradient);
-    if (heroEnabled) photo = Hero(tag: heroTag(r), child: photo);
+    final c = candidate;
+    Widget art = ParallaxLayer(child: CandidateArt(candidate: c));
+    if (heroEnabled) art = Hero(tag: heroTag(c), child: art);
 
     return Pressable(
       onTap: onTap,
       pressedScale: 0.985,
       haptic: false,
-      semanticLabel: '${r.name}, ${r.age}, ${r.location}',
+      semanticLabel: '${c.headline}, ${c.location}',
       child: DecoratedBox(
         decoration: ShapeDecoration(
           shape: AppShapes.shape(AppShapes.card),
@@ -54,7 +54,7 @@ class DiscoverCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                photo,
+                art,
                 Positioned(
                   left: 0,
                   right: 0,
@@ -75,15 +75,16 @@ class DiscoverCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  child: AppChip(
-                    label: '\$${r.budget}/mo',
-                    style: AppChipStyle.onPhoto,
-                    leading: const RumieIcon(asset: 'assets/icons/ic_money.svg', size: 14, color: AppColors.photoText),
+                if (c.budget != null)
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: AppChip(
+                      label: '\$${c.budget}/mo',
+                      style: AppChipStyle.onPhoto,
+                      leading: const RumieIcon(asset: 'assets/icons/ic_money.svg', size: 14, color: AppColors.photoText),
+                    ),
                   ),
-                ),
                 Positioned(
                   left: 18,
                   right: 18,
@@ -95,15 +96,16 @@ class DiscoverCard extends StatelessWidget {
                       Text.rich(
                         TextSpan(
                           children: [
-                            TextSpan(text: r.name, style: AppText.cardName.copyWith(color: AppColors.photoText)),
-                            TextSpan(
-                              text: '  ${r.age}',
-                              style: AppText.cardName.copyWith(
-                                color: AppColors.photoText.withValues(alpha: 0.7),
-                                fontWeight: FontWeight.w600,
-                                fontSize: 22,
+                            TextSpan(text: c.name, style: AppText.cardName.copyWith(color: AppColors.photoText)),
+                            if (c.ageLabel.isNotEmpty)
+                              TextSpan(
+                                text: '  ${c.ageLabel}',
+                                style: AppText.cardName.copyWith(
+                                  color: AppColors.photoText.withValues(alpha: 0.7),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 20,
+                                ),
                               ),
-                            ),
                           ],
                         ),
                         maxLines: 1,
@@ -116,7 +118,7 @@ class DiscoverCard extends StatelessWidget {
                           const SizedBox(width: 5),
                           Flexible(
                             child: Text(
-                              r.location,
+                              c.location,
                               style: AppText.secondary.copyWith(color: AppColors.photoText.withValues(alpha: 0.85)),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -124,15 +126,17 @@ class DiscoverCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          for (final t in r.traits.take(3))
-                            AppChip(label: t.title, style: AppChipStyle.onPhoto, dense: true),
-                        ],
-                      ),
+                      if (c.tags.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final t in c.tags.take(3))
+                              AppChip(label: t, style: AppChipStyle.onPhoto, dense: true),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       Row(
                         children: [
@@ -140,7 +144,7 @@ class DiscoverCard extends StatelessWidget {
                             size: 54,
                             iconAsset: 'assets/icons/ic_close.svg',
                             style: CircleButtonStyle.onPhoto,
-                            semanticLabel: 'Pass on ${r.name}',
+                            semanticLabel: 'Pass on ${c.name}',
                             onTap: onPass,
                           ),
                           const SizedBox(width: 10),
@@ -166,31 +170,28 @@ class DiscoverCard extends StatelessWidget {
   }
 }
 
-/// Photo that drifts against the nearest scrollable. Outside a scrollable
-/// (for example mid Hero flight) it renders as a plain photo.
-class ParallaxPhoto extends StatefulWidget {
-  final String path;
-  final String name;
-  final List<Color>? tint;
-
-  const ParallaxPhoto({super.key, required this.path, required this.name, this.tint});
+/// Drifts its child against the nearest scrollable. Outside a scrollable
+/// (for example mid Hero flight) it renders the child as is.
+class ParallaxLayer extends StatefulWidget {
+  final Widget child;
+  const ParallaxLayer({super.key, required this.child});
 
   @override
-  State<ParallaxPhoto> createState() => _ParallaxPhotoState();
+  State<ParallaxLayer> createState() => _ParallaxLayerState();
 }
 
-class _ParallaxPhotoState extends State<ParallaxPhoto> {
-  final GlobalKey _imageKey = GlobalKey();
+class _ParallaxLayerState extends State<ParallaxLayer> {
+  final GlobalKey _childKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     final scrollable = Scrollable.maybeOf(context);
-    final photo = RumiePhoto(key: _imageKey, path: widget.path, fallbackName: widget.name, tint: widget.tint);
-    if (scrollable == null || MediaQuery.disableAnimationsOf(context)) return photo;
+    final child = KeyedSubtree(key: _childKey, child: widget.child);
+    if (scrollable == null || MediaQuery.disableAnimationsOf(context)) return child;
     return Flow(
       clipBehavior: Clip.hardEdge,
-      delegate: _ParallaxDelegate(scrollable: scrollable, itemContext: context, imageKey: _imageKey),
-      children: [photo],
+      delegate: _ParallaxDelegate(scrollable: scrollable, itemContext: context, childKey: _childKey),
+      children: [child],
     );
   }
 }
@@ -198,11 +199,11 @@ class _ParallaxPhotoState extends State<ParallaxPhoto> {
 class _ParallaxDelegate extends FlowDelegate {
   final ScrollableState scrollable;
   final BuildContext itemContext;
-  final GlobalKey imageKey;
+  final GlobalKey childKey;
 
   static const double _extra = 0.22;
 
-  _ParallaxDelegate({required this.scrollable, required this.itemContext, required this.imageKey})
+  _ParallaxDelegate({required this.scrollable, required this.itemContext, required this.childKey})
       : super(repaint: scrollable.position);
 
   @override
@@ -213,19 +214,19 @@ class _ParallaxDelegate extends FlowDelegate {
   void paintChildren(FlowPaintingContext context) {
     final viewport = scrollable.context.findRenderObject() as RenderBox?;
     final item = itemContext.findRenderObject() as RenderBox?;
-    final image = imageKey.currentContext?.findRenderObject() as RenderBox?;
-    if (viewport == null || item == null || image == null || !item.attached) {
+    final child = childKey.currentContext?.findRenderObject() as RenderBox?;
+    if (viewport == null || item == null || child == null || !item.attached) {
       context.paintChild(0);
       return;
     }
     final itemCenter = item.localToGlobal(item.size.center(Offset.zero), ancestor: viewport);
     final frac = (itemCenter.dy / viewport.size.height).clamp(0.0, 1.0);
-    final overflow = image.size.height - context.size.height;
+    final overflow = child.size.height - context.size.height;
     final dy = -overflow * (1 - frac);
     context.paintChild(0, transform: Matrix4.translationValues(0, dy, 0));
   }
 
   @override
   bool shouldRepaint(_ParallaxDelegate old) =>
-      old.scrollable != scrollable || old.itemContext != itemContext || old.imageKey != imageKey;
+      old.scrollable != scrollable || old.itemContext != itemContext || old.childKey != childKey;
 }

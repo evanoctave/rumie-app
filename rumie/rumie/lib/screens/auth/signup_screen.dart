@@ -3,9 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/models/gender.dart';
-import '../../data/models/register_in.dart';
-import '../../data/models/role.dart';
+import '../../domain/entities/entities.dart';
+import '../../domain/errors/error_messages.dart';
 import '../../state/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
@@ -34,6 +33,12 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscure = true;
   Gender _gender = Gender.other;
 
+  /// Server 422 messages (V5), shown under the matching field.
+  Map<String, List<String>> _serverErrors = const {};
+
+  String? Function(String?) _withServer(String field, String? Function(String?) local) =>
+      (v) => firstFieldError(_serverErrors, field) ?? local(v);
+
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -43,6 +48,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _submit() async {
+    setState(() => _serverErrors = const {});
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     final auth = context.read<AuthProvider>();
@@ -57,6 +63,10 @@ class _SignupScreenState extends State<SignupScreen> {
     );
     if (!mounted) return;
     if (!ok) {
+      if (auth.fieldErrors.isNotEmpty) {
+        setState(() => _serverErrors = auth.fieldErrors);
+        _formKey.currentState!.validate();
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(auth.error ?? 'Registration failed.')),
       );
@@ -127,7 +137,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     textInputAction: TextInputAction.next,
                     maxLength: 254,
                     inputFormatters: const [SanitizingFormatter()],
-                    validator: validateEmail,
+                    validator: _withServer('email', validateEmail),
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -141,7 +151,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     textInputAction: TextInputAction.next,
                     maxLength: 128,
                     inputFormatters: const [SanitizingFormatter()],
-                    validator: validatePassword,
+                    validator: _withServer('password', validatePassword),
                     suffix: Pressable(
                       onTap: () => setState(() => _obscure = !_obscure),
                       pressedScale: 0.85,
@@ -165,7 +175,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     textInputAction: TextInputAction.done,
                     maxLength: 3,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    validator: validateAge,
+                    validator: _withServer('age', validateAge),
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -191,6 +201,14 @@ class _SignupScreenState extends State<SignupScreen> {
                     ],
                   ),
                 ),
+                if (firstFieldError(_serverErrors, 'gender') != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      firstFieldError(_serverErrors, 'gender')!,
+                      style: AppText.caption.copyWith(color: AppColors.danger),
+                    ),
+                  ),
                 const SizedBox(height: 32),
                 Reveal(
                   index: 6,

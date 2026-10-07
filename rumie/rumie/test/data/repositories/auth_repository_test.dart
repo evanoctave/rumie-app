@@ -134,4 +134,94 @@ void main() {
       expect(me.phone, '+1');
     });
   });
+
+  group('AuthRepositoryImpl token persistence failure (V14)', () {
+    test('register: storage write fails → StorageException, store left empty',
+        () async {
+      final (:dio, :adapter) = _build();
+      final store = _FailingWriteStore();
+      adapter.route('POST', '/auth/register',
+          const FakeResponse(statusCode: 201, body: {
+            'user': {
+              'id': 'u1',
+              'email': 'a@b.com',
+              'phone': null,
+              'role': 'rumie',
+              'age': 24,
+              'gender': 'female',
+              'profile_photo_url': null,
+            },
+            'tokens': {'access': 'A2', 'refresh': 'R2'},
+          }));
+      final repo = AuthRepositoryImpl(dio, store);
+
+      await expectLater(
+        repo.register(const RegisterIn(
+          email: 'a@b.com',
+          password: 'pw12345678',
+          role: Role.rumie,
+          age: 24,
+          gender: Gender.female,
+        )),
+        throwsA(isA<StorageException>()),
+      );
+      expect(await store.readAccess(), isNull);
+      expect(store.clearCalls, 1);
+    });
+
+    test('login: storage write fails → StorageException', () async {
+      final (:dio, :adapter) = _build();
+      adapter.route('POST', '/auth/login',
+          const FakeResponse(statusCode: 200, body: {'access': 'A', 'refresh': 'R'}));
+      final repo = AuthRepositoryImpl(dio, _FailingWriteStore());
+
+      await expectLater(
+        repo.login(const LoginIn(email: 'a@b.com', password: 'pw')),
+        throwsA(isA<StorageException>()),
+      );
+    });
+  });
+
+  group('AuthRepositoryImpl.login 401', () {
+    test('wrong credentials → UnauthorizedException; nothing persisted',
+        () async {
+      final (:dio, :adapter) = _build();
+      final store = InMemoryTokenStore();
+      adapter.route('POST', '/auth/login',
+          const FakeResponse(statusCode: 401, body: {'detail': 'Invalid credentials'}));
+      final repo = AuthRepositoryImpl(dio, store);
+
+      await expectLater(
+        repo.login(const LoginIn(email: 'a@b.com', password: 'bad')),
+        throwsA(isA<UnauthorizedException>()),
+      );
+      expect(await store.readAccess(), isNull);
+    });
+  });
+
+  group('AuthRepositoryImpl.hasSession', () {
+    test('reflects whether an access token is stored', () async {
+      final (:dio, adapter: _) = _build();
+      expect(await AuthRepositoryImpl(dio, InMemoryTokenStore()).hasSession(),
+          isFalse);
+      expect(
+          await AuthRepositoryImpl(dio, InMemoryTokenStore(access: 'a'))
+              .hasSession(),
+          isTrue);
+    });
+  });
+}
+
+class _FailingWriteStore extends InMemoryTokenStore {
+  int clearCalls = 0;
+
+  @override
+  Future<void> write({required String access, required String refresh}) =>
+      Future.error(Exception('keychain unavailable'));
+
+  @override
+  Future<void> clear() {
+    clearCalls++;
+    return super.clear();
+  }
 }

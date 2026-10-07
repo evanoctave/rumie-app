@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roomie/data/api/exceptions.dart';
@@ -79,5 +81,48 @@ void main() {
         expect(e.fieldErrors, {'limit': ['too big']});
       }
     });
+  
+    test('payload not matching OpenAPI → ServerException, not TypeError (V9)',
+        () async {
+      final (:dio, :adapter) = _build();
+      adapter.route('GET', '/discovery/groups',
+          const FakeResponse(statusCode: 200, body: {'oops': true}));
+      final repo = DiscoveryRepositoryImpl(dio);
+
+      await expectLater(
+        repo.discoverGroups(),
+        throwsA(isA<ServerException>()),
+      );
+    });
+
+    test('transport failure → NetworkException w/ user-safe message (V6)',
+        () async {
+      final dio = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))
+        ..httpClientAdapter = _ThrowingAdapter()
+        ..interceptors.add(ErrorInterceptor());
+      final repo = DiscoveryRepositoryImpl(dio);
+
+      try {
+        await repo.discoverListings();
+        fail('expected throw');
+      } on NetworkException catch (e) {
+        expect(e.message, isNot(contains('SocketException')));
+        expect(e.message, isNot(contains('DioException')));
+      }
+    });
   });
+}
+
+class _ThrowingAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(RequestOptions options,
+      Stream<Uint8List>? requestStream, Future<dynamic>? cancelFuture) {
+    throw DioException.connectionError(
+      requestOptions: options,
+      reason: 'SocketException: Failed host lookup',
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
 }

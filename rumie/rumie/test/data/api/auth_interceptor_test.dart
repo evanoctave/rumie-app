@@ -191,4 +191,69 @@ void main() {
       expect(seenHeaders?.containsKey('Authorization'), isFalse);
     });
   });
+
+  group('AuthInterceptor (retry guards)', () {
+    test('retried request that 401s again is surfaced, not refreshed again',
+        () async {
+      final store = InMemoryTokenStore(access: 'old', refresh: 'r1');
+      var logoutCalls = 0;
+      final stack = _buildStack(
+        tokenStore: store,
+        onLogout: () => logoutCalls++,
+      );
+      // /me always 401 (single queued entry is reused).
+      stack.adapter
+        ..route('GET', '/me', const FakeResponse(statusCode: 401))
+        ..route(
+          'POST',
+          '/auth/refresh',
+          const FakeResponse(
+            statusCode: 200,
+            body: {'access': 'new-a', 'refresh': 'new-r'},
+          ),
+        );
+
+      try {
+        await stack.main.get<dynamic>('/me');
+        fail('expected throw');
+      } on DioException catch (e) {
+        expect(e.response?.statusCode, 401);
+      }
+
+      expect(stack.adapter.hits('POST', '/auth/refresh'), 1,
+          reason: 'no refresh → retry → 401 loop');
+      expect(stack.adapter.hits('GET', '/me'), 2);
+      expect(logoutCalls, 0, reason: 'refresh itself succeeded');
+    });
+
+    test('401 for a token another request already refreshed → retry only (V3)',
+        () async {
+      final store = InMemoryTokenStore(access: 'old', refresh: 'r1');
+      final stack = _buildStack(tokenStore: store);
+      stack.adapter
+        ..route('GET', '/me', const FakeResponse(statusCode: 401))
+        ..route('GET', '/me',
+            const FakeResponse(statusCode: 200, body: {'ok': true}));
+
+      // Simulate a concurrent refresh landing after this request was sent
+      // with the old token.
+      var first = true;
+      String? retriedAuth;
+      stack.main.interceptors.add(InterceptorsWrapper(onRequest: (o, h) async {
+        if (first) {
+          first = false;
+          await store.write(access: 'rotated', refresh: 'r2');
+        } else {
+          retriedAuth = o.headers['Authorization']?.toString();
+        }
+        h.next(o);
+      }));
+
+      final resp = await stack.main.get<dynamic>('/me');
+
+      expect(resp.statusCode, 200);
+      expect(stack.adapter.hits('POST', '/auth/refresh'), 0);
+      expect(retriedAuth, 'Bearer rotated');
+    });
+  });
 }

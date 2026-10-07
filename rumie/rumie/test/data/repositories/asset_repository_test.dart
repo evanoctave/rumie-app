@@ -26,7 +26,7 @@ void main() {
       final adapter = FakeHttpAdapter()
         ..route('POST', '/uploads/presign',
             const FakeResponse(statusCode: 200, body: _presignBody))
-        ..route('PUT', 'http://s3.test/upload/key1?sig=abc',
+        ..route('PUT', 'http://s3.test/upload/key1',
             const FakeResponse(statusCode: 200));
 
       // Main dio: has AuthInterceptor → attaches bearer.
@@ -73,7 +73,7 @@ void main() {
       expect(presignAuth, 'Bearer tok-x', reason: 'presign must carry bearer');
       expect(putAuth, isNull, reason: 'PUT must NOT carry Authorization (V8)');
       expect(adapter.hits('POST', '/uploads/presign'), 1);
-      expect(adapter.hits('PUT', 'http://s3.test/upload/key1?sig=abc'), 1);
+      expect(adapter.hits('PUT', 'http://s3.test/upload/key1'), 1);
     });
 
     test('presign 422 → ValidationException; PUT never attempted', () async {
@@ -116,7 +116,7 @@ void main() {
       final adapter = FakeHttpAdapter()
         ..route('POST', '/uploads/presign',
             const FakeResponse(statusCode: 200, body: _presignBody))
-        ..route('PUT', 'http://s3.test/upload/key1?sig=abc',
+        ..route('PUT', 'http://s3.test/upload/key1',
             const FakeResponse(statusCode: 500));
 
       final mainDio = Dio(BaseOptions(baseUrl: 'http://test/api/v1'))

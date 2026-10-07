@@ -2,7 +2,7 @@ import 'dart:io' show Directory, File, Platform;
 
 import 'package:flutter/material.dart';
 
-import '../data/sample_data.dart';
+import '../domain/entities/entities.dart';
 import '../screens/auth/landing_screen.dart';
 import '../screens/auth/lock_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -12,7 +12,7 @@ import '../screens/home_screen.dart';
 import '../screens/profile_create_screen.dart';
 import '../screens/profile_view_screen.dart';
 import '../screens/settings_screen.dart';
-import '../data/models/role.dart';
+import 'demo_data.dart';
 
 /// Design-iteration launcher. Example:
 ///
@@ -59,16 +59,15 @@ class DevStart {
 
   static Widget? screen() {
     if (target.isEmpty) return null;
-    final r = sampleRoommates[1];
     return switch (target) {
       'discover' => const HomeScreen(),
-      'matches' => HomeScreen(initialIndex: 1, seedMatches: sampleRoommates.take(3).toList()),
+      'matches' => const HomeScreen(initialIndex: 1),
       'listings' => const HomeScreen(initialIndex: 2),
       'profile' => const HomeScreen(initialIndex: 3),
-      'profile-view' => ProfileViewScreen(roommate: r),
-      'chat' => ChatScreen(roommate: r),
+      'profile-view' => ProfileViewScreen(candidate: DemoData.candidates[1]),
+      'chat' => ChatScreen(match: DemoData.matches.first),
       'settings' => const SettingsScreen(),
-      'create' => ProfileCreateScreen(onSave: (_) {}),
+      'create' => ProfileCreateScreen(onSave: (_) async {}),
       'landing' => const LandingScreen(),
       'login' => const LoginScreen(),
       'signup' => const SignupScreen(role: Role.rumie),

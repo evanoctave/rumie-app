@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
 
-import '../models/roommate.dart';
+import '../domain/entities/entities.dart';
 import '../screens/chat_screen.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_shapes.dart';
 import '../theme/app_text.dart';
+import 'avatar_style.dart';
 import 'rumie_icon.dart';
 import 'ui/photo.dart';
 import 'ui/pressable.dart';
 
 /// Row in the matches list. Avatar flies into the chat header on tap.
 class MatchTile extends StatelessWidget {
-  final Roommate roommate;
+  final MatchSummary match;
   final VoidCallback? onTap;
 
-  const MatchTile({super.key, required this.roommate, this.onTap});
+  const MatchTile({super.key, required this.match, this.onTap});
 
-  static String heroTag(Roommate r) => 'avatar-${r.name}';
+  static String heroTag(MatchSummary m) => 'avatar-${m.id}';
 
   @override
   Widget build(BuildContext context) {
-    final r = roommate;
+    final style = AvatarStyle.forId(match.id);
     return Pressable(
-      onTap: onTap ?? () => Navigator.of(context).push(ChatScreen.route(r)),
+      onTap: onTap ?? () => Navigator.of(context).push(ChatScreen.route(match)),
       pressedScale: 0.98,
-      semanticLabel: 'Chat with ${r.name}',
+      semanticLabel: 'Chat: ${match.title}',
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: ShapeDecoration(
@@ -34,20 +35,15 @@ class MatchTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Avatar(path: r.avatarAsset, name: r.name, size: 58, tint: r.gradient, heroTag: heroTag(r)),
+            Avatar(path: style.asset, name: match.title, size: 58, tint: style.gradient, heroTag: heroTag(match)),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(r.name, style: AppText.tileTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(match.title, style: AppText.tileTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 3),
-                  Text(
-                    '${r.location}  ·  \$${r.budget}/mo',
-                    style: AppText.caption,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(match.subtitle, style: AppText.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),

@@ -37,8 +37,6 @@ void main() {
       );
 
   Finder tab(String label) => find.descendant(of: find.byType(FloatingNav), matching: find.text(label));
-  Finder card(String name) => find.descendant(of: find.byType(DiscoverCard), matching: find.textContaining(name));
-  Finder match(String name) => find.descendant(of: find.byType(MatchTile), matching: find.text(name));
 
   testWidgets('tour', (tester) async {
     app.main();
@@ -47,21 +45,18 @@ void main() {
     await shot(tester, '01-discover');
 
     // Pass: card slides left and the gap collapses.
-    await tester.tap(circle('Pass on Marcus'));
+    await tester.tap(circle('Pass on').first);
     await shot(tester, '02-pass-mid', afterMs: 160);
     await settle(tester);
     await shot(tester, '03-after-pass');
 
-    // Connect: card slides right, toast drops in.
+    // Connect on a group that likes back: match dialog.
     await tester.tap(find.text('Connect').first);
     await shot(tester, '04-connect-mid', afterMs: 180);
-    await shot(tester, '04b-connect-450', afterMs: 270);
-    await shot(tester, '04c-connect-800', afterMs: 350);
-    await shot(tester, '04d-connect-1300', afterMs: 500);
     await settle(tester);
-    await shot(tester, '05-toast');
-    await Future<void>.delayed(const Duration(milliseconds: 2600));
-    await tester.pump();
+    await shot(tester, '05-match');
+    await tester.tap(find.text('Keep looking'));
+    await settle(tester);
 
     // Tab switch: capsule slides, page cross-fades.
     await tester.tap(tab('Matches'));
@@ -70,28 +65,27 @@ void main() {
     await shot(tester, '07-matches');
 
     // Open chat: avatar hero flight.
-    await tester.tap(match('Jordan'));
+    await tester.tap(find.byType(MatchTile).first);
     await shot(tester, '08-hero-mid', afterMs: 160);
     await settle(tester);
     await settle(tester);
     await shot(tester, '09-chat');
 
-    await tester.enterText(find.byType(TextField), 'Hey Jordan! When are you free to see the place?');
+    await tester.enterText(find.byType(TextField), 'Hey! When are you free to see the place?');
     await tester.pump();
     await tester.tap(circle('Send'));
     await shot(tester, '10-bubble-mid', afterMs: 140);
     await settle(tester);
     await settle(tester);
-    await settle(tester);
-    await shot(tester, '11-chat-reply');
+    await shot(tester, '11-chat-sent');
 
     await tester.tap(circle('Back'));
     await settle(tester);
 
-    // Discover → profile: photo hero flight into the header.
+    // Discover → profile: art hero flight into the header.
     await tester.tap(tab('Discover'));
     await settle(tester);
-    await tester.tap(card('Malik'));
+    await tester.tap(find.byType(DiscoverCard).first);
     await shot(tester, '12-profile-hero-mid', afterMs: 200);
     await settle(tester);
     await shot(tester, '13-profile-view');
@@ -105,7 +99,7 @@ void main() {
     await tester.tap(tab('Listings'));
     await shot(tester, '15-listings-mid', afterMs: 220);
     await settle(tester);
-    await tester.tap(find.text('Room'));
+    await tester.tap(find.text('Room').first);
     await settle(tester);
     await shot(tester, '16-listings-filtered');
 

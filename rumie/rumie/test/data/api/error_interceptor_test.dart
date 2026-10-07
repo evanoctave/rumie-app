@@ -57,6 +57,30 @@ void main() {
       });
     });
 
+    test('drops only the leading scope, so a field named "body" survives', () {
+      final fe = ErrorInterceptor.parseFieldErrors({
+        'detail': [
+          {'loc': ['body', 'body'], 'msg': 'too long', 'type': 't'},
+        ],
+      });
+      expect(fe, {
+        'body': ['too long'],
+      });
+    });
+
+    test('skips list indices; scope-only loc buckets under "_"', () {
+      final fe = ErrorInterceptor.parseFieldErrors({
+        'detail': [
+          {'loc': ['body', 'preferences', 'tags', 0], 'msg': 'too long', 'type': 't'},
+          {'loc': ['body'], 'msg': 'Field required', 'type': 'missing'},
+        ],
+      });
+      expect(fe, {
+        'tags': ['too long'],
+        '_': ['Field required'],
+      });
+    });
+
     test('malformed payloads → empty map', () {
       expect(ErrorInterceptor.parseFieldErrors(null), isEmpty);
       expect(ErrorInterceptor.parseFieldErrors('oops'), isEmpty);
@@ -124,6 +148,29 @@ void main() {
           req(DioExceptionType.badResponse, statusCode: 500));
       expect(mapped, isA<ServerException>());
       expect((mapped as ServerException).statusCode, 500);
+    });
+
+    test('never exposes the raw Dio message (V6)', () {
+      for (final type in DioExceptionType.values) {
+        final mapped = ErrorInterceptor.mapException(
+          req(type, statusCode: type == DioExceptionType.badResponse ? 418 : null),
+        );
+        expect(mapped.message, isNot('msg'), reason: '$type');
+        expect(mapped.message, isNotEmpty, reason: '$type');
+      }
+    });
+
+    test('4xx keeps FastAPI string detail separately with statusCode', () {
+      final mapped = ErrorInterceptor.mapException(req(
+        DioExceptionType.badResponse,
+        statusCode: 409,
+        body: {'detail': 'Email already registered'},
+      ));
+      expect(mapped, isA<ServerException>());
+      final e = mapped as ServerException;
+      expect(e.statusCode, 409);
+      expect(e.detail, 'Email already registered');
+      expect(e.message, isNot(contains('Email')));
     });
 
     test('401 badResponse → UnauthorizedException', () {

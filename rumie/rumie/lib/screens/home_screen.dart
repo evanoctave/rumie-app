@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
-import '../models/roommate.dart';
-import '../models/user_profile.dart';
+import '../di/locator.dart';
+import '../domain/entities/entities.dart';
+import '../domain/repositories/conversations_repository.dart';
+import '../state/auth_provider.dart';
+import '../state/profile_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_shapes.dart';
 import '../theme/app_text.dart';
 import '../widgets/rumie_icon.dart';
-import 'chat_screen.dart';
 import 'listings_screen.dart';
 import 'matches_screen.dart';
 import 'profile_screen.dart';
@@ -18,8 +21,7 @@ import 'swipe_screen.dart';
 /// survive switching; the active one fades and nudges into view.
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
-  final List<Roommate> seedMatches;
-  const HomeScreen({super.key, this.initialIndex = 0, this.seedMatches = const []});
+  const HomeScreen({super.key, this.initialIndex = 0});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -27,21 +29,32 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late int _index = widget.initialIndex;
-  late final List<Roommate> _matches = List.of(widget.seedMatches);
 
-  UserProfile _profile = const UserProfile(
-    name: '',
-    age: 0,
-    bio: '',
-    location: '',
-    budgetMin: 800,
-    budgetMax: 1500,
-  );
+  /// Mutual matches = server conversations (drives the nav badge).
+  int _matchCount = 0;
 
-  void _addMatch(Roommate roommate) {
-    final exists = _matches.any((m) => m.name == roommate.name);
-    if (!exists) setState(() => _matches.add(roommate));
+  @override
+  void initState() {
+    super.initState();
+    _refreshMatchCount();
+    // After the first frame: load() notifies listeners, which must not
+    // happen while the tree is building.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<ProfileProvider>().load(context.read<AuthProvider>().user);
+    });
   }
+
+  Future<void> _refreshMatchCount() async {
+    try {
+      final convs = await locator<ConversationsRepository>().listConversations();
+      if (mounted) setState(() => _matchCount = convs.length);
+    } catch (_) {
+      // Badge is decorative; the Matches tab shows the real error state.
+    }
+  }
+
+  void _onMatch(RoommateCandidate _) => _refreshMatchCount();
 
   void _select(int index) {
     if (index == _index) return;
@@ -49,25 +62,21 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _index = index);
   }
 
-  void _openChat(Roommate r) {
-    Navigator.of(context).push(ChatScreen.route(r));
-  }
-
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
       SwipeScreen(
-        onMatch: _addMatch,
-        matchCount: _matches.length,
+        onMatch: _onMatch,
+        matchCount: _matchCount,
         onOpenMatches: () => _select(1),
-        onSayHi: _openChat,
       ),
-      MatchesScreen(matches: List.unmodifiable(_matches)),
+      MatchesScreen(
+        onLoaded: (count) {
+          if (count != _matchCount) setState(() => _matchCount = count);
+        },
+      ),
       const ListingsScreen(),
-      ProfileScreen(
-        profile: _profile,
-        onProfileUpdated: (p) => setState(() => _profile = p),
-      ),
+      const ProfileScreen(),
     ];
 
     return Scaffold(
@@ -83,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: FloatingNav(
         index: _index,
         onSelect: _select,
-        matchBadge: _matches.length,
+        matchBadge: _matchCount,
       ),
     );
   }

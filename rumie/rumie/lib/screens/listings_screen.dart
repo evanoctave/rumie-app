@@ -4,14 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../di/locator.dart';
+import '../domain/entities/entities.dart';
+import '../domain/errors/error_messages.dart';
+import '../domain/repositories/asset_repository.dart';
+import '../domain/repositories/discovery_repository.dart';
+import '../domain/repositories/listings_repository.dart';
 import '../services/value_score.dart';
 import '../services/value_score_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_shapes.dart';
 import '../theme/app_text.dart';
+import '../utils/content_type.dart';
 import '../widgets/listing_card.dart';
 import '../widgets/rumie_icon.dart';
+import '../widgets/state_views.dart';
 import '../widgets/ui/app_button.dart';
 import '../widgets/ui/app_chip.dart';
 import '../widgets/ui/app_sheet.dart';
@@ -30,48 +38,107 @@ class ListingsScreen extends StatefulWidget {
 
 class _ListingsScreenState extends State<ListingsScreen> {
   String _selectedType = 'All';
-  final Map<int, ValueScore?> _scores = {};
-  final _svc = ValueScoreService();
 
   static const _types = ['All', 'Apartment', 'House', 'Condo', 'Room', 'Duplex', 'Studio'];
 
-  static const _listings = [
-    {'title': 'Bright private room near campus', 'type': 'Room', 'location': 'Westwood, Los Angeles', 'rent': 1250, 'sqft': 280, 'bedsBaths': '1 bed / shared bath', 'availableDate': 'June 1'},
-    {'title': 'Spacious apartment with shared kitchen', 'type': 'Apartment', 'location': 'Koreatown, Los Angeles', 'rent': 1800, 'sqft': 650, 'bedsBaths': '2 bed / 1 bath', 'availableDate': 'Now'},
-    {'title': 'Quiet condo with home office', 'type': 'Condo', 'location': 'Pasadena, CA', 'rent': 2100, 'sqft': 900, 'bedsBaths': '2 bed / 2 bath', 'availableDate': 'July 10'},
-    {'title': 'Duplex room with private backyard', 'type': 'Duplex', 'location': 'El Sereno, Los Angeles', 'rent': 1450, 'sqft': 480, 'bedsBaths': '1 bed / 1 bath', 'availableDate': 'August 1'},
-    {'title': 'Modern studio in downtown', 'type': 'Studio', 'location': 'DTLA, Los Angeles', 'rent': 1650, 'sqft': 420, 'bedsBaths': 'Studio / 1 bath', 'availableDate': 'Now'},
-  ];
-
-  List<Map<String, dynamic>> get _visible => _selectedType == 'All'
-      ? _listings.cast<Map<String, dynamic>>()
-      : _listings.cast<Map<String, dynamic>>().where((l) => l['type'] == _selectedType).toList();
+  List<ListingOut> _listings = const [];
+  final Map<String, ValueScore> _scores = {};
+  final _scoreSvc = ValueScoreService();
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _fetchScores();
+    _load();
   }
 
-  Future<void> _fetchScores() async {
-    for (int i = 0; i < _listings.length; i++) {
-      final l = _listings[i];
-      final score = await _svc.compute(
-        rent: l['rent'] as int,
-        sqft: l['sqft'] as int? ?? 0,
-        location: l['location'] as String,
-      );
-      if (mounted) setState(() => _scores[i] = score);
+  Future<void> _load({bool showSpinner = true}) async {
+    // Already in the loading state on first run (called from initState).
+    if (showSpinner && !_loading) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
+    try {
+      final listings = await locator<DiscoveryRepository>().discoverListings();
+      if (!mounted) return;
+      setState(() {
+        _listings = listings;
+        _loading = false;
+        _error = null;
+      });
+      _scoreAll(listings);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = userMessage(e, fallback: "Couldn't load listings.");
+        _loading = false;
+      });
     }
   }
 
-  int _globalIndex(Map<String, dynamic> listing) =>
-      _listings.indexWhere((l) => l['title'] == listing['title']);
+  /// Value scores are an estimate layered on top of the API listing; they
+  /// arrive after the list renders so loading never waits on them.
+  Future<void> _scoreAll(List<ListingOut> listings) async {
+    for (final l in listings) {
+      if (_scores.containsKey(l.id)) continue;
+      final score = await _scoreSvc.compute(rent: l.rent, sqft: 0, location: l.location);
+      if (!mounted) return;
+      setState(() => _scores[l.id] = score);
+    }
+  }
+
+  List<ListingOut> get _visible => _selectedType == 'All'
+      ? _listings
+      : _listings.where((l) => ListingMeta.of(l).type == _selectedType).toList();
 
   @override
   Widget build(BuildContext context) {
     final bottomPad = kNavClearance + MediaQuery.paddingOf(context).bottom;
     final visible = _visible;
+
+    final Widget body;
+    if (_loading) {
+      body = const LoadingView(key: ValueKey('loading'));
+    } else if (_error != null) {
+      body = ErrorView(key: const ValueKey('error'), message: _error!, onRetry: _load);
+    } else if (visible.isEmpty) {
+      body = _buildEmpty();
+    } else {
+      body = RefreshIndicator(
+        key: ValueKey('list-$_selectedType'),
+        color: AppColors.accent,
+        onRefresh: () => _load(showSpinner: false),
+        child: ListView.separated(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, bottomPad),
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          itemCount: visible.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 12),
+          itemBuilder: (context, i) {
+            final l = visible[i];
+            final meta = ListingMeta.of(l);
+            return Reveal(
+              key: ValueKey(l.id),
+              index: i,
+              child: ListingCard(
+                title: l.title,
+                type: meta.type,
+                location: l.location,
+                rent: l.rent,
+                bedsBaths: meta.bedsBaths,
+                availableDate: meta.availableDate,
+                photoUrl: l.photoUrls.isEmpty ? null : l.photoUrls.first,
+                valueScore: _scores[l.id],
+                animationIndex: i,
+              ),
+            );
+          },
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -79,7 +146,9 @@ class _ListingsScreenState extends State<ListingsScreen> {
           bottom: false,
           child: ScreenHeader(
             title: 'Listings',
-            subtitle: '${visible.length} available',
+            subtitle: _loading
+                ? 'Finding places near you'
+                : '${visible.length} ${visible.length == 1 ? 'place' : 'places'} available',
             trailing: AppButton(
               label: 'Post',
               icon: Icons.add_rounded,
@@ -95,33 +164,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
             duration: AppMotion.of(context, AppMotion.slow),
             switchInCurve: AppMotion.enter,
             switchOutCurve: AppMotion.exit,
-            child: visible.isEmpty
-                ? _buildEmpty()
-                : ListView.separated(
-                    key: ValueKey(_selectedType),
-                    padding: EdgeInsets.fromLTRB(16, 8, 16, bottomPad),
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: visible.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (context, i) {
-                      final l = visible[i];
-                      final gi = _globalIndex(l);
-                      return Reveal(
-                        index: i,
-                        child: ListingCard(
-                          title: l['title'] as String,
-                          type: l['type'] as String,
-                          location: l['location'] as String,
-                          rent: l['rent'] as int,
-                          sqft: l['sqft'] as int? ?? 0,
-                          bedsBaths: l['bedsBaths'] as String,
-                          availableDate: l['availableDate'] as String,
-                          valueScore: _scores[gi],
-                          animationIndex: i,
-                        ),
-                      );
-                    },
-                  ),
+            child: body,
           ),
         ),
       ],
@@ -159,7 +202,11 @@ class _ListingsScreenState extends State<ListingsScreen> {
           children: [
             Text('Nothing here yet', style: AppText.sectionTitle),
             const SizedBox(height: 8),
-            Text('No ${_selectedType.toLowerCase()} listings right now.', style: AppText.secondary, textAlign: TextAlign.center),
+            Text(
+              _listings.isEmpty ? 'No listings yet. Check back soon.' : 'No listings in this category.',
+              style: AppText.secondary,
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
@@ -170,7 +217,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
     showAppSheet<void>(
       context,
       initialSize: 0.9,
-      builder: (controller) => _PostListingSheet(scrollController: controller),
+      builder: (controller) => _PostListingSheet(scrollController: controller, onPosted: _load),
     );
   }
 }
@@ -179,7 +226,11 @@ class _ListingsScreenState extends State<ListingsScreen> {
 
 class _PostListingSheet extends StatefulWidget {
   final ScrollController scrollController;
-  const _PostListingSheet({required this.scrollController});
+
+  /// Called after the listing was created so the list can refresh.
+  final VoidCallback onPosted;
+
+  const _PostListingSheet({required this.scrollController, required this.onPosted});
 
   @override
   State<_PostListingSheet> createState() => _PostListingSheetState();
@@ -194,6 +245,10 @@ class _PostListingSheetState extends State<_PostListingSheet> {
   String _available = 'Now';
   final List<String> _photoPaths = [];
   int _coverIndex = 0;
+  bool _posting = false;
+
+  /// Client-side and server (422, V5) messages keyed by API field name.
+  Map<String, List<String>> _fieldErrors = const {};
 
   static const _types = ['Room', 'Apartment', 'Condo', 'House', 'Duplex', 'Studio'];
   static const _bedOptions = ['Studio / 1 bath', '1 bed / 1 bath', '2 bed / 1 bath', '2 bed / 2 bath', '3 bed / 2 bath'];
@@ -238,10 +293,77 @@ class _PostListingSheetState extends State<_PostListingSheet> {
     HapticFeedback.selectionClick();
   }
 
-  void _post() {
+  Map<String, List<String>> _validate() {
+    final errors = <String, List<String>>{};
+    if (_titleCtrl.text.trim().isEmpty) {
+      errors['title'] = ['Add a title.'];
+    } else if (_titleCtrl.text.trim().length > 200) {
+      errors['title'] = ['Keep the title under 200 characters.'];
+    }
+    if (_locationCtrl.text.trim().isEmpty) {
+      errors['location'] = ['Add a location.'];
+    }
+    final rent = int.tryParse(_rentCtrl.text.trim());
+    if (rent == null || rent < 0) errors['rent'] = ['Enter the monthly rent.'];
+    return errors;
+  }
+
+  /// Uploads photos (cover first) via presign → PUT (V8), then creates the
+  /// listing with the returned asset URLs.
+  Future<void> _post() async {
+    if (_posting) return;
+    final local = _validate();
+    setState(() => _fieldErrors = local);
+    if (local.isNotEmpty) return;
     HapticFeedback.mediumImpact();
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Listing posted')));
+    setState(() => _posting = true);
+
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    try {
+      final ordered = [
+        if (_photoPaths.isNotEmpty) _photoPaths[_coverIndex],
+        for (var i = 0; i < _photoPaths.length; i++)
+          if (i != _coverIndex) _photoPaths[i],
+      ];
+      final assets = locator<AssetRepository>();
+      final urls = <String>[];
+      for (final path in ordered) {
+        urls.add(await assets.upload(
+          kind: AssetKind.listingPhoto,
+          bytes: await File(path).readAsBytes(),
+          contentType: contentTypeForPath(path),
+        ));
+      }
+      await locator<ListingsRepository>().create(ListingCreate(
+        title: _titleCtrl.text.trim(),
+        location: _locationCtrl.text.trim(),
+        rent: int.parse(_rentCtrl.text.trim()),
+        description: ListingMeta.encode(type: _type, bedsBaths: _beds, availableDate: _available),
+        photoUrls: urls,
+      ));
+      navigator.pop();
+      messenger.showSnackBar(const SnackBar(content: Text('Listing posted')));
+      widget.onPosted();
+    } catch (e) {
+      if (!mounted) return;
+      final fields = fieldErrorsOf(e);
+      setState(() {
+        _posting = false;
+        _fieldErrors = fields;
+      });
+      const shown = {'title', 'location', 'rent'};
+      final other = fields.entries.where((f) => !shown.contains(f.key)).expand((f) => f.value);
+      if (fields.isEmpty || other.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              other.isNotEmpty ? other.first : userMessage(e, fallback: "Couldn't post your listing."),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -254,11 +376,30 @@ class _PostListingSheetState extends State<_PostListingSheet> {
         children: [
           _buildPhotoSection(),
           const SizedBox(height: 20),
-          AppTextField(controller: _titleCtrl, label: 'Title', hint: 'e.g. Bright room near downtown', textCapitalization: TextCapitalization.sentences),
+          AppTextField(
+            controller: _titleCtrl,
+            label: 'Title',
+            hint: 'e.g. Bright room near downtown',
+            textCapitalization: TextCapitalization.sentences,
+            errorText: firstFieldError(_fieldErrors, 'title'),
+          ),
           const SizedBox(height: 14),
-          AppTextField(controller: _locationCtrl, label: 'Location', hint: 'Neighborhood, City', textCapitalization: TextCapitalization.words),
+          AppTextField(
+            controller: _locationCtrl,
+            label: 'Location',
+            hint: 'Neighborhood, City',
+            textCapitalization: TextCapitalization.words,
+            errorText: firstFieldError(_fieldErrors, 'location'),
+          ),
           const SizedBox(height: 14),
-          AppTextField(controller: _rentCtrl, label: 'Rent per month', hint: '1200', keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
+          AppTextField(
+            controller: _rentCtrl,
+            label: 'Rent per month',
+            hint: '1200',
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            errorText: firstFieldError(_fieldErrors, 'rent'),
+          ),
           const SizedBox(height: 18),
           _ChoiceRow(label: 'Type', options: _types, value: _type, onChanged: (v) => setState(() => _type = v)),
           const SizedBox(height: 14),
@@ -266,7 +407,7 @@ class _PostListingSheetState extends State<_PostListingSheet> {
           const SizedBox(height: 14),
           _ChoiceRow(label: 'Available', options: _availOptions, value: _available, onChanged: (v) => setState(() => _available = v)),
           const SizedBox(height: 28),
-          AppButton(label: 'Post listing', onTap: _post),
+          AppButton(label: 'Post listing', loading: _posting, onTap: _post),
         ],
       ),
     );
@@ -277,6 +418,11 @@ class _PostListingSheetState extends State<_PostListingSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Photos', style: AppText.label),
+        const SizedBox(height: 4),
+        Text(
+          _photoPaths.isEmpty ? 'Add photos of your space.' : 'Tap a photo to make it the cover.',
+          style: AppText.caption,
+        ),
         const SizedBox(height: 8),
         SizedBox(
           height: 104,
@@ -387,8 +533,7 @@ class _ChoiceRow extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final o in options)
-              AppChip(label: o, selected: o == value, onTap: () => onChanged(o)),
+            for (final o in options) AppChip(label: o, selected: o == value, onTap: () => onChanged(o)),
           ],
         ),
       ],

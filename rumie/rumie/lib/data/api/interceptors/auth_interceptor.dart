@@ -41,28 +41,46 @@ class AuthInterceptor extends Interceptor {
     handler.next(options);
   }
 
+  /// `RequestOptions.extra` flag set on the single retry after a refresh, so
+  /// a second 401 on the retried request is surfaced instead of looping
+  /// refresh → retry → 401 forever.
+  static const retriedKey = 'rumie_auth_retried';
+
   @override
   Future<void> onError(
       DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode != 401 || _isSkipped(err.requestOptions)) {
+    final opts = err.requestOptions;
+    if (err.response?.statusCode != 401 ||
+        _isSkipped(opts) ||
+        opts.extra[retriedKey] == true) {
       return handler.next(err);
     }
 
-    final refreshed = await _refreshOnce();
+    // If another request already refreshed while this one was in flight, the
+    // stored token differs from the one this request carried — just retry with
+    // the new token instead of burning the (rotated) refresh token again (V3).
+    final sentAuth = opts.headers['Authorization'];
+    final current = await tokenStore.readAccess();
+    final alreadyRefreshed =
+        current != null && sentAuth != null && sentAuth != 'Bearer $current';
+
+    final refreshed = alreadyRefreshed || await _refreshOnce();
     if (!refreshed) {
       await tokenStore.clear();
       onLogout?.call();
       return handler.reject(DioException(
-        requestOptions: err.requestOptions,
+        requestOptions: opts,
         response: err.response,
         type: DioExceptionType.badResponse,
-        error: const UnauthorizedException('Session expired'),
+        error: const UnauthorizedException(),
         message: 'Session expired',
       ));
     }
 
     final newToken = await tokenStore.readAccess();
-    final retryOpts = err.requestOptions.copyWith();
+    final retryOpts = opts.copyWith(
+      extra: {...opts.extra, retriedKey: true},
+    );
     if (newToken != null) {
       retryOpts.headers['Authorization'] = 'Bearer $newToken';
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../domain/errors/error_messages.dart';
 import '../models/user_profile.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
@@ -19,7 +20,10 @@ import '../widgets/ui/settings_rows.dart';
 
 class ProfileCreateScreen extends StatefulWidget {
   final UserProfile? existing;
-  final void Function(UserProfile) onSave;
+
+  /// Persists the profile. May throw a typed `ApiException`; a 422's
+  /// per-field messages are shown next to the matching section (V5).
+  final Future<void> Function(UserProfile) onSave;
 
   const ProfileCreateScreen({
     super.key,
@@ -69,6 +73,12 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
   static const _maxTraits = 6;
 
   final Set<String> _selectedTraits = {};
+
+  bool _saving = false;
+  Map<String, List<String>> _serverErrors = const {};
+
+  /// Server fields rendered inline; anything else goes to a snackbar.
+  static const _inlineFields = {'budget', 'tags'};
 
   @override
   void initState() {
@@ -181,7 +191,8 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
     HapticFeedback.selectionClick();
   }
 
-  void _save() {
+  Future<void> _save() async {
+    if (_saving) return;
     if (!_formKey.currentState!.validate()) return;
     HapticFeedback.mediumImpact();
     final profile = UserProfile(
@@ -199,7 +210,43 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
       haspets: _hasPets,
       pets: _hasPets ? List.unmodifiable(_pets) : const [],
     );
-    widget.onSave(profile);
+    setState(() {
+      _saving = true;
+      _serverErrors = const {};
+    });
+    try {
+      await widget.onSave(profile);
+      if (mounted) setState(() => _saving = false);
+    } catch (e) {
+      if (!mounted) return;
+      final fields = fieldErrorsOf(e);
+      setState(() {
+        _saving = false;
+        _serverErrors = fields;
+      });
+      final other = fields.entries
+          .where((f) => !_inlineFields.contains(f.key))
+          .expand((f) => f.value)
+          .toList();
+      if (fields.isEmpty || other.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              other.isNotEmpty ? other.first : userMessage(e, fallback: "Couldn't save your profile."),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _serverError(String field) {
+    final msg = firstFieldError(_serverErrors, field);
+    if (msg == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Text(msg, style: AppText.caption.copyWith(color: AppColors.danger)),
+    );
   }
 
   @override
@@ -228,6 +275,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                     size: AppButtonSize.small,
                     style: AppButtonStyle.tonal,
                     expand: false,
+                    loading: _saving,
                     onTap: _save,
                   ),
                 ],
@@ -320,6 +368,7 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                         _budgetMax = v.end.round();
                       }),
                     ),
+                    _serverError('budget'),
                     const SizedBox(height: 28),
                     Text('Living style', style: AppText.sectionTitle),
                     const SizedBox(height: 14),
@@ -366,10 +415,11 @@ class _ProfileCreateScreenState extends State<ProfileCreateScreen> {
                     Text('Pick up to $_maxTraits, or add your own.', style: AppText.secondary),
                     const SizedBox(height: 14),
                     _buildTraitGrid(),
+                    _serverError('tags'),
                     const SizedBox(height: 12),
                     _buildCustomTraitInput(),
                     const SizedBox(height: 40),
-                    AppButton(label: isEdit ? 'Save changes' : 'Create profile', onTap: _save),
+                    AppButton(label: isEdit ? 'Save changes' : 'Create profile', loading: _saving, onTap: _save),
                   ],
                 ),
               ),

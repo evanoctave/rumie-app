@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../data/models/message_out.dart';
+import '../domain/entities/entities.dart';
 import '../di/locator.dart';
 import '../domain/repositories/conversations_repository.dart';
 

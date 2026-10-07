@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../domain/repositories/auth_repository.dart';
+import '../api/exceptions.dart';
 import '../api/token_store.dart';
 import '../models/login_in.dart';
 import '../models/register_in.dart';
@@ -22,7 +23,7 @@ class AuthRepositoryImpl implements AuthRepository {
           data: body.toJson(),
         );
         final tokens = TokensOut.fromJson(r.data as Map<String, dynamic>);
-        await _tokenStore.write(access: tokens.access, refresh: tokens.refresh);
+        await _persist(tokens);
         return tokens;
       });
 
@@ -33,10 +34,7 @@ class AuthRepositoryImpl implements AuthRepository {
           data: body.toJson(),
         );
         final out = RegisterOut.fromJson(r.data as Map<String, dynamic>);
-        await _tokenStore.write(
-          access: out.tokens.access,
-          refresh: out.tokens.refresh,
-        );
+        await _persist(out.tokens);
         return out;
       });
 
@@ -47,7 +45,30 @@ class AuthRepositoryImpl implements AuthRepository {
       });
 
   @override
+  Future<bool> hasSession() async {
+    try {
+      final access = await _tokenStore.readAccess();
+      return access != null && access.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
   Future<void> logout() async {
     await _tokenStore.clear();
+  }
+
+  /// V14: tokens must be stored before the call reports success. A storage
+  /// failure fails the whole login/register (and leaves no half-written pair).
+  Future<void> _persist(TokensOut tokens) async {
+    try {
+      await _tokenStore.write(access: tokens.access, refresh: tokens.refresh);
+    } catch (_) {
+      try {
+        await _tokenStore.clear();
+      } catch (_) {}
+      throw const StorageException();
+    }
   }
 }

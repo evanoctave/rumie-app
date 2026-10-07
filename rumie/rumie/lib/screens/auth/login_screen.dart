@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import '../../state/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
-import '../../data/models/role.dart';
+import '../../domain/entities/entities.dart';
+import '../../domain/errors/error_messages.dart';
 import '../../utils/validators.dart';
 import '../../widgets/ui/app_button.dart';
 import '../../widgets/ui/app_dialog.dart';
@@ -29,6 +30,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passCtrl = TextEditingController();
   bool _obscure = true;
 
+  /// Server 422 messages (V5), shown under the matching field.
+  Map<String, List<String>> _serverErrors = const {};
+
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -37,11 +41,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
+    _serverErrors = const {};
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     final auth = context.read<AuthProvider>();
     final ok = await auth.login(sanitizeEmail(_emailCtrl.text), _passCtrl.text);
     if (!mounted) return;
+    if (!ok && auth.fieldErrors.isNotEmpty) {
+      setState(() => _serverErrors = auth.fieldErrors);
+      _formKey.currentState!.validate();
+    }
     if (ok) {
       await _promptBiometrics();
       if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
@@ -112,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     textInputAction: TextInputAction.next,
                     maxLength: 254,
                     inputFormatters: const [SanitizingFormatter()],
-                    validator: validateEmail,
+                    validator: (v) => firstFieldError(_serverErrors, 'email') ?? validateEmail(v),
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -127,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onSubmitted: (_) => _submit(),
                     maxLength: 128,
                     inputFormatters: const [SanitizingFormatter()],
-                    validator: (v) => validatePassword(v, isLogin: true),
+                    validator: (v) => firstFieldError(_serverErrors, 'password') ?? validatePassword(v, isLogin: true),
                     suffix: Pressable(
                       onTap: () => setState(() => _obscure = !_obscure),
                       pressedScale: 0.85,

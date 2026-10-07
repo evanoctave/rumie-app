@@ -7,7 +7,7 @@ import '../../theme/app_text.dart';
 import '../rumie_icon.dart';
 import 'pressable.dart';
 
-enum AppButtonStyle { primary, tonal, secondary, ghost, danger, onPhoto }
+enum AppButtonStyle { primary, tonal, secondary, ghost, danger, onPhoto, ghostOnPhoto }
 
 enum AppButtonSize { large, medium, small }
 
@@ -60,6 +60,7 @@ class AppButton extends StatelessWidget {
       AppButtonStyle.ghost => (Colors.transparent, AppColors.textSecondary, null, const []),
       AppButtonStyle.danger => (AppColors.dangerSoft, AppColors.danger, null, const []),
       AppButtonStyle.onPhoto => (AppColors.photoText.withValues(alpha: 0.92), AppColors.photoInk, null, const []),
+      AppButtonStyle.ghostOnPhoto => (Colors.transparent, AppColors.photoText.withValues(alpha: 0.85), null, const []),
     };
 
     final textStyle = (size == AppButtonSize.large ? AppText.button : AppText.buttonSmall)

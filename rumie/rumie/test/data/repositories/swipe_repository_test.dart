@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roomie/data/api/exceptions.dart';
 import 'package:roomie/data/api/interceptors/error_interceptor.dart';
 import 'package:roomie/data/models/swipe_direction.dart';
 import 'package:roomie/data/models/swipe_in.dart';
@@ -73,6 +74,34 @@ void main() {
       ));
       expect(out.matched, isFalse);
       expect(out.reason, 'already_swiped');
+    });
+  
+    test('422 → ValidationException (invalid target_id)', () async {
+      final (:dio, :adapter) = _build();
+      adapter.route(
+        'POST',
+        '/swipes',
+        const FakeResponse(
+          statusCode: 422,
+          body: {
+            'detail': [
+              {'loc': ['body', 'target_id'], 'msg': 'not a uuid', 'type': 'uuid_parsing'},
+            ],
+          },
+        ),
+      );
+      final repo = SwipeRepositoryImpl(dio);
+
+      try {
+        await repo.swipe(const SwipeIn(
+          targetId: 'nope',
+          targetType: SwipeTargetType.group,
+          direction: SwipeDirection.right,
+        ));
+        fail('expected throw');
+      } on ValidationException catch (e) {
+        expect(e.fieldErrors, {'target_id': ['not a uuid']});
+      }
     });
   });
 }
