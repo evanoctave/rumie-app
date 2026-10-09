@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../dev/dev_start.dart';
+
 class ThemeProvider extends ChangeNotifier {
-  ThemeMode _mode = ThemeMode.light;
+  ThemeMode _mode = DevStart.dark ? ThemeMode.dark : ThemeMode.light;
 
   ThemeMode get mode => _mode;
   bool get isDark => _mode == ThemeMode.dark;

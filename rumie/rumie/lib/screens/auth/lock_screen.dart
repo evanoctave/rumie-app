@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 
 import '../../state/auth_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_motion.dart';
+import '../../theme/app_text.dart';
+import '../../widgets/ui/pressable.dart';
+import '../../widgets/ui/wordmark.dart';
 
 class LockScreen extends StatefulWidget {
   const LockScreen({super.key});
@@ -31,8 +35,6 @@ class _LockScreenState extends State<LockScreen> {
 
     final ok = await context.read<AuthProvider>().unlockWithBiometrics();
 
-    // Widget may have been removed from the tree if auth succeeded and
-    // _LockOverlay already swapped it out — always guard before setState.
     if (!mounted) return;
     setState(() {
       _loading = false;
@@ -42,6 +44,9 @@ class _LockScreenState extends State<LockScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final failed = _error != null;
+    final tint = failed ? AppColors.danger : AppColors.accent;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -49,92 +54,60 @@ class _LockScreenState extends State<LockScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo
-              Text(
-                'rumie',
-                style: TextStyle(
-                  fontSize: 44,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.text,
-                  letterSpacing: -2,
-                ),
-              ).animate().fadeIn(duration: 400.ms),
-              const SizedBox(height: 60),
-              // Face ID button
-              GestureDetector(
+              const Wordmark(size: 44).animate().fadeIn(duration: 400.ms),
+              const SizedBox(height: 64),
+              Pressable(
                 onTap: _loading ? null : _authenticate,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  width: 84,
-                  height: 84,
-                  decoration: BoxDecoration(
-                    color:
-                        _loading
-                            ? AppColors.secondary.withAlpha(18)
-                            : AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color:
-                          _error != null
-                              ? AppColors.red.withAlpha(140)
-                              : AppColors.secondary.withAlpha(80),
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: (_error != null
-                                ? AppColors.red
-                                : AppColors.secondary)
-                            .withAlpha(_loading ? 20 : 40),
-                        blurRadius: 20,
-                        offset: const Offset(0, 6),
+                pressedScale: 0.92,
+                semanticLabel: 'Unlock with Face ID',
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (!AppMotion.reduced(context) && !failed)
+                      Container(
+                        width: 96,
+                        height: 96,
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: tint.withValues(alpha: 0.18)),
+                      )
+                          .animate(onPlay: (c) => c.repeat())
+                          .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.5, 1.5), duration: 1800.ms, curve: Curves.easeOut)
+                          .fadeOut(duration: 1800.ms, curve: Curves.easeOut),
+                    AnimatedContainer(
+                      duration: AppMotion.of(context, AppMotion.base),
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: tint.withValues(alpha: 0.4), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(color: tint.withValues(alpha: 0.25), blurRadius: 28, offset: const Offset(0, 10)),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child:
-                        _loading
-                            ? const SizedBox(
-                              width: 28,
-                              height: 28,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                valueColor: AlwaysStoppedAnimation(
-                                  AppColors.secondary,
-                                ),
-                              ),
-                            )
+                      child: Center(
+                        child: _loading
+                            ? SizedBox(
+                                width: 30,
+                                height: 30,
+                                child: CircularProgressIndicator(strokeWidth: 2.5, color: tint),
+                              )
                             : Icon(
-                              _error != null
-                                  ? Icons.face_retouching_off_rounded
-                                  : Icons.face_rounded,
-                              size: 38,
-                              color:
-                                  _error != null
-                                      ? AppColors.red
-                                      : AppColors.secondary,
-                            ),
-                  ),
+                                failed ? Icons.face_retouching_off_rounded : Icons.face_rounded,
+                                size: 42,
+                                color: tint,
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
-              ).animate().scale(
-                duration: 500.ms,
-                curve: Curves.easeOutBack,
-                delay: 100.ms,
-              ),
-              const SizedBox(height: 22),
+              ).animate().scale(duration: 500.ms, curve: AppMotion.enter, delay: 100.ms),
+              const SizedBox(height: 24),
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
+                duration: AppMotion.of(context, AppMotion.base),
                 child: Text(
                   key: ValueKey(_error),
-                  _error != null ? 'Tap to try again' : 'Unlock with Face ID',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color:
-                        _error != null
-                            ? AppColors.red
-                            : AppColors.textSecondary,
-                  ),
+                  failed ? 'Tap to try again' : 'Unlock with Face ID',
+                  style: AppText.bodyMedium.copyWith(color: failed ? AppColors.danger : AppColors.textSecondary),
                 ),
               ).animate().fadeIn(delay: 200.ms),
             ],

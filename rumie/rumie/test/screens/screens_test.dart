@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:roomie/di/locator.dart';
 import 'package:roomie/domain/entities/entities.dart';
@@ -109,8 +108,6 @@ void main() {
   late _FakeListings listings;
   late _FakeConversations conversations;
 
-  setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
-
   setUp(() async {
     await locator.reset();
     auth = _FakeAuth();
@@ -142,7 +139,7 @@ void main() {
     ));
     await tester.enterText(find.byType(TextFormField).at(0), 'a@b.co');
     await tester.enterText(find.byType(TextFormField).at(1), 'whatever');
-    await tester.tap(find.text('Sign In'));
+    await tester.tap(find.text('Sign in'));
     await settle(tester);
 
     expect(find.text('value is not a valid email address'), findsOneWidget);
@@ -157,7 +154,7 @@ void main() {
     ));
     await tester.enterText(find.byType(TextFormField).at(0), 'a@b.co');
     await tester.enterText(find.byType(TextFormField).at(1), 'wrong');
-    await tester.tap(find.text('Sign In'));
+    await tester.tap(find.text('Sign in'));
     await settle(tester);
 
     expect(find.text('Incorrect email or password.'), findsOneWidget);

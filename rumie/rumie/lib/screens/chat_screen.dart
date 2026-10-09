@@ -3,9 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 import 'package:provider/provider.dart';
 
 import '../di/locator.dart';
@@ -15,12 +12,19 @@ import '../domain/repositories/conversations_repository.dart';
 import '../models/message.dart';
 import '../state/auth_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
+import '../theme/app_text.dart';
 import '../widgets/avatar_style.dart';
+import '../widgets/match_tile.dart';
 import '../widgets/state_views.dart';
+import '../widgets/ui/circle_button.dart';
+import '../widgets/ui/photo.dart';
 
 class ChatScreen extends StatefulWidget {
   final MatchSummary match;
   const ChatScreen({super.key, required this.match});
+
+  static Route<void> route(MatchSummary m) => MaterialPageRoute(builder: (_) => ChatScreen(match: m));
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -120,8 +124,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() => _sending = true);
     _textCtrl.clear();
     try {
-      final sent =
-          await locator<ConversationsRepository>().sendMessage(_convId, text);
+      final sent = await locator<ConversationsRepository>().sendMessage(_convId, text);
       if (!mounted) return;
       setState(() {
         if (!_messages.any((m) => m.id == sent.id)) {
@@ -137,11 +140,7 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() => _sending = false);
       final fieldMsg = firstFieldError(fieldErrorsOf(e), 'body');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            fieldMsg ?? userMessage(e, fallback: "Couldn't send your message."),
-          ),
-        ),
+        SnackBar(content: Text(fieldMsg ?? userMessage(e, fallback: "Couldn't send your message."))),
       );
     }
   }
@@ -151,8 +150,8 @@ class _ChatScreenState extends State<ChatScreen> {
       if (_scrollCtrl.hasClients) {
         _scrollCtrl.animateTo(
           _scrollCtrl.position.maxScrollExtent,
-          duration: 280.ms,
-          curve: Curves.easeOut,
+          duration: AppMotion.slow,
+          curve: AppMotion.standard,
         );
       }
     });
@@ -162,104 +161,43 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          Expanded(child: _buildMessages()),
-          _buildInputBar(),
-        ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildTopBar(),
+            Expanded(child: _buildMessages()),
+            _buildInputBar(),
+          ],
+        ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppColors.surface,
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.text),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: Row(
+  Widget _buildTopBar() {
+    final m = widget.match;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+      child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  _style.gradient.first.withAlpha(80),
-                  _style.gradient.last.withAlpha(40),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _style.gradient.first.withAlpha(80),
-                width: 1.5,
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(11),
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: SvgPicture.asset(_style.asset, fit: BoxFit.contain),
-              ),
-            ),
+          CircleButton(
+            iconAsset: 'assets/icons/ic_back.svg',
+            semanticLabel: 'Back',
+            onTap: () => Navigator.pop(context),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.match.title,
-                style: GoogleFonts.dmSans(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text,
-                ),
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: AppColors.green,
-                      shape: BoxShape.circle,
-                    ),
-                  )
-                      .animate(onPlay: (c) => c.repeat())
-                      .scaleXY(begin: 0.6, end: 1.4, duration: 1000.ms)
-                      .then()
-                      .scaleXY(begin: 1.4, end: 0.6, duration: 1000.ms),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Active now',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 11,
-                      color: AppColors.green,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          Avatar(path: _style.asset, name: m.title, size: 42, tint: _style.gradient, heroTag: MatchTile.heroTag(m)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(m.title, style: AppText.tileTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text(m.subtitle, style: AppText.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ],
+            ),
           ),
         ],
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.more_horiz_rounded, color: AppColors.textSecondary, size: 24),
-          onPressed: () {},
-        ),
-      ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Container(height: 1, color: AppColors.border),
       ),
     );
   }
@@ -267,55 +205,20 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildMessages() {
     if (_loading) return const LoadingView();
     if (_error != null) return ErrorView(message: _error!, onRetry: _load);
+    final m = widget.match;
     if (_messages.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    _style.gradient.first.withAlpha(70),
-                    _style.gradient.last.withAlpha(40),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: _style.gradient.first.withAlpha(80),
-                  width: 2,
-                ),
-                boxShadow: AppColors.cardShadow,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(22),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: SvgPicture.asset(_style.asset, fit: BoxFit.contain),
-                ),
-              ),
-            ).animate().scale(duration: 450.ms, curve: Curves.easeOutBack),
-            const SizedBox(height: 16),
-            Text(
-              'Matched with ${widget.match.title}',
-              style: GoogleFonts.dmSans(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: AppColors.text,
-              ),
-            ).animate().fadeIn(delay: 150.ms),
+            Avatar(path: _style.asset, name: m.title, size: 96, tint: _style.gradient)
+                .animate()
+                .fadeIn(duration: 300.ms)
+                .scale(begin: const Offset(0.9, 0.9), curve: AppMotion.enter, duration: 500.ms),
+            const SizedBox(height: 18),
+            Text(m.title, style: AppText.sectionTitle).animate().fadeIn(delay: 100.ms),
             const SizedBox(height: 6),
-            Text(
-              'Say hi 👋',
-              style: GoogleFonts.dmSans(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
-            ).animate().fadeIn(delay: 260.ms),
+            Text('Say hi 👋', style: AppText.secondary).animate().fadeIn(delay: 180.ms),
           ],
         ),
       );
@@ -323,19 +226,23 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return ListView.builder(
       controller: _scrollCtrl,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
       itemCount: _messages.length,
       itemBuilder: (context, index) {
         final msg = _messages[index];
-        final prevIsMe = index > 0 && _messages[index - 1].isMe == msg.isMe;
-        return _Bubble(
-          message: msg,
-          style: _style,
-          showAvatar: !msg.isMe && !prevIsMe,
-        )
+        final prev = index > 0 ? _messages[index - 1] : null;
+        final grouped = prev != null && prev.isMe == msg.isMe;
+        return _Bubble(message: msg, grouped: grouped)
             .animate()
-            .fadeIn(duration: 200.ms)
-            .slideY(begin: 0.12, duration: 220.ms, curve: Curves.easeOutCubic);
+            .fadeIn(duration: 220.ms)
+            .scale(
+              begin: const Offset(0.94, 0.94),
+              alignment: msg.isMe ? Alignment.bottomRight : Alignment.bottomLeft,
+              duration: 320.ms,
+              curve: AppMotion.enter,
+            )
+            .slideY(begin: 0.2, duration: 320.ms, curve: AppMotion.enter);
       },
     );
   }
@@ -343,200 +250,116 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildInputBar() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+        color: AppColors.background,
+        border: Border(top: BorderSide(color: AppColors.line)),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: TextField(
+                controller: _textCtrl,
+                style: AppText.bodyMedium,
+                maxLines: 4,
+                minLines: 1,
+                cursorColor: AppColors.accent,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  hintText: 'Message',
+                  filled: false,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+                onSubmitted: (_) => _send(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _textCtrl,
+            builder: (context, value, _) {
+              final canSend = value.text.trim().isNotEmpty && !_sending;
+              return AnimatedScale(
+                scale: canSend ? 1 : 0.9,
+                duration: AppMotion.of(context, AppMotion.base),
+                curve: AppMotion.enter,
+                child: AnimatedOpacity(
+                  opacity: canSend || _sending ? 1 : 0.5,
+                  duration: AppMotion.of(context, AppMotion.base),
+                  child: _sending
+                      ? SizedBox(
+                          width: 46,
+                          height: 46,
+                          child: Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.accent),
+                            ),
+                          ),
+                        )
+                      : CircleButton(
+                          size: 46,
+                          iconAsset: 'assets/icons/ic_send.svg',
+                          style: canSend ? CircleButtonStyle.accent : CircleButtonStyle.surface,
+                          semanticLabel: 'Send',
+                          onTap: canSend ? _send : null,
+                        ),
+                ),
+              );
+            },
           ),
         ],
       ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-          child: Row(
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppColors.border, width: 1.5),
-                  ),
-                  child: TextField(
-                    controller: _textCtrl,
-                    style: GoogleFonts.dmSans(color: AppColors.text, fontSize: 15),
-                    maxLines: 4,
-                    minLines: 1,
-                    textCapitalization: TextCapitalization.sentences,
-                    decoration: InputDecoration(
-                      hintText: 'Message...',
-                      hintStyle: GoogleFonts.dmSans(color: AppColors.gray, fontSize: 15),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                    ),
-                    onSubmitted: (_) => _send(),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              _SendButton(onTap: _send, busy: _sending),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
-
-// ── Send button ────────────────────────────────────────────────────────────────
-
-class _SendButton extends StatefulWidget {
-  final VoidCallback onTap;
-  final bool busy;
-  const _SendButton({required this.onTap, this.busy = false});
-
-  @override
-  State<_SendButton> createState() => _SendButtonState();
-}
-
-class _SendButtonState extends State<_SendButton> with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-      lowerBound: 0.86,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-  }
-
-  @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _ctrl.reverse(),
-      onTapUp: (_) { _ctrl.forward(); widget.onTap(); },
-      onTapCancel: () => _ctrl.forward(),
-      child: ScaleTransition(
-        scale: _ctrl,
-        child: Container(
-          width: 46,
-          height: 46,
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: AppColors.buttonShadow,
-          ),
-          child: Center(
-            child: widget.busy
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.2,
-                      valueColor: AlwaysStoppedAnimation(Colors.white),
-                    ),
-                  )
-                : SvgPicture.asset(
-                    'assets/icons/ic_send.svg',
-                    width: 20,
-                    height: 20,
-                    colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Chat bubble ────────────────────────────────────────────────────────────────
 
 class _Bubble extends StatelessWidget {
   final Message message;
-  final AvatarStyle style;
-  final bool showAvatar;
-
-  const _Bubble({required this.message, required this.style, required this.showAvatar});
+  final bool grouped;
+  const _Bubble({required this.message, required this.grouped});
 
   @override
   Widget build(BuildContext context) {
+    final me = message.isMe;
+    const big = Radius.circular(20);
+    const small = Radius.circular(6);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: EdgeInsets.only(bottom: grouped ? 4 : 10),
       child: Row(
-        mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: me ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
-          if (!message.isMe) ...[
-            SizedBox(
-              width: 30,
-              child: showAvatar
-                  ? Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            style.gradient.first.withAlpha(80),
-                            style.gradient.last.withAlpha(40),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(9),
-                        child: Padding(
-                          padding: const EdgeInsets.all(3),
-                          child: SvgPicture.asset(style.asset, fit: BoxFit.contain),
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 8),
-          ],
           Flexible(
             child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.68,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.72),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
               decoration: BoxDecoration(
-                gradient: message.isMe ? AppColors.primaryGradient : null,
-                color: message.isMe ? null : AppColors.surface,
+                color: me ? AppColors.accent : AppColors.surface,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(message.isMe ? 18 : 4),
-                  bottomRight: Radius.circular(message.isMe ? 4 : 18),
+                  topLeft: big,
+                  topRight: big,
+                  bottomLeft: me ? big : small,
+                  bottomRight: me ? small : big,
                 ),
-                boxShadow: message.isMe
-                    ? [BoxShadow(color: AppColors.primary.withAlpha(40), blurRadius: 12, offset: const Offset(0, 4))]
-                    : AppColors.cardShadow,
+                border: me ? null : Border.all(color: AppColors.line),
+                boxShadow: me ? AppColors.accentGlow(0.18) : null,
               ),
               child: Text(
                 message.text,
-                style: GoogleFonts.dmSans(
-                  fontSize: 14.5,
-                  height: 1.45,
-                  color: message.isMe ? Colors.white : AppColors.text,
-                ),
+                style: AppText.bodyMedium.copyWith(color: me ? AppColors.onAccent : AppColors.text),
               ),
             ),
           ),
-          if (message.isMe) const SizedBox(width: 4),
         ],
       ),
     );

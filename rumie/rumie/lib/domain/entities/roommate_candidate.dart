@@ -25,6 +25,10 @@ class RoommateCandidate {
   final String bio;
   final List<String> tags;
 
+  /// Optional artwork. The group API carries none, so this is normally null
+  /// and presentation falls back to a generated avatar.
+  final String? photoUrl;
+
   const RoommateCandidate({
     required this.id,
     required this.targetType,
@@ -34,6 +38,7 @@ class RoommateCandidate {
     required this.location,
     required this.bio,
     required this.tags,
+    this.photoUrl,
   });
 
   factory RoommateCandidate.fromGroup(GroupOut g) {

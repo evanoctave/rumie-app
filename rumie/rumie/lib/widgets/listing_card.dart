@@ -1,23 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../services/value_score.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_shapes.dart';
+import '../theme/app_text.dart';
+import 'rumie_icon.dart';
+import 'ui/app_chip.dart';
+import 'ui/photo.dart';
+import 'ui/score_ring.dart';
 
-class ListingCard extends StatefulWidget {
+class ListingCard extends StatelessWidget {
   final String title;
   final String type;
   final String location;
   final int rent;
+
   /// Null when the listing has no beds/baths info (not an API field).
   final String? bedsBaths;
 
-  /// Null when unknown; `'Now'` renders the "Available Now" badge.
+  /// Null when unknown; `'Now'` renders the "Available Now" chip.
   final String? availableDate;
 
   /// First of `ListingOut.photo_urls`, shown as the card image when present.
   final String? photoUrl;
+
+  final ValueScore? valueScore;
   final int animationIndex;
 
   const ListingCard({
@@ -29,289 +36,126 @@ class ListingCard extends StatefulWidget {
     this.bedsBaths,
     this.availableDate,
     this.photoUrl,
+    this.valueScore,
     this.animationIndex = 0,
   });
 
-  @override
-  State<ListingCard> createState() => _ListingCardState();
-}
+  Color _tierColor(ValueScore s) => s.isHigh
+      ? AppColors.scoreHigh
+      : s.isMid
+          ? AppColors.scoreMid
+          : AppColors.scoreLow;
 
-class _ListingCardState extends State<ListingCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-      lowerBound: 0.97,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  Color get _accent {
-    switch (widget.type) {
-      case 'Room':      return AppColors.primary;
-      case 'Apartment': return AppColors.blue;
-      case 'Condo':     return AppColors.teal;
-      case 'House':     return AppColors.orange;
-      case 'Duplex':    return AppColors.green;
-      case 'Studio':    return AppColors.pink;
-      default:          return AppColors.primary;
-    }
-  }
-
-  Color get _accentSoft {
-    switch (widget.type) {
-      case 'Room':      return AppColors.softPurple;
-      case 'Apartment': return AppColors.softBlue;
-      case 'Condo':     return const Color(0xFFCCFBF1);
-      case 'House':     return AppColors.softOrange;
-      case 'Duplex':    return AppColors.softGreen;
-      case 'Studio':    return AppColors.softPink;
-      default:          return AppColors.softPurple;
-    }
-  }
+  Color _tierSoft(ValueScore s) => s.isHigh
+      ? AppColors.scoreHighBg
+      : s.isMid
+          ? AppColors.scoreMidBg
+          : AppColors.scoreLowBg;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _ctrl.reverse(),
-      onTapUp: (_) => _ctrl.forward(),
-      onTapCancel: () => _ctrl.forward(),
-      child: ScaleTransition(
-        scale: _ctrl,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border, width: 1.5),
-            boxShadow: AppColors.cardShadow,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildImageArea(),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
+    final score = valueScore;
+    final photo = photoUrl;
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: ShapeDecoration(
+        color: AppColors.surface,
+        shape: AppShapes.shape(AppShapes.card - 4, side: BorderSide(color: AppColors.line)),
+        shadows: AppColors.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (photo != null && photo.isNotEmpty)
+            SizedBox(
+              height: 160,
+              width: double.infinity,
+              child: RumiePhoto(path: photo, fallbackName: title),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        _TypePill(type: widget.type, color: _accent, bg: _accentSoft),
-                        const Spacer(),
-                        if (widget.availableDate == 'Now')
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 9, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.softGreen,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text.rich(
+                            TextSpan(
                               children: [
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.green,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  'Available Now',
-                                  style: GoogleFonts.dmSans(
-                                    color: AppColors.greenDark,
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
+                                TextSpan(text: '\$$rent', style: AppText.cardName),
+                                TextSpan(text: ' /mo', style: AppText.secondary),
                               ],
                             ),
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: 11),
-                    Text(
-                      widget.title,
-                      style: GoogleFonts.dmSans(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.text,
-                        letterSpacing: -0.2,
+                          const SizedBox(height: 6),
+                          Text(title, style: AppText.tileTitle, maxLines: 2, overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              RumieIcon(asset: 'assets/icons/ic_location.svg', size: 13, color: AppColors.textTertiary),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(location, style: AppText.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 5),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on_rounded,
-                            size: 13, color: _accent),
-                        const SizedBox(width: 3),
-                        Text(
-                          widget.location,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 12.5,
-                            color: AppColors.textSecondary,
+                    if (score != null) ...[
+                      const SizedBox(width: 12),
+                      Column(
+                        children: [
+                          ScoreRing(value: score.overall, color: _tierColor(score), size: 58),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(color: _tierSoft(score), borderRadius: BorderRadius.circular(999)),
+                            child: Text(score.tier, style: AppText.micro.copyWith(color: _tierColor(score))),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 13),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _InfoTag('\$${widget.rent}/mo', AppColors.green, AppColors.softGreen),
-                        if (widget.bedsBaths != null)
-                          _InfoTag(widget.bedsBaths!, _accent, _accentSoft),
-                        if (widget.availableDate != null &&
-                            widget.availableDate != 'Now')
-                          _InfoTag('Avail. ${widget.availableDate}', AppColors.orange, AppColors.softOrange),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
-              ),
-            ],
-          ),
-        )
-            .animate()
-            .fadeIn(
-                delay: (80 * widget.animationIndex).ms, duration: 320.ms)
-            .slideY(
-                begin: 0.07,
-                delay: (80 * widget.animationIndex).ms,
-                duration: 320.ms,
-                curve: Curves.easeOutCubic),
-      ),
-    );
-  }
-
-  Widget _buildImageArea() {
-    return Container(
-      height: 148,
-      decoration: BoxDecoration(
-        color: _accentSoft,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(19)),
-      ),
-      child: Stack(
-        children: [
-          // Decorative accent circles
-          Positioned(
-            top: -20,
-            right: -20,
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: _accent.withAlpha(20),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -10,
-            left: 20,
-            child: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: _accent.withAlpha(14),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Center(
-            child: SvgPicture.asset(
-              'assets/icons/ic_listings.svg',
-              width: 52,
-              height: 52,
-              colorFilter: ColorFilter.mode(
-                  _accent.withAlpha(140), BlendMode.srcIn),
-            ),
-          ),
-          if (widget.photoUrl != null)
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(19)),
-                child: Image.network(
-                  widget.photoUrl!,
-                  fit: BoxFit.cover,
-                  // Falls back to the decorative placeholder underneath.
-                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    AppChip(label: type, style: AppChipStyle.accent, dense: true),
+                    if (bedsBaths != null) AppChip(label: bedsBaths!, dense: true),
+                    if (availableDate == 'Now')
+                      AppChip(
+                        label: 'Available Now',
+                        dense: true,
+                        leading: Container(
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(color: AppColors.positive, shape: BoxShape.circle),
+                        ),
+                      )
+                    else if (availableDate != null)
+                      AppChip(label: 'Move-in $availableDate', dense: true),
+                  ],
                 ),
-              ),
+                if (score != null) ...[
+                  const SizedBox(height: 14),
+                  MiniBar(label: 'vs median', value: score.priceScore / 100, color: _tierColor(score)),
+                  const SizedBox(height: 6),
+                  MiniBar(label: '\$ per sqft', value: score.sqftScore / 100, color: _tierColor(score)),
+                  const SizedBox(height: 6),
+                  MiniBar(label: 'Transit', value: score.transitScore / 100, color: _tierColor(score)),
+                ],
+              ],
             ),
+          ),
         ],
-      ),
-    );
-  }
-}
-
-class _TypePill extends StatelessWidget {
-  final String type;
-  final Color color;
-  final Color bg;
-
-  const _TypePill({required this.type, required this.color, required this.bg});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withAlpha(60)),
-      ),
-      child: Text(
-        type,
-        style: GoogleFonts.dmSans(
-          color: color,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoTag extends StatelessWidget {
-  final String text;
-  final Color color;
-  final Color bg;
-
-  const _InfoTag(this.text, this.color, this.bg);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        text,
-        style: GoogleFonts.dmSans(
-          color: color,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
       ),
     );
   }

@@ -10,6 +10,11 @@ import '../domain/repositories/auth_repository.dart';
 enum AuthStatus { unknown, authenticated, unauthenticated }
 
 class AuthProvider extends ChangeNotifier {
+  /// `flutter run --dart-define=RUMIE_DEMO=true` runs against in-memory
+  /// repositories (see `lib/dev/demo_locator.dart`). The only behaviour
+  /// change here is skipping the Face ID lock on launch.
+  static const bool demo = bool.fromEnvironment('RUMIE_DEMO');
+
   AuthStatus _status = AuthStatus.unknown;
   UserOut? _user;
   String? _error;
@@ -48,7 +53,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       _user = await locator<AuthRepository>().me();
       _status = AuthStatus.authenticated;
-      _isLocked = true; // require Face ID on every cold launch
+      _isLocked = !demo; // require Face ID on every cold launch
     } catch (_) {
       _status = AuthStatus.unauthenticated;
     }

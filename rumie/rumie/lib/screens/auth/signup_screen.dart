@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
-
-import 'package:flutter/services.dart';
 
 import '../../domain/entities/entities.dart';
 import '../../domain/errors/error_messages.dart';
 import '../../state/auth_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_text.dart';
 import '../../utils/validators.dart';
+import '../../widgets/ui/app_button.dart';
+import '../../widgets/ui/app_chip.dart';
+import '../../widgets/ui/app_dialog.dart';
+import '../../widgets/ui/app_text_field.dart';
+import '../../widgets/ui/circle_button.dart';
+import '../../widgets/ui/pressable.dart';
+import '../../widgets/ui/reveal.dart';
 
 class SignupScreen extends StatefulWidget {
   final Role role;
@@ -29,10 +36,7 @@ class _SignupScreenState extends State<SignupScreen> {
   /// Server 422 messages (V5), shown under the matching field.
   Map<String, List<String>> _serverErrors = const {};
 
-  String? Function(String?) _withServer(
-    String field,
-    String? Function(String?) local,
-  ) =>
+  String? Function(String?) _withServer(String field, String? Function(String?) local) =>
       (v) => firstFieldError(_serverErrors, field) ?? local(v);
 
   @override
@@ -46,6 +50,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _submit() async {
     setState(() => _serverErrors = const {});
     if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
     final auth = context.read<AuthProvider>();
     final ok = await auth.register(
       RegisterIn(
@@ -63,10 +68,7 @@ class _SignupScreenState extends State<SignupScreen> {
         _formKey.currentState!.validate();
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.error ?? 'Registration failed.'),
-          backgroundColor: AppColors.softRed,
-        ),
+        SnackBar(content: Text(auth.error ?? 'Registration failed.')),
       );
       return;
     }
@@ -78,38 +80,18 @@ class _SignupScreenState extends State<SignupScreen> {
     final auth = LocalAuthentication();
     final canCheck = await auth.canCheckBiometrics;
     if (!canCheck || !mounted) return;
-
     final available = await auth.getAvailableBiometrics();
-    final hasFaceId = available.contains(BiometricType.face);
-    if (!hasFaceId || !mounted) return;
+    if (!available.contains(BiometricType.face) || !mounted) return;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.cardBg,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        title: Text(
-          'Enable Face ID?',
-          style: TextStyle(color: AppColors.text, fontWeight: FontWeight.w700),
-        ),
-        content: Text(
-          'Sign in instantly with Face ID every time you open Rumie.',
-          style: TextStyle(color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Not now', style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Enable', style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
+    final confirmed = await showAppDialog(
+      context,
+      title: 'Enable Face ID?',
+      message: 'Sign in instantly with Face ID every time you open Rumie.',
+      confirmLabel: 'Enable',
+      cancelLabel: 'Not now',
     );
 
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       try {
         await auth.authenticate(
           localizedReason: 'Authenticate to enable Face ID for Rumie',
@@ -122,281 +104,125 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final loading = context.watch<AuthProvider>().loading;
-    final roleLabel = widget.role == Role.rumie ? 'Roommate' : 'Landlord';
+    final roleLabel = widget.role == Role.rumie ? 'Looking for a roommate' : 'Landlord';
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.text, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 16),
-                Text(
-                  'Create your\naccount.',
-                  style: TextStyle(
-                    fontSize: 38,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.text,
-                    height: 1.1,
-                    letterSpacing: -1,
+                CircleButton(
+                  iconAsset: 'assets/icons/ic_back.svg',
+                  semanticLabel: 'Back',
+                  onTap: () => Navigator.pop(context),
+                ),
+                const SizedBox(height: 36),
+                Reveal(child: Text('Create your account', style: AppText.screenTitle)),
+                const SizedBox(height: 10),
+                Reveal(index: 1, child: AppChip(label: roleLabel, style: AppChipStyle.accent)),
+                const SizedBox(height: 30),
+                Reveal(
+                  index: 2,
+                  child: AppTextField(
+                    controller: _emailCtrl,
+                    label: 'Email',
+                    hint: 'you@example.com',
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    maxLength: 254,
+                    inputFormatters: const [SanitizingFormatter()],
+                    validator: _withServer('email', validateEmail),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text(
-                      'Signing up as ',
-                      style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withAlpha(20),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.secondary.withAlpha(60)),
+                const SizedBox(height: 18),
+                Reveal(
+                  index: 3,
+                  child: AppTextField(
+                    controller: _passwordCtrl,
+                    label: 'Password',
+                    hint: 'At least 8 characters',
+                    obscure: _obscure,
+                    textInputAction: TextInputAction.next,
+                    maxLength: 128,
+                    inputFormatters: const [SanitizingFormatter()],
+                    validator: _withServer('password', validatePassword),
+                    suffix: Pressable(
+                      onTap: () => setState(() => _obscure = !_obscure),
+                      pressedScale: 0.85,
+                      semanticLabel: _obscure ? 'Show password' : 'Hide password',
+                      child: Icon(
+                        _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: AppColors.textSecondary,
+                        size: 20,
                       ),
-                      child: Text(
-                        roleLabel,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.secondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Reveal(
+                  index: 4,
+                  child: AppTextField(
+                    controller: _ageCtrl,
+                    label: 'Age',
+                    hint: '24',
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.done,
+                    maxLength: 3,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    validator: _withServer('age', validateAge),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Reveal(index: 5, child: Text('Gender', style: AppText.label)),
+                const SizedBox(height: 8),
+                Reveal(
+                  index: 5,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final opt in const [
+                        (Gender.male, 'Male'),
+                        (Gender.female, 'Female'),
+                        (Gender.nonbinary, 'Non-binary'),
+                        (Gender.other, 'Other'),
+                      ])
+                        AppChip(
+                          label: opt.$2,
+                          selected: _gender == opt.$1,
+                          onTap: () => setState(() => _gender = opt.$1),
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 40),
-                _buildLabel('Email'),
-                const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _emailCtrl,
-                  hint: 'you@example.com',
-                  keyboardType: TextInputType.emailAddress,
-                  maxLength: 254,
-                  validator: _withServer('email', validateEmail),
-                ),
-                const SizedBox(height: 20),
-                _buildLabel('Password'),
-                const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _passwordCtrl,
-                  hint: '••••••••',
-                  obscure: _obscure,
-                  suffix: IconButton(
-                    icon: Icon(
-                      _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: AppColors.gray,
-                      size: 20,
-                    ),
-                    onPressed: () => setState(() => _obscure = !_obscure),
+                    ],
                   ),
-                  maxLength: 128,
-                  validator: _withServer('password', validatePassword),
                 ),
-                const SizedBox(height: 20),
-                _buildLabel('Age'),
-                const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _ageCtrl,
-                  hint: '24',
-                  keyboardType: TextInputType.number,
-                  maxLength: 3,
-                  validator: _withServer('age', validateAge),
-                ),
-                const SizedBox(height: 20),
-                _buildLabel('Gender'),
-                const SizedBox(height: 8),
-                _buildGenderRow(),
                 if (firstFieldError(_serverErrors, 'gender') != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       firstFieldError(_serverErrors, 'gender')!,
-                      style: const TextStyle(color: AppColors.red, fontSize: 12),
+                      style: AppText.caption.copyWith(color: AppColors.danger),
                     ),
                   ),
-                const SizedBox(height: 36),
-                _SubmitButton(
-                  label: 'Create Account',
-                  loading: loading,
-                  onTap: _submit,
+                const SizedBox(height: 32),
+                Reveal(
+                  index: 6,
+                  child: AppButton(
+                    label: 'Create account',
+                    loading: loading,
+                    iconAsset: 'assets/icons/ic_chevron.svg',
+                    iconTrailing: true,
+                    onTap: _submit,
+                  ),
                 ),
-                const SizedBox(height: 40),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textSecondary,
-        letterSpacing: 0.4,
-      ),
-    );
-  }
-
-  Widget _buildGenderRow() {
-    final options = [
-      (Gender.male, 'Male'),
-      (Gender.female, 'Female'),
-      (Gender.nonbinary, 'Non-binary'),
-      (Gender.other, 'Other'),
-    ];
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: options.map((opt) {
-        final selected = _gender == opt.$1;
-        return GestureDetector(
-          onTap: () => setState(() => _gender = opt.$1),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: selected ? AppColors.secondary.withAlpha(20) : AppColors.cardBg,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: selected ? AppColors.secondary : AppColors.border,
-                width: selected ? 1.5 : 1,
-              ),
-            ),
-            child: Text(
-              opt.$2,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                color: selected ? AppColors.secondary : AppColors.textSecondary,
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    TextInputType? keyboardType,
-    bool obscure = false,
-    Widget? suffix,
-    int? maxLength,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscure,
-      maxLength: maxLength,
-      maxLengthEnforcement: MaxLengthEnforcement.enforced,
-      inputFormatters: const [SanitizingFormatter()],
-      style: TextStyle(color: AppColors.text, fontSize: 15),
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(color: AppColors.gray),
-        suffixIcon: suffix,
-        filled: true,
-        fillColor: AppColors.surface,
-        counterText: '',
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: AppColors.secondary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: AppColors.red),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: AppColors.red, width: 1.5),
-        ),
-        errorStyle: const TextStyle(color: AppColors.red),
-      ),
-    );
-  }
-}
-
-class _SubmitButton extends StatefulWidget {
-  final String label;
-  final bool loading;
-  final VoidCallback onTap;
-
-  const _SubmitButton({required this.label, required this.loading, required this.onTap});
-
-  @override
-  State<_SubmitButton> createState() => _SubmitButtonState();
-}
-
-class _SubmitButtonState extends State<_SubmitButton> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        if (!widget.loading) widget.onTap();
-      },
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 100),
-        child: Container(
-          width: double.infinity,
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppColors.secondary,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          alignment: Alignment.center,
-          child: widget.loading
-              ? const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation(Colors.white),
-                  ),
-                )
-              : Text(
-                  widget.label,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
         ),
       ),
     );

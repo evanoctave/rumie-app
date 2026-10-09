@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:roomie/di/locator.dart';
 import 'package:roomie/domain/entities/entities.dart';
 import 'package:roomie/domain/errors/api_exception.dart';
 import 'package:roomie/domain/repositories/discovery_repository.dart';
 import 'package:roomie/domain/repositories/swipe_repository.dart';
 import 'package:roomie/screens/swipe_screen.dart';
+import 'package:roomie/widgets/ui/circle_button.dart';
 
 class _FakeDiscovery implements DiscoveryRepository {
   Future<List<GroupOut>> Function() groups;
@@ -44,12 +44,15 @@ void main() {
   late _FakeSwipe swipe;
   final matched = <RoommateCandidate>[];
 
-  setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
-
   Future<void> pumpScreen(
     WidgetTester tester,
     Future<List<GroupOut>> Function() groups,
   ) async {
+    // Phone-sized surface: the discover cards are 3:4 and their action row
+    // sits below the default 800x600 test window.
+    tester.view.physicalSize = const Size(1179, 2556);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
     await locator.reset();
     swipe = _FakeSwipe();
     locator
@@ -67,12 +70,16 @@ void main() {
     ));
   }
 
-  // flutter_animate has looping animations, so settle with fixed pumps.
+  // Entrance and removal animations run on fixed timers; settle with pumps.
   Future<void> settle(WidgetTester tester) async {
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 12; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
   }
+
+  Finder passButton() => find.byWidgetPredicate(
+        (w) => w is CircleButton && w.semanticLabel.startsWith('Pass on'),
+      );
 
   testWidgets('loading → deck from DiscoveryRepository', (tester) async {
     final gate = Completer<List<GroupOut>>();
@@ -83,9 +90,10 @@ void main() {
     await settle(tester);
 
     expect(find.byType(CircularProgressIndicator), findsNothing);
-    expect(find.text('Solo rumie'), findsOneWidget);
+    // Both sample groups are solo, and both cards fit the phone viewport.
+    expect(find.text('Solo rumie'), findsWidgets);
     expect(find.text('Gamer'), findsOneWidget);
-    expect(find.text('\$1000/mo'), findsOneWidget);
+    expect(find.text('\$1000/mo'), findsWidgets);
   });
 
   testWidgets('empty discovery → existing empty state', (tester) async {
@@ -115,26 +123,26 @@ void main() {
     await pumpScreen(tester, () async => [_g('g1'), _g('g2')]);
     await settle(tester);
 
-    await tester.tap(find.text('Like'));
+    await tester.tap(find.text('Connect').first);
     await settle(tester);
     expect(swipe.calls.single.targetId, 'g1');
     expect(swipe.calls.single.direction, SwipeDirection.right);
     expect(swipe.calls.single.targetType, SwipeTargetType.group);
-    expect(find.text("It's a Match!"), findsNothing);
+    expect(find.text("It's a match"), findsNothing);
     expect(matched, isEmpty);
 
     swipe.result = const SwipeOut(matched: true, merge: {'group_id': 'gx'});
-    await tester.tap(find.text('Like'));
+    await tester.tap(find.text('Connect').first);
     await settle(tester);
     expect(swipe.calls.last.targetId, 'g2');
-    expect(find.text("It's a Match!"), findsOneWidget);
+    expect(find.text("It's a match"), findsOneWidget);
     expect(matched.single.id, 'g2');
   });
 
   testWidgets('Pass posts a left swipe', (tester) async {
     await pumpScreen(tester, () async => [_g('g1')]);
     await settle(tester);
-    await tester.tap(find.text('Pass'));
+    await tester.tap(passButton().first);
     await settle(tester);
     expect(swipe.calls.single.direction, SwipeDirection.left);
     expect(find.text("You've seen everyone"), findsOneWidget);
